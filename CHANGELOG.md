@@ -2,8 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## Unreleased
 
+## v0.1.0 - 2026-05-23
+
+- Initialized the standalone repository and prepared the first local `v0.1.0`
+  release candidate.
+- Added a packaging metadata pass for PyPI (license, classifiers, keywords, and
+  project URLs).
+- Added a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit,
+  Gitleaks, Dependency Review, actionlint), OpenSSF Scorecard analysis,
+  Dependabot, and CODEOWNERS.
+- Added community-health files: a code of conduct, issue templates, a pull
+  request template, and a CI integration template under `examples/`.
 - Added technical specification, AppSec rule schema, initial baseline rules,
   validator CLI, documentation, and tests.
 - Added baseline security reporting documentation.

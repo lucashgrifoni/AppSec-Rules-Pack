@@ -1,5 +1,11 @@
 # AppSec Rules Pack
 
+[![CI](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml)
+[![Security CI/CD](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lucashgrifoni/AppSec-Rules-Pack/badge)](https://scorecard.dev/viewer/?uri=github.com/lucashgrifoni/AppSec-Rules-Pack)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
+
 Reusable AppSec policy-as-code rules for secure application review, CI quality gates,
 and manual evidence collection.
 
@@ -21,20 +27,31 @@ configuration.
   enum/type/additionalProperties failures, duplicate rule IDs, cross-file
   duplicate IDs, exception-window warnings, exception-policy contradictions,
   malformed framework mapping IDs, and sensitive-value detection.
-- A coverage gate and a hardened GitHub Actions CI workflow.
-- Contribution guidance for safe rule additions.
+- A 90% coverage gate plus a hardened CI/CD surface: a build/lint/test workflow,
+  a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks,
+  Dependency Review, actionlint), and OpenSSF Scorecard analysis.
+- Contribution guidance for safe rule additions, a code of conduct, and issue/PR
+  templates.
+- A CI integration template in `examples/`.
 
 ## Project Layout
 
 ```text
 .
 |-- .github/
-|   `-- workflows/
-|       `-- ci.yml
-|-- CONTRIBUTING.md
-|-- README.md
-|-- TECHNICAL_SPEC.md
-|-- pyproject.toml
+|   |-- ISSUE_TEMPLATE/
+|   |   |-- bug_report.md
+|   |   |-- config.yml
+|   |   `-- rule_proposal.md
+|   |-- workflows/
+|   |   |-- ci.yml
+|   |   |-- scorecard.yml
+|   |   `-- security-ci-cd.yml
+|   |-- CODEOWNERS
+|   |-- PULL_REQUEST_TEMPLATE.md
+|   `-- dependabot.yml
+|-- examples/
+|   `-- README.md
 |-- rules/
 |   `-- appsec-baseline.yaml
 |-- src/
@@ -46,27 +63,28 @@ configuration.
 |       |-- validator.py
 |       `-- schemas/
 |           `-- appsec-rule.schema.json
-`-- tests/
-    |-- fixtures/
-    |   |-- cross-file-dup/
-    |   |   |-- first-pack.yaml
-    |   |   `-- second-pack.yaml
-    |   |-- exception-consistency/
-    |   |   `-- disallowed-with-window.yaml
-    |   |-- fail/
-    |   |   |-- additional-property.yaml
-    |   |   |-- duplicate-id.yaml
-    |   |   |-- invalid-enum.yaml
-    |   |   |-- invalid-type.yaml
-    |   |   `-- missing-required-field.yaml
-    |   |-- pass/
-    |   |   `-- minimal-valid.yaml
-    |   `-- warn/
-    |       `-- exception-window-warning.yaml
-    |-- test_loader.py
-    |-- test_packaging.py
-    |-- test_validator.py
-    `-- test_validator_paths.py
+|-- tests/
+|   |-- fixtures/
+|   |   |-- cross-file-dup/
+|   |   |-- exception-consistency/
+|   |   |-- fail/
+|   |   |-- pass/
+|   |   `-- warn/
+|   |-- test_edge_cases.py
+|   |-- test_loader.py
+|   |-- test_packaging.py
+|   |-- test_validator.py
+|   `-- test_validator_paths.py
+|-- CHANGELOG.md
+|-- CODE_OF_CONDUCT.md
+|-- CONTRIBUTING.md
+|-- LICENSE
+|-- README.md
+|-- ROADMAP.md
+|-- SECURITY.md
+|-- STATUS.md
+|-- TECHNICAL_SPEC.md
+`-- pyproject.toml
 ```
 
 ## Setup
@@ -76,6 +94,13 @@ python -m venv .venv
 .\.venv\Scripts\python -m pip install -e ".[dev]"
 ```
 
+On macOS/Linux:
+
+```bash
+python -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"
+```
+
 If the dependencies already exist in the active Python environment, the validator can
 also be run directly with `PYTHONPATH=src`.
 
@@ -83,43 +108,50 @@ also be run directly with `PYTHONPATH=src`.
 
 Validate the baseline rules pack:
 
-```powershell
+```bash
 python -m appsec_rules_pack validate rules/appsec-baseline.yaml
 ```
 
 Validate every `.yaml` or `.yml` rules pack under a directory:
 
-```powershell
+```bash
 python -m appsec_rules_pack validate rules
 ```
 
-Or, after installation:
+Or, after installation, use the console script:
 
-```powershell
+```bash
 appsec-rules validate rules/appsec-baseline.yaml
 ```
 
 Fail on warnings as well as errors:
 
-```powershell
+```bash
 appsec-rules validate rules/appsec-baseline.yaml --fail-on-warnings
 ```
 
 Emit machine-readable JSON for CI pipelines:
 
-```powershell
+```bash
 appsec-rules validate rules --format json
 ```
 
 Show the installed version:
 
-```powershell
+```bash
 appsec-rules --version
 ```
 
 The JSON report contains a `summary` object (`files`, `rules`, `errors`, `warnings`,
 `ok`) and a `files` array with per-file issues (`level`, `path`, `message`). The exit
 code is non-zero when validation fails, matching the text output.
+
+## Use It In Your CI
+
+`examples/README.md` contains a GitHub Actions template for installing the pack,
+validating a rules directory, and failing the build on errors (and optionally
+warnings). Pin the template to a reviewed tag or commit before enabling it as a
+quality gate.
 
 ## Rule Pack Model
 
@@ -133,14 +165,14 @@ Rules are advisory by default. Each rule defines:
 - remediation and validation guidance;
 - exception metadata requirements.
 
-The first release is optimized for reviewability and deterministic validation, not for
+The initial version is optimized for reviewability and deterministic validation, not for
 deep scanner-specific matching.
 
 ## Validation
 
-```powershell
+```bash
 python -m pytest
-$env:PYTHONPATH = "src"; python -m appsec_rules_pack validate rules
+PYTHONPATH=src python -m appsec_rules_pack validate rules
 ```
 
 The validator checks JSON Schema compliance, duplicate rule IDs within a file and across
@@ -149,3 +181,13 @@ a validated directory, exception-window limits, exception-policy contradictions
 mapping identifiers (CWE, OWASP API Top 10 2023, OWASP ASVS, NIST SSDF), and basic
 sensitive-value patterns. Directory validation reports each issue with the relative file
 path, schema path, severity, and a concise remediation-oriented message.
+
+## Contributing
+
+See `CONTRIBUTING.md` for rule authoring principles, the severity model, exception
+requirements, and the required checks. All participation is governed by
+`CODE_OF_CONDUCT.md`. To report a security issue, follow `SECURITY.md`.
+
+## License
+
+Licensed under the Apache License 2.0. See `LICENSE`.

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,12 +8,41 @@ dynamic = ["version"]
 description = "Generic AppSec policy-as-code rules pack and validator."
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [{ name = "AppSec Rules Pack Maintainers" }]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Lucas Henrique Grifoni" }]
+keywords = [
+    "appsec",
+    "application-security",
+    "policy-as-code",
+    "security-rules",
+    "secure-code-review",
+    "devsecops",
+    "owasp-asvs",
+    "ci-quality-gate",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = [
     "jsonschema>=4.21,<5",
     "PyYAML>=6.0.1,<7",
     "typer>=0.12,<1",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lucashgrifoni/AppSec-Rules-Pack"
+Repository = "https://github.com/lucashgrifoni/AppSec-Rules-Pack"
+Issues = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/issues"
+Changelog = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

@@ -12,6 +12,9 @@
   `--version`, and `--format json` output.
 - No export path for a real scanning engine exists yet; this remains intentionally
   out of scope for the current increment.
+- The project is now tracked in its own standalone Git repository with a hardened
+  CI/CD surface (build/lint/test CI, a security pipeline, and OpenSSF Scorecard),
+  Dependabot, CODEOWNERS, and community-health files.
 
 ## Last Increment
 
@@ -39,8 +42,6 @@
 
 ## Risks And Limits
 
-- The project directory is currently untracked in the parent Git repository; review
-  carefully before staging to avoid unrelated workspace files.
 - Cross-file duplicate ID detection applies only when validating a directory with
   two or more YAML rule packs; single-file validation remains file-local.
 - The rule model is still generic and review-oriented. It does not emit rules for
@@ -49,12 +50,14 @@
   changes must update tests and CLI expectations together.
 - Mapping format checks are warnings, not errors, so unusual but valid identifiers
   are not blocked; review warnings during contribution.
-- The CI workflow is committed locally and ready for use once this project is tracked
-  in its own repository; it has not yet executed on a remote.
+- The CI/CD workflows are committed but have not yet executed on the remote; first
+  runs happen after configuring a remote and pushing to GitHub.
 
 ## Next Steps
 
-- Track this project in its own repository so the CI workflow runs on push and PR.
+- Configure the GitHub remote and push so CI, the security pipeline, and Scorecard run.
+- Enable branch protection and required status checks once the remote is live.
+- Add per-rule pass/fail fixtures so every baseline rule has an explicit example.
 - Keep engine export design separate from this validator fixture work.
 - Expand baseline rules only when each addition has evidence and validation steps.
 
