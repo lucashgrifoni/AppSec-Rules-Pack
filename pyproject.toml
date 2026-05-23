@@ -48,7 +48,7 @@ Changelog = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/CHAN
 dev = [
     "build>=1.2,<2",
     "pytest>=8,<9",
-    "pytest-cov>=5,<7",
+    "pytest-cov>=5,<8",
     "ruff>=0.5,<1",
 ]
 
