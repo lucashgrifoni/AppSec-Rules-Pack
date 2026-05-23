@@ -1,0 +1,49 @@
+pack:
+  id: fixture-cross-first
+  name: Fixture Cross File First
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: First pack in a cross-file duplicate ID negative fixture.
+
+rules:
+  - id: APPSEC-CROSS-001
+    title: First cross-file duplicate rule
+    description: This rule ID is intentionally reused in another YAML file for directory validation tests.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Rule IDs are unique across all YAML files in a validated directory.
+      signals:
+        - Cross-file duplicate IDs are rejected during directory validation.
+    match:
+      type: review
+      includes:
+        - Rule identifiers submitted for validation.
+      excludes:
+        - Unrelated rule packs outside the validated directory.
+    remediation:
+      guidance: Rename duplicated rules to stable unique identifiers before publishing the pack.
+      validation:
+        - Re-run directory validation and confirm no cross-file duplicate rule ID errors remain.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

@@ -1,0 +1,50 @@
+pack:
+  id: fixture-fail-additional-property
+  name: Fixture Additional Property
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Invalid fixture used to verify rejection of unexpected fields.
+
+rules:
+  - id: APPSEC-TEST-003
+    title: Reject unexpected rule fields
+    unexpected_field: true
+    description: This rule includes an unsupported field so validator tests can assert additionalProperties failures.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Rule documents only contain schema-approved fields.
+      signals:
+        - Negative validation rejects unexpected properties.
+    match:
+      type: review
+      includes:
+        - Rule metadata submitted for validation.
+      excludes:
+        - Generated reports that are outside the rule schema contract.
+    remediation:
+      guidance: Remove unsupported fields or add them to the schema through a reviewed contract change before using them in rules.
+      validation:
+        - Re-run the validator and confirm no unexpected property errors remain.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

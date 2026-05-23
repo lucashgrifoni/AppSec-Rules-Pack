@@ -1,0 +1,47 @@
+pack:
+  id: fixture-inconsistent-exception
+  name: Fixture Inconsistent Exception
+  version: 0.1.0
+  mode: advisory
+  owner: appsec
+  description: Fixture where a disallowed exception still declares a window and fields.
+
+rules:
+  - id: APPSEC-EXC-001
+    title: Disallowed exception with contradictory metadata
+    description: This rule disallows exceptions yet still defines a non-zero window and required fields.
+    severity: high
+    category: configuration
+    status: enabled
+    enforcement: advisory
+    targets:
+      - general
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-1188
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Exception policy is internally consistent.
+      signals:
+        - Validator rejects disallowed exceptions that still define a window.
+    match:
+      type: review
+      includes:
+        - Rules that declare exception metadata.
+      excludes:
+        - Rules without exception metadata.
+    remediation:
+      guidance: Set max_days to 0 and required_fields to an empty list when exceptions are not allowed.
+      validation:
+        - Re-run validation and confirm the contradiction is resolved.
+    exceptions:
+      allowed: false
+      max_days: 30
+      required_fields:
+        - owner

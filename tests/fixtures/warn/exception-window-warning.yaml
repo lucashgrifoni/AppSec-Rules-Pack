@@ -1,0 +1,50 @@
+pack:
+  id: fixture-warn-exception
+  name: Fixture Exception Window Warning
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Warning fixture used to verify exception window review limits.
+
+rules:
+  - id: APPSEC-WARN-001
+    title: Long exception window requires review
+    description: This rule uses an exception window above the default review limit to emit a warning.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Exception windows above 90 days are explicitly reviewed.
+      signals:
+        - Validator emits a warning when max_days exceeds the default limit.
+    match:
+      type: review
+      includes:
+        - Rules that declare exception metadata.
+      excludes:
+        - Rules that disallow exceptions.
+    remediation:
+      guidance: Reduce the exception window or document explicit approval for longer deferrals.
+      validation:
+        - Re-run validation with and without --fail-on-warnings as required by policy.
+    exceptions:
+      allowed: true
+      max_days: 120
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control

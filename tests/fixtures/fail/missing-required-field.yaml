@@ -1,0 +1,48 @@
+pack:
+  id: fixture-fail
+  name: Fixture Fail Rules Pack
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Invalid fixture used to verify clear schema error messages.
+
+rules:
+  - id: APPSEC-TEST-002
+    description: This rule intentionally omits the title field so validator tests can assert the missing-field error.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Error handling path returns a documented response shape.
+      signals:
+        - Negative tests assert controlled error messages for invalid input.
+    match:
+      type: review
+      includes:
+        - API handlers and service boundaries that process untrusted input.
+      excludes:
+        - Local developer-only scripts that are not shipped or exposed.
+    remediation:
+      guidance: Replace raw exception output with a controlled error contract and log diagnostic detail only in trusted server logs.
+      validation:
+        - Run negative tests for invalid input and malformed requests.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

@@ -1,0 +1,49 @@
+pack:
+  id: fixture-fail-invalid-enum
+  name: Fixture Invalid Enum
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Invalid fixture used to verify concise enum validation messages.
+
+rules:
+  - id: APPSEC-TEST-004
+    title: Reject invalid severity values
+    description: This rule uses a severity outside the allowed set so validator tests can assert enum failures.
+    severity: urgent
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Severity values come from the schema-approved enumeration.
+      signals:
+        - Invalid severity values are rejected.
+    match:
+      type: review
+      includes:
+        - Rule severity metadata submitted for validation.
+      excludes:
+        - Free-form prose outside schema-governed enum fields.
+    remediation:
+      guidance: Replace unsupported severity values with one of the schema-approved severity levels before consuming the rule.
+      validation:
+        - Re-run validation and confirm the enum error is resolved.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

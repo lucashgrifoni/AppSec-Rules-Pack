@@ -1,0 +1,50 @@
+pack:
+  id: fixture-pass
+  name: Fixture Pass Rules Pack
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Minimal valid fixture used by validator and CLI tests.
+
+rules:
+  - id: APPSEC-TEST-001
+    title: Require controlled error handling
+    description: Verify that invalid user input returns controlled errors without stack traces or internal implementation details.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Error handling path returns a documented response shape.
+      signals:
+        - Negative tests assert controlled error messages for invalid input.
+    match:
+      type: review
+      includes:
+        - API handlers and service boundaries that process untrusted input.
+      excludes:
+        - Local developer-only scripts that are not shipped or exposed.
+    remediation:
+      guidance: Replace raw exception output with a controlled error contract and log diagnostic detail only in trusted server logs.
+      validation:
+        - Run negative tests for invalid input and malformed requests.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

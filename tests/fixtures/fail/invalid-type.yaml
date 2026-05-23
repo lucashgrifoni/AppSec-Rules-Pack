@@ -1,0 +1,49 @@
+pack:
+  id: fixture-fail-invalid-type
+  name: Fixture Invalid Type
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Invalid fixture used to verify concise type validation messages.
+
+rules:
+  - id: APPSEC-TEST-005
+    title: Reject invalid exception type
+    description: This rule uses a string where an integer is required so validator tests can assert type failures.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Exception windows use integer day counts.
+      signals:
+        - Type validation rejects string day values.
+    match:
+      type: review
+      includes:
+        - Exception metadata submitted for validation.
+      excludes:
+        - Documentation prose that is not parsed as schema-governed metadata.
+    remediation:
+      guidance: Replace string day values with integer day counts so exception metadata can be evaluated consistently.
+      validation:
+        - Re-run validation and confirm the type error is resolved.
+    exceptions:
+      allowed: true
+      max_days: "30"
+      required_fields:
+        - owner
+        - justification
+        - expires_at

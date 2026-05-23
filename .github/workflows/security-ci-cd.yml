@@ -1,0 +1,493 @@
+# Security CI/CD
+#
+# Standard security pipeline for this Python package, covering:
+#   - SAST          : Semgrep, CodeQL (Python), Bandit
+#   - SCA           : Trivy (filesystem vuln), pip-audit, Dependency Review (PR)
+#   - IaC / Pipeline: Trivy (misconfig), KICS (Checkmarx)
+#   - Secrets       : Trivy (secret), Gitleaks (git history)
+#   - Workflow lint : actionlint
+#
+# Scope note: this project is a pure-Python package (no container image, no
+# JavaScript), so the reference pipeline's Snyk jobs (require SNYK_TOKEN),
+# JavaScript CodeQL language, and container scanning are intentionally omitted.
+# SAST is still covered by Semgrep + CodeQL + Bandit, and SCA by Trivy +
+# pip-audit + Dependency Review, so no external secret is required.
+#
+# Supply-chain hardening:
+#   - Third-party and first-party actions are pinned to immutable commit SHAs.
+#   - The trailing comment records the semantic tag used to resolve the SHA.
+#   - Keep `.github/dependabot.yml` enabled for `github-actions` so Dependabot
+#     can refresh SHA pins through reviewable pull requests.
+#
+# GITHUB_TOKEN is supplied automatically by GitHub Actions. SARIF uploads require
+# `security-events: write`, set at job level. On private repositories, SARIF
+# upload and Dependency Review require GitHub Advanced Security; on public
+# repositories both are free.
+
+name: Security CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+      - develop
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+  merge_group:
+
+# Least-privilege top level: read-only. Jobs that upload SARIF elevate to
+# `security-events: write` themselves, and CodeQL adds `actions: read`.
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  TRIVY_SEVERITY: "MEDIUM,HIGH,CRITICAL"
+  TRIVY_SKIP_DIRS: ".git,dist,build,.pytest_cache,.ruff_cache"
+
+jobs:
+  sast-semgrep:
+    name: SAST - Semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+            semgrep.dev:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Semgrep
+        run: python -m pip install --upgrade "semgrep>=1.100.0,<2"
+
+      - name: Scan application and workflow code
+        run: |
+          semgrep scan \
+            --config p/security-audit \
+            --config p/github-actions \
+            --severity WARNING \
+            --sarif --output=semgrep.sarif \
+            --error \
+            --metrics=off \
+            .
+
+      - name: Upload Semgrep SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  sast-codeql:
+    name: SAST - CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+      actions: read # CodeQL reads workflow run metadata (required on private repos)
+    steps:
+      - name: Harden runner
+        # CodeQL `init` downloads the analysis bundle when it is not already in
+        # the runner toolcache; on a cold cache the bundle is fetched as a
+        # GitHub release asset, so those hosts must be allowed.
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            uploads.github.com:443
+            objects.githubusercontent.com:443
+            release-assets.githubusercontent.com:443
+            codeload.github.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          languages: python
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          category: "/language:python"
+
+  sast-bandit:
+    name: SAST - Bandit (Python)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Bandit SAST scan
+        # Gate: fail on medium+ severity AND medium+ confidence findings
+        # (-ll -ii). Lower-signal findings are reported but non-blocking.
+        run: |
+          python -m pip install bandit
+          python -m bandit -q -r src/appsec_rules_pack -ll -ii
+
+  sca-trivy:
+    name: SCA - Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            check.trivy.dev:443
+            get.trivy.dev:443
+            mirror.gcr.io:443
+            release-assets.githubusercontent.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Scan dependencies for vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: ${{ env.TRIVY_SEVERITY }}
+          ignore-unfixed: true
+          exit-code: "1"
+          format: sarif
+          output: trivy-deps.sarif
+          skip-dirs: ${{ env.TRIVY_SKIP_DIRS }}
+
+      - name: Upload Trivy dependency SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: trivy-deps.sarif
+          category: trivy-deps
+
+  iac-and-pipeline-trivy:
+    name: IaC and Pipeline - Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            check.trivy.dev:443
+            mirror.gcr.io:443
+            release-assets.githubusercontent.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Scan IaC and workflow misconfigurations
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: misconfig
+          severity: ${{ env.TRIVY_SEVERITY }}
+          exit-code: "1"
+          format: sarif
+          output: trivy-iac.sarif
+          skip-dirs: ${{ env.TRIVY_SKIP_DIRS }}
+
+      - name: Upload Trivy IaC SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: trivy-iac.sarif
+          category: trivy-iac
+
+  iac-kics:
+    name: IaC - KICS (Checkmarx)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden runner
+        # KICS builds a Chainguard wolfi-base container and `apk add nodejs npm`.
+        # The apk index loads from apk.cgr.dev, but package blobs are served from
+        # a Cloudflare R2 bucket whose name is opaque/may rotate, so it is
+        # allowed via the scoped wildcard *.r2.cloudflarestorage.com.
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            kics.io:443
+            registry.npmjs.org:443
+            apk.cgr.dev:443
+            *.r2.cloudflarestorage.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Scan IaC with KICS
+        uses: Checkmarx/kics-github-action@05aa5eb70eede1355220f4ca5238d96b397e30a6 # v2.1.20
+        with:
+          path: "."
+          output_path: kics-results
+          output_formats: sarif
+          fail_on: medium,high,critical
+          enable_comments: false
+          enable_annotations: false
+          exclude_paths: ".git,dist,build,.pytest_cache,.ruff_cache"
+
+      - name: Upload KICS SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: kics-results/results.sarif
+          category: kics
+
+  secrets-trivy:
+    name: Secrets - Trivy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            check.trivy.dev:443
+            get.trivy.dev:443
+            release-assets.githubusercontent.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Scan repository files for secrets
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # 0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: secret
+          severity: ${{ env.TRIVY_SEVERITY }}
+          exit-code: "1"
+          format: sarif
+          output: trivy-secrets.sarif
+          skip-dirs: ${{ env.TRIVY_SKIP_DIRS }}
+
+      - name: Upload Trivy secrets SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: trivy-secrets.sarif
+          category: trivy-secrets
+
+  secrets-history-gitleaks:
+    name: Secrets History - Gitleaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Scan git history for leaked secrets
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          # gitleaks-action v2.3.9 (latest) still declares `runs.using:
+          # node20`, which GitHub forces to Node 24 from 2026-06-02. Opt in
+          # early, scoped to this step only. Remove once upstream ships a Node
+          # 24 release and the SHA pin is bumped.
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE is required only for organizations using the paid
+          # gitleaks-action license; safe to leave unset for a personal repo.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_ENABLE_SUMMARY: "true"
+
+  dependency-review:
+    name: SCA - Dependency Review (PR)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            api.securityscorecards.dev:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Review new dependencies introduced by the pull request
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
+
+  workflow-lint:
+    name: Workflow Lint - actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            auth.docker.io:443
+            registry-1.docker.io:443
+            production.cloudflare.docker.com:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Lint GitHub Actions workflows
+        uses: devops-actions/actionlint@9fb9c192862f19e684586ca84b500461bcd8a541 # pinned
+
+  sca-pip-audit:
+    name: SCA - pip-audit (Python deps)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install project runtime dependencies
+        # Editable install so pip-audit can skip the first-party package
+        # (appsec-rules-pack) via --skip-editable; runtime dependencies are
+        # still installed and audited.
+        run: python -m pip install -e .
+
+      - name: Audit Python dependencies
+        # Gate: pip-audit exits non-zero on any known vulnerability by default.
+        # --skip-editable excludes the first-party editable package (auditing
+        # our own build is meaningless). A CVE present only in a [dev]
+        # dependency with no fix must be recorded as a documented exception,
+        # never silenced with a blind --ignore-vuln.
+        run: |
+          python -m pip install pip-audit
+          python -m pip_audit --desc --skip-editable

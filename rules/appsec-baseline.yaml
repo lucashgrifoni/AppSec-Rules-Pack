@@ -1,0 +1,476 @@
+pack:
+  id: appsec-baseline
+  name: AppSec Baseline Rules Pack
+  version: 0.1.0
+  mode: advisory
+  owner: appsec
+  description: Generic application security baseline rules for review and CI evidence.
+
+rules:
+  - id: APPSEC-AUTHZ-001
+    title: Enforce server-side object authorization
+    description: Verify that every object access is authorized on the server side and does not rely on client-provided identifiers alone.
+    severity: high
+    category: authorization
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V4.1
+      owasp_api_top_10_2023:
+        - API1:2023
+        - API5:2023
+      cwe:
+        - CWE-639
+      nist_ssdf:
+        - PW.8
+    evidence:
+      required:
+        - Object-level authorization check tied to the authenticated principal.
+        - Tenant or ownership scope applied before returning or mutating records.
+      signals:
+        - Negative tests for cross-object or cross-tenant access.
+        - Review of service or repository filters for authorization predicates.
+    match:
+      type: review
+      includes:
+        - API handlers, services, repositories, jobs, or admin actions that read or mutate user-scoped objects.
+      excludes:
+        - Static public assets and unauthenticated health checks with no object access.
+    remediation:
+      guidance: Enforce authorization decisions using trusted server-side context and deny access when ownership or tenant scope cannot be proven.
+      validation:
+        - Add tests where a user attempts to access an object owned by another user or tenant.
+        - Confirm denial is logged without exposing sensitive object details.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+
+  - id: APPSEC-INPUT-001
+    title: Validate untrusted input at boundaries
+    description: Require typed validation, length limits, and allowlisted formats for externally supplied input before business logic or storage.
+    severity: high
+    category: input-validation
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V5.1
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-20
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Schema or typed parser for request, message, file metadata, or form input.
+        - Explicit limits for size, length, range, or accepted enum values.
+      signals:
+        - Tests for missing, malformed, overlong, and unexpected fields.
+        - Rejection behavior that avoids stack traces or internal error details.
+    match:
+      type: review
+      includes:
+        - HTTP requests, webhook payloads, CLI inputs, uploaded metadata, queue messages, and user-controlled configuration.
+      excludes:
+        - Internal constants and trusted compile-time configuration.
+    remediation:
+      guidance: Validate input at the first trusted boundary using typed schemas and reject invalid data before it reaches downstream sinks.
+      validation:
+        - Add boundary tests for invalid input classes.
+        - Confirm invalid input returns a controlled error response.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+
+  - id: APPSEC-INJECT-001
+    title: Prevent injection into interpreters and queries
+    description: Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or log formats without effective sanitization.
+    severity: critical
+    category: injection
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - ci
+    mappings:
+      owasp_asvs:
+        - V5.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-89
+        - CWE-78
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Parameterized query, safe API call, shell-free execution, or allowlisted command arguments.
+        - Clear source-to-sink review for any interpreter boundary.
+      signals:
+        - Tests that malicious metacharacters are treated as data.
+        - Absence of string-built queries or commands from untrusted values.
+    match:
+      type: review
+      includes:
+        - Database calls, shell execution, templating, dynamic filters, logging templates, and parser expressions.
+      excludes:
+        - Static queries and commands with no untrusted input.
+    remediation:
+      guidance: Replace string concatenation with parameterized APIs, structured command invocation, typed builders, or strict allowlists.
+      validation:
+        - Add tests using representative injection payloads.
+        - Confirm the payload is stored, queried, or rendered as inert data.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+
+  - id: APPSEC-SSRF-001
+    title: Restrict user-influenced outbound requests
+    description: Guard server-side HTTP, DNS, or metadata fetches influenced by untrusted input with allowlists and private-network protections.
+    severity: high
+    category: ssrf
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V12.6
+      owasp_api_top_10_2023:
+        - API7:2023
+      cwe:
+        - CWE-918
+      nist_ssdf:
+        - PW.8
+    evidence:
+      required:
+        - Destination allowlist or trusted resolver policy for outbound calls.
+        - Blocking of loopback, link-local, private ranges, and cloud metadata endpoints.
+      signals:
+        - Tests for redirects, DNS rebinding-style changes, and private address ranges.
+        - Logs or metrics for blocked outbound destinations without leaking sensitive URLs.
+    match:
+      type: review
+      includes:
+        - URL fetchers, webhook callbacks, image importers, metadata importers, SSO metadata retrieval, and proxy endpoints.
+      excludes:
+        - Fixed outbound destinations owned by configuration and not influenced by users.
+    remediation:
+      guidance: Resolve and validate destinations before connecting, block unsafe network ranges, and keep redirects within the same policy.
+      validation:
+        - Add deny tests for loopback, link-local, private ranges, and unexpected redirects.
+        - Confirm allowed destinations still work through explicit allowlist entries.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+
+  - id: APPSEC-AUTHN-001
+    title: Enforce strong authentication and session integrity
+    description: Verify credentials, multi-factor where required, and session tokens are validated server-side and rotated on privilege change to prevent spoofing or fixation.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V2.1
+        - V3.2
+      owasp_api_top_10_2023:
+        - API2:2023
+      cwe:
+        - CWE-287
+        - CWE-384
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Server-side credential and session validation tied to the authenticated principal.
+        - Session rotation on login and privilege change, with secure cookie or token handling.
+      signals:
+        - Tests for invalid credentials, expired sessions, and reused or fixated tokens.
+        - Review of authentication flows for missing server-side checks.
+    match:
+      type: review
+      includes:
+        - Login handlers, token issuance, session middleware, password reset, and privilege transitions.
+      excludes:
+        - Unauthenticated public endpoints with no session or credential handling.
+    remediation:
+      guidance: Validate credentials and sessions server-side, rotate identifiers on privilege change, and rely on a vetted authentication library rather than custom token logic.
+      validation:
+        - Add tests for expired, tampered, and reused session tokens.
+        - Confirm authentication failures are logged without exposing credential material.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+
+  - id: APPSEC-SECRETS-001
+    title: Keep secrets out of code, logs, and rules
+    description: Detect and prevent credentials, tokens, private keys, session identifiers, and sensitive values from being committed or logged.
+    severity: high
+    category: secrets
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - frontend
+      - ci
+      - general
+    mappings:
+      owasp_asvs:
+        - V14.8
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-798
+        - CWE-532
+      nist_ssdf:
+        - PW.4
+    evidence:
+      required:
+        - Secrets are loaded from approved environment or secret-manager boundaries.
+        - Logs redact tokens, credentials, session identifiers, and sensitive personal data.
+      signals:
+        - Secret scanning in repository and CI.
+        - Tests or review evidence for log redaction paths.
+    match:
+      type: review
+      includes:
+        - Source code, tests, configs, rules, logs, CI workflows, examples, and documentation.
+      excludes:
+        - Public sample values clearly marked as inert examples.
+    remediation:
+      guidance: Remove sensitive values from code and history, rotate exposed credentials, and replace logs with redacted structured fields.
+      validation:
+        - Run secret scanning against the repository.
+        - Add tests for redaction of sensitive fields.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+
+  - id: APPSEC-FILE-001
+    title: Harden file upload and file path handling
+    description: Validate file type, size, storage location, and path handling before accepting or processing user-controlled files.
+    severity: high
+    category: file-handling
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V12.1
+      owasp_api_top_10_2023:
+        - API4:2023
+        - API8:2023
+      cwe:
+        - CWE-22
+        - CWE-434
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Server-side file size and type validation.
+        - Storage path isolation that prevents traversal and execution.
+      signals:
+        - Tests for path traversal, unexpected extensions, oversized files, and malformed content.
+        - Review of storage permissions and generated filenames.
+    match:
+      type: review
+      includes:
+        - Upload handlers, importers, export endpoints, file processors, archive extraction, and generated download paths.
+      excludes:
+        - Build-time static assets with trusted source control provenance.
+    remediation:
+      guidance: Store uploads outside executable paths, generate server-side filenames, validate content and size, and deny path traversal.
+      validation:
+        - Add tests for traversal sequences and invalid content types.
+        - Confirm uploaded files cannot be executed or retrieved without authorization.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+
+  - id: APPSEC-LOG-001
+    title: Log security events without leaking sensitive data
+    description: Record authentication, authorization, and integrity-relevant events with enough context for detection while redacting credentials, tokens, and personal data.
+    severity: medium
+    category: logging
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - api
+      - ci
+    mappings:
+      owasp_asvs:
+        - V7.1
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-778
+        - CWE-532
+      nist_ssdf:
+        - RV.1
+    evidence:
+      required:
+        - Security-relevant events are logged with actor, action, and outcome.
+        - Logs redact secrets, session identifiers, and sensitive personal data.
+      signals:
+        - Tests confirming redaction of sensitive fields in log output.
+        - Review of log sinks for retention and access controls.
+    match:
+      type: review
+      includes:
+        - Authentication, authorization, configuration change, and error-handling log paths.
+      excludes:
+        - High-volume debug traces explicitly disabled in production builds.
+    remediation:
+      guidance: Emit structured security events with stable fields, redact sensitive values at the logging boundary, and route logs to a monitored sink.
+      validation:
+        - Add tests asserting sensitive fields are redacted before logging.
+        - Confirm security events reach the monitored log destination.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+
+  - id: APPSEC-DEP-001
+    title: Manage known-vulnerable and unmaintained dependencies
+    description: Track direct and transitive dependencies, remediate known-vulnerable versions, and avoid unmaintained components that increase supply-chain risk.
+    severity: high
+    category: dependency-risk
+    status: enabled
+    enforcement: advisory
+    targets:
+      - dependencies
+      - ci
+      - backend
+    mappings:
+      owasp_asvs:
+        - V14.2
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-1104
+        - CWE-1395
+      nist_ssdf:
+        - PW.4
+    evidence:
+      required:
+        - Dependency inventory or lockfile under version control.
+        - Software composition analysis with a remediation or exception path for known-vulnerable versions.
+      signals:
+        - SCA results triaged for reachability and fix availability.
+        - Review of unmaintained or unpinned dependencies.
+    match:
+      type: review
+      includes:
+        - Manifests, lockfiles, base images, and build-time dependency resolution.
+      excludes:
+        - Vendored test fixtures with no runtime exposure.
+    remediation:
+      guidance: Pin dependencies, upgrade or replace known-vulnerable versions, and document a justified exception with compensating controls when an upgrade is blocked.
+      validation:
+        - Run software composition analysis and confirm no unresolved high or critical findings without an exception.
+        - Confirm the dependency manifest and lockfile are consistent.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+
+  - id: APPSEC-CONFIG-001
+    title: Apply secure defaults and remove risky configuration
+    description: Ship hardened default configuration, disable unused features and verbose errors, and keep environment-specific settings outside the application artifact.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - api
+      - iac
+    mappings:
+      owasp_asvs:
+        - V14.1
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-16
+        - CWE-1188
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Secure default configuration with unused features and debug endpoints disabled.
+        - Environment-specific configuration supplied at deploy time, not embedded in the artifact.
+      signals:
+        - Review of default settings, error verbosity, and exposed management interfaces.
+        - Tests or checks confirming hardened defaults in built artifacts.
+    match:
+      type: configuration
+      includes:
+        - Application settings, framework defaults, server and container configuration, and feature flags.
+      excludes:
+        - Local development overrides clearly scoped to non-production use.
+    remediation:
+      guidance: Set secure defaults, disable verbose errors and unused endpoints, and inject environment configuration at deploy time through trusted boundaries.
+      validation:
+        - Confirm production builds disable debug and verbose error output.
+        - Confirm configuration secrets are sourced from approved boundaries, not the artifact.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at

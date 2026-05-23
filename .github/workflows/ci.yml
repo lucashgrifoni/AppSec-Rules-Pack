@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege: this workflow only needs to read the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, test, and validate rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project with dev dependencies
+        run: python -m pip install -e ".[dev]"
+
+      - name: Lint with ruff
+        run: python -m ruff check .
+
+      - name: Run tests with coverage gate
+        run: python -m pytest --cov=appsec_rules_pack --cov-report=term-missing
+
+      - name: Validate baseline rules pack (fail on warnings)
+        run: python -m appsec_rules_pack validate rules --fail-on-warnings
+
+      - name: Build distribution artifacts
+        run: python -m build
+
+      - name: Verify distribution metadata
+        run: |
+          python -m pip install twine
+          python -m twine check dist/*

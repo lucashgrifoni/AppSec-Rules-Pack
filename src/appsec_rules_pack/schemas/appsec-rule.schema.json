@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/appsec-rule.schema.json",
+  "title": "AppSec Rules Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pack", "rules"],
+  "properties": {
+    "pack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version", "mode", "owner", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["advisory", "audit", "blocking"]
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 240
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyStringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 240
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "severity",
+        "category",
+        "status",
+        "enforcement",
+        "targets",
+        "mappings",
+        "evidence",
+        "match",
+        "remediation",
+        "exceptions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^APPSEC-[A-Z0-9]+-[0-9]{3}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 360
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "authentication",
+            "authorization",
+            "input-validation",
+            "injection",
+            "ssrf",
+            "secrets",
+            "file-handling",
+            "logging",
+            "dependency-risk",
+            "configuration"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["enabled", "disabled", "draft"]
+        },
+        "enforcement": {
+          "type": "string",
+          "enum": ["advisory", "audit", "blocking"]
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["api", "backend", "frontend", "mobile", "ci", "iac", "data", "dependencies", "general"]
+          }
+        },
+        "mappings": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["owasp_asvs", "owasp_api_top_10_2023", "cwe", "nist_ssdf"],
+          "properties": {
+            "owasp_asvs": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "owasp_api_top_10_2023": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "cwe": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "nist_ssdf": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["required", "signals"],
+          "properties": {
+            "required": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "signals": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            }
+          }
+        },
+        "match": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "includes", "excludes"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["review", "static-analysis", "configuration", "schema"]
+            },
+            "includes": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "excludes": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            }
+          }
+        },
+        "remediation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["guidance", "validation"],
+          "properties": {
+            "guidance": {
+              "type": "string",
+              "minLength": 20,
+              "maxLength": 480
+            },
+            "validation": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            }
+          }
+        },
+        "exceptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "max_days", "required_fields"],
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "max_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 365
+            },
+            "required_fields": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": ["owner", "justification", "expires_at", "compensating_control", "validation_plan"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

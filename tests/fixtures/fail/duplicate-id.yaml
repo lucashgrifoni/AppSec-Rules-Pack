@@ -1,0 +1,90 @@
+pack:
+  id: fixture-fail-duplicate-id
+  name: Fixture Duplicate Id
+  version: 0.1.0
+  mode: audit
+  owner: appsec
+  description: Invalid fixture used to verify semantic duplicate rule ID detection.
+
+rules:
+  - id: APPSEC-DUP-001
+    title: First duplicate rule fixture
+    description: This valid rule is the first occurrence of a duplicated ID in the negative fixture.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - api
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Rule IDs are unique within the file.
+      signals:
+        - Duplicate IDs are rejected during semantic validation.
+    match:
+      type: review
+      includes:
+        - Rule identifiers submitted for validation.
+      excludes:
+        - IDs from unrelated rule pack files.
+    remediation:
+      guidance: Rename duplicated rules to stable unique identifiers before publishing or consuming the rules pack.
+      validation:
+        - Re-run validation and confirm no duplicate rule ID errors remain.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+
+  - id: APPSEC-DUP-001
+    title: Second duplicate rule fixture
+    description: This valid rule repeats the first ID so the validator reports the duplicate occurrence path.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: audit
+    targets:
+      - backend
+    mappings:
+      owasp_asvs:
+        - V14.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-209
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Rule IDs are unique within the file.
+      signals:
+        - Duplicate IDs are rejected during semantic validation.
+    match:
+      type: review
+      includes:
+        - Rule identifiers submitted for validation.
+      excludes:
+        - IDs from unrelated rule pack files.
+    remediation:
+      guidance: Rename duplicated rules to stable unique identifiers before publishing or consuming the rules pack.
+      validation:
+        - Re-run validation and confirm no duplicate rule ID errors remain.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at

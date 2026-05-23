@@ -1,0 +1,7 @@
+# Default ownership for this single-maintainer repository.
+* @lucashgrifoni
+
+# Sensitive paths.
+.github/workflows/* @lucashgrifoni
+src/ @lucashgrifoni
+rules/ @lucashgrifoni
