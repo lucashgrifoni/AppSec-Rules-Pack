@@ -53,6 +53,21 @@ rules:
         - justification
         - expires_at
         - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          record = repo.get(record_id)
+          if record.owner_id != request.user.id:
+              raise Forbidden()
+          return record
+        explanation: Ownership is checked against the authenticated user before the record is returned.
+      violating:
+        language: python
+        snippet: |
+          # Trusts a client-supplied id with no ownership check.
+          return repo.get(request.args["record_id"])
+        explanation: Any user can read another user's record by changing record_id (IDOR / broken object-level authorization).
 
   - id: APPSEC-INPUT-001
     title: Validate untrusted input at boundaries
@@ -99,6 +114,23 @@ rules:
         - owner
         - justification
         - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          class CreateUser(BaseModel):
+              email: EmailStr
+              age: int = Field(ge=0, le=130)
+
+          data = CreateUser.model_validate(request.json)
+        explanation: A typed schema enforces format and bounds before the value reaches business logic.
+      violating:
+        language: python
+        snippet: |
+          # No format, length, or range checks on untrusted input.
+          email = request.json["email"]
+          age = int(request.json["age"])
+        explanation: Unvalidated input flows straight into business logic and storage.
 
   - id: APPSEC-INJECT-001
     title: Prevent injection into interpreters and queries
@@ -143,6 +175,22 @@ rules:
       allowed: false
       max_days: 0
       required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          db.execute(
+              "SELECT * FROM users WHERE id = %s",
+              (user_id,),
+          )
+        explanation: The parameterized query binds user_id as data, so it cannot alter the SQL.
+      violating:
+        language: python
+        snippet: |
+          db.execute(
+              f"SELECT * FROM users WHERE id = {user_id}"
+          )
+        explanation: Interpolating user_id into the query string enables SQL injection.
 
   - id: APPSEC-SSRF-001
     title: Restrict user-influenced outbound requests
@@ -189,6 +237,21 @@ rules:
         - justification
         - expires_at
         - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          host = urlparse(url).hostname
+          if host not in ALLOWED_HOSTS:
+              raise Forbidden()
+          requests.get(url, allow_redirects=False)
+        explanation: The destination is allowlisted and redirects are disabled before the request is made.
+      violating:
+        language: python
+        snippet: |
+          # Fetches any user-supplied URL, including internal and metadata hosts.
+          requests.get(request.args["url"])
+        explanation: The user controls the destination, enabling SSRF to internal services or cloud metadata.
 
   - id: APPSEC-AUTHN-001
     title: Enforce strong authentication and session integrity
@@ -238,6 +301,21 @@ rules:
         - justification
         - expires_at
         - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          session = sessions.validate(request.cookies["sid"])
+          if not session:
+              raise Unauthorized()
+          session = sessions.rotate(session)  # rotate on privilege change
+        explanation: The session is validated server-side and rotated when privilege changes.
+      violating:
+        language: python
+        snippet: |
+          # Trusts a client-provided identity with no session validation.
+          user_id = request.cookies["user_id"]
+        explanation: Identity is taken from an unvalidated cookie, allowing spoofing and session fixation.
 
   - id: APPSEC-SECRETS-001
     title: Keep secrets out of code, logs, and rules
@@ -283,6 +361,19 @@ rules:
       allowed: false
       max_days: 0
       required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          api_key = os.environ["PAYMENTS_API_KEY"]
+          logger.info("payments client configured")  # no secret in logs
+        explanation: The secret is read from the environment at runtime and never written to logs.
+      violating:
+        language: python
+        snippet: |
+          API_KEY = "REPLACE_ME"  # hard-coded and committed to source
+          logger.info("using api key %s", API_KEY)  # also leaked to logs
+        explanation: A credential is embedded in source control and written to logs.
 
   - id: APPSEC-FILE-001
     title: Harden file upload and file path handling
@@ -332,6 +423,24 @@ rules:
         - justification
         - expires_at
         - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          if upload.content_type not in ALLOWED_TYPES or upload.size > MAX_SIZE:
+              raise BadRequest()
+          name = f"{uuid4()}{safe_ext(upload.filename)}"
+          path = (UPLOAD_DIR / name).resolve()
+          if UPLOAD_DIR not in path.parents:
+              raise BadRequest()
+        explanation: Type, size, and the resolved storage path are validated before the file is written.
+      violating:
+        language: python
+        snippet: |
+          # Writes a user-named file directly under a served directory.
+          dest = os.path.join("uploads", request.files["f"].filename)
+          open(dest, "wb").write(request.files["f"].read())
+        explanation: An attacker-controlled filename enables path traversal and overwriting other files.
 
   - id: APPSEC-LOG-001
     title: Log security events without leaking sensitive data
@@ -379,6 +488,20 @@ rules:
         - owner
         - justification
         - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          logger.info(
+              "login",
+              extra={"user_id": user.id, "outcome": "success"},
+          )
+        explanation: A security event is logged with stable structured fields and no secrets.
+      violating:
+        language: python
+        snippet: |
+          logger.info("login %s with password %s", user.email, raw_password)
+        explanation: Credentials and personal data are written directly into log output.
 
   - id: APPSEC-DEP-001
     title: Manage known-vulnerable and unmaintained dependencies
@@ -427,6 +550,19 @@ rules:
         - justification
         - expires_at
         - compensating_control
+    examples:
+      compliant:
+        language: toml
+        snippet: |
+          # Pinned to an exact, maintained version and scanned by SCA in CI.
+          requests = "==2.32.3"
+        explanation: An exact pin keeps the resolved version reviewable and triaged for known CVEs.
+      violating:
+        language: toml
+        snippet: |
+          # Unbounded range can resolve to an unknown, possibly vulnerable release.
+          requests = "*"
+        explanation: A floating version can silently pull in a known-vulnerable or unmaintained release.
 
   - id: APPSEC-CONFIG-001
     title: Apply secure defaults and remove risky configuration
@@ -474,3 +610,18 @@ rules:
         - owner
         - justification
         - expires_at
+    examples:
+      compliant:
+        language: yaml
+        snippet: |
+          debug: false
+          expose_admin: false
+          errors:
+            verbose: false
+        explanation: Production defaults disable debug mode, admin surfaces, and verbose error output.
+      violating:
+        language: yaml
+        snippet: |
+          debug: true          # verbose stack traces in production
+          expose_admin: true   # management endpoints reachable
+        explanation: Debug output and admin endpoints are exposed in a production configuration.

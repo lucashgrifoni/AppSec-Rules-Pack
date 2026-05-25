@@ -51,7 +51,7 @@ jobs:
         run: python -m pytest --cov=appsec_rules_pack --cov-report=term-missing
 
       - name: Validate baseline rules pack (fail on warnings)
-        run: python -m appsec_rules_pack validate rules --fail-on-warnings
+        run: python -m appsec_rules_pack validate rules --require-examples --fail-on-warnings
 
       - name: Build distribution artifacts
         run: python -m build

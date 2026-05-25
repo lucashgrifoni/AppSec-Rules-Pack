@@ -58,6 +58,56 @@
         "maxLength": 240
       }
     },
+    "example": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "snippet", "explanation"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "enum": [
+            "python",
+            "javascript",
+            "typescript",
+            "go",
+            "java",
+            "csharp",
+            "ruby",
+            "php",
+            "bash",
+            "yaml",
+            "json",
+            "toml",
+            "hcl",
+            "sql",
+            "text"
+          ]
+        },
+        "snippet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 480
+        }
+      }
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compliant", "violating"],
+      "properties": {
+        "compliant": {
+          "$ref": "#/$defs/example"
+        },
+        "violating": {
+          "$ref": "#/$defs/example"
+        }
+      }
+    },
     "rule": {
       "type": "object",
       "additionalProperties": false,
@@ -213,6 +263,9 @@
               }
             }
           }
+        },
+        "examples": {
+          "$ref": "#/$defs/examples"
         }
       }
     }

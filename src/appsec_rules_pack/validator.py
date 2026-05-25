@@ -88,22 +88,29 @@ class ValidationResult:
         return sum(1 for issue in self.issues if issue.level == "warning")
 
 
-def validate_rules_file(path: Path) -> ValidationResult:
+def validate_rules_file(path: Path, *, require_examples: bool = False) -> ValidationResult:
     """Validate a rules pack YAML file."""
 
     payload, load_issues = _load_rules_payload(path)
     if load_issues:
         return ValidationResult(issues=load_issues, rule_count=0)
 
-    return validate_rules_payload(payload)
+    return validate_rules_payload(payload, require_examples=require_examples)
 
 
-def validate_rules_files(paths: Sequence[Path]) -> tuple[tuple[Path, ValidationResult], ...]:
+def validate_rules_files(
+    paths: Sequence[Path],
+    *,
+    require_examples: bool = False,
+) -> tuple[tuple[Path, ValidationResult], ...]:
     """Validate multiple rules pack files, including cross-file duplicate rule IDs."""
 
     ordered_paths = tuple(sorted(paths, key=lambda item: str(item).lower()))
     if len(ordered_paths) <= 1:
-        return tuple((path, validate_rules_file(path)) for path in ordered_paths)
+        return tuple(
+            (path, validate_rules_file(path, require_examples=require_examples))
+            for path in ordered_paths
+        )
 
     seen_ids: dict[str, tuple[Path, int]] = {}
     cross_file_issues: dict[Path, list[ValidationIssue]] = defaultdict(list)
@@ -115,7 +122,7 @@ def validate_rules_files(paths: Sequence[Path]) -> tuple[tuple[Path, ValidationR
             per_file_results.append((path, ValidationResult(issues=load_issues, rule_count=0)))
             continue
 
-        result = validate_rules_payload(payload)
+        result = validate_rules_payload(payload, require_examples=require_examples)
         for rule_id, rule_index in _iter_rule_ids(payload):
             if rule_id in seen_ids:
                 first_path, first_index = seen_ids[rule_id]
@@ -163,7 +170,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
         )
 
 
-def validate_rules_payload(payload: Any) -> ValidationResult:
+def validate_rules_payload(payload: Any, *, require_examples: bool = False) -> ValidationResult:
     """Validate an in-memory rules pack payload."""
 
     issues: list[ValidationIssue] = []
@@ -180,7 +187,7 @@ def validate_rules_payload(payload: Any) -> ValidationResult:
         )
 
     if isinstance(payload, dict):
-        issues.extend(_semantic_issues(payload))
+        issues.extend(_semantic_issues(payload, require_examples=require_examples))
 
     return ValidationResult(
         issues=tuple(issues),
@@ -287,7 +294,7 @@ def _rule_count(payload: Any) -> int:
     return len(rules) if isinstance(rules, list) else 0
 
 
-def _semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
+def _semantic_issues(payload: dict[str, Any], *, require_examples: bool) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
     rules = payload.get("rules")
 
@@ -296,6 +303,8 @@ def _semantic_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
         issues.extend(_exception_issues(rules))
         issues.extend(_exception_consistency_issues(rules))
         issues.extend(_mapping_format_issues(rules))
+        if require_examples:
+            issues.extend(_missing_examples_issues(rules))
 
     issues.extend(_sensitive_value_issues(payload))
     return issues
@@ -412,10 +421,7 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
                 issues.append(
                     ValidationIssue(
                         level="warning",
-                        message=(
-                            "allowed exception should require: "
-                            + ", ".join(missing)
-                        ),
+                        message=("allowed exception should require: " + ", ".join(missing)),
                         path=("rules", index, "exceptions", "required_fields"),
                     )
                 )
@@ -460,10 +466,40 @@ def _mapping_format_issues(rules: list[Any]) -> list[ValidationIssue]:
     return issues
 
 
+def _missing_examples_issues(rules: list[Any]) -> list[ValidationIssue]:
+    """Warn when an enabled rule does not ship compliant and violating examples.
+
+    The schema enforces the shape of an ``examples`` block when it is present;
+    this opt-in check (``--require-examples``) flags enabled rules that omit it.
+    """
+
+    issues: list[ValidationIssue] = []
+
+    for index, rule in enumerate(rules):
+        if not isinstance(rule, dict):
+            continue
+        if rule.get("status") != "enabled":
+            continue
+        if "examples" not in rule:
+            issues.append(
+                ValidationIssue(
+                    level="warning",
+                    message="enabled rule should include compliant and violating examples",
+                    path=("rules", index, "examples"),
+                )
+            )
+
+    return issues
+
+
 def _sensitive_value_issues(payload: Any) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
 
     for path, value in _walk_strings(payload):
+        # Rule examples deliberately contain insecure anti-pattern snippets
+        # (including hard-coded-secret demonstrations), so they are exempt.
+        if "examples" in path:
+            continue
         if any(pattern.search(value) for pattern in SECRET_PATTERNS):
             issues.append(
                 ValidationIssue(

@@ -24,6 +24,8 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - 59 tests, a 90% coverage gate (currently ~93%), ruff linting, and a build check.
 - A hardened GitHub Actions CI workflow (least-privilege permissions, SHA-pinned
   actions), staged locally and ready for first use.
+- Per-rule compliant and violating examples on every baseline rule, with an opt-in
+  `--require-examples` validation flag (delivered after the v0.1.0 tag).
 
 ## Next — Near term
 
@@ -31,8 +33,6 @@ statement of intent, not a delivery commitment, and is kept consistent with
   pull request.
 - Cut the first tagged release (`v0.1.0`) with changelog and release notes once the
   repository is in place.
-- Add per-rule pass/fail fixtures under `tests/fixtures/` so every baseline rule has
-  an explicit positive and negative example.
 - Expand the baseline pack with additional generic rules where each addition has
   clear evidence, remediation, and validation steps (for example, cryptography,
   session management depth, and rate limiting / resource consumption).

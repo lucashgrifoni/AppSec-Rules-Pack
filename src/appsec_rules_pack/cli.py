@@ -36,6 +36,13 @@ FailOnWarningsOpt = Annotated[
         help="Return a non-zero exit code when warnings are present.",
     ),
 ]
+RequireExamplesOpt = Annotated[
+    bool,
+    typer.Option(
+        "--require-examples",
+        help="Warn when an enabled rule has no compliant and violating examples.",
+    ),
+]
 FormatOpt = Annotated[
     OutputFormat,
     typer.Option(
@@ -122,9 +129,7 @@ def _build_report(
     rules_path: Path,
     file_results: tuple[tuple[Path, ValidationResult], ...],
 ) -> dict:
-    rule_count, error_count, warning_count = _summarize(
-        tuple(result for _, result in file_results)
-    )
+    rule_count, error_count, warning_count = _summarize(tuple(result for _, result in file_results))
     files = [
         {
             "path": _display_path(rules_path, rule_file),
@@ -157,6 +162,7 @@ def _build_report(
 def validate(
     rules_path: RulesPathArg,
     fail_on_warnings: FailOnWarningsOpt = False,
+    require_examples: RequireExamplesOpt = False,
     output_format: FormatOpt = OutputFormat.text,
 ) -> None:
     """Validate one YAML rules pack file or a directory of YAML rule packs."""
@@ -179,13 +185,13 @@ def validate(
         raise typer.Exit(code=1)
 
     if len(rule_files) == 1:
-        file_results = ((rule_files[0], validate_rules_file(rule_files[0])),)
+        file_results = (
+            (rule_files[0], validate_rules_file(rule_files[0], require_examples=require_examples)),
+        )
     else:
-        file_results = validate_rules_files(rule_files)
+        file_results = validate_rules_files(rule_files, require_examples=require_examples)
 
-    rule_count, error_count, warning_count = _summarize(
-        tuple(result for _, result in file_results)
-    )
+    rule_count, error_count, warning_count = _summarize(tuple(result for _, result in file_results))
     ok = error_count == 0
     passed = ok and not (fail_on_warnings and warning_count)
 

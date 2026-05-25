@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Added an optional `examples` field to the rule schema: each rule may declare a
+  `compliant` and a `violating` example with `language`, `snippet`, and `explanation`.
+  The schema enforces the shape when present.
+- Populated all 10 baseline rules with explicit compliant and violating examples.
+- Added a `--require-examples` CLI flag that warns when an enabled rule ships no
+  examples; the CI baseline validation now runs with it.
+- Excluded rule `examples` from sensitive-value detection, since violating examples
+  intentionally demonstrate insecure anti-patterns.
+
 ## v0.1.0 - 2026-05-25
 
 - Initialized the standalone repository and prepared the first local `v0.1.0`

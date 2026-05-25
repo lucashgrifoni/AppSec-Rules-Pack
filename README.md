@@ -20,9 +20,10 @@ configuration.
 - A JSON Schema rule contract in `src/appsec_rules_pack/schemas/appsec-rule.schema.json`.
 - A baseline YAML rules pack of 10 generic rules in `rules/appsec-baseline.yaml`,
   covering authentication, authorization, input validation, injection, SSRF, secrets,
-  file handling, logging, dependency risk, and configuration.
+  file handling, logging, dependency risk, and configuration. Every rule ships an
+  explicit compliant and violating code example.
 - A Python 3.12 validator with a Typer CLI supporting `--version`,
-  `--fail-on-warnings`, and `--format json` output for CI.
+  `--fail-on-warnings`, `--require-examples`, and `--format json` output for CI.
 - Unit tests and pass/fail/warn fixtures for valid packs, invalid schema shape,
   enum/type/additionalProperties failures, duplicate rule IDs, cross-file
   duplicate IDs, exception-window warnings, exception-policy contradictions,
@@ -71,6 +72,7 @@ configuration.
 |   |   |-- pass/
 |   |   `-- warn/
 |   |-- test_edge_cases.py
+|   |-- test_examples.py
 |   |-- test_loader.py
 |   |-- test_packaging.py
 |   |-- test_validator.py
@@ -130,6 +132,12 @@ Fail on warnings as well as errors:
 appsec-rules validate rules/appsec-baseline.yaml --fail-on-warnings
 ```
 
+Warn when an enabled rule ships no compliant/violating examples (opt-in):
+
+```bash
+appsec-rules validate rules --require-examples
+```
+
 Emit machine-readable JSON for CI pipelines:
 
 ```bash
@@ -163,7 +171,8 @@ Rules are advisory by default. Each rule defines:
 - expected evidence and review signals;
 - match guidance for reviewers or automation;
 - remediation and validation guidance;
-- exception metadata requirements.
+- exception metadata requirements;
+- a compliant and a violating code example with a short explanation.
 
 The initial version is optimized for reviewability and deterministic validation, not for
 deep scanner-specific matching.
