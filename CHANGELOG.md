@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
-## v0.1.0 - 2026-05-23
+## v0.1.0 - 2026-05-25
 
 - Initialized the standalone repository and prepared the first local `v0.1.0`
   release candidate.
+- Added a `.gitleaks.toml` that allowlists the intentional fake-secret fixtures in
+  `tests/test_validator_paths.py`, clearing a Gitleaks false positive while keeping
+  secret scanning active everywhere else.
 - Added a packaging metadata pass for PyPI (license, classifiers, keywords, and
   project URLs).
 - Added a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit,

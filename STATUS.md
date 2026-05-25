@@ -39,6 +39,11 @@
 - `$env:PYTHONPATH = "src"; python -m appsec_rules_pack validate rules --fail-on-warnings`
   passed on 2026-05-22 with 1 file, 10 rules, 0 errors, and 0 warnings.
 - `python -m build` produced a wheel and sdist with the schema bundled.
+- On 2026-05-25 the GitHub remote CI/CD ran green on `master` (commit `fff996d`):
+  `CI`, `Security CI/CD`, and `OpenSSF Scorecard` all succeeded. A `.gitleaks.toml`
+  was added to allowlist the intentional fake-secret fixtures in
+  `tests/test_validator_paths.py` (Gitleaks false positive), keeping secret scanning
+  active everywhere else.
 
 ## Risks And Limits
 
@@ -50,13 +55,12 @@
   changes must update tests and CLI expectations together.
 - Mapping format checks are warnings, not errors, so unusual but valid identifiers
   are not blocked; review warnings during contribution.
-- The CI/CD workflows are committed but have not yet executed on the remote; first
-  runs happen after configuring a remote and pushing to GitHub.
+- The CI/CD workflows now run on the GitHub remote and are green on `master`.
+  Branch protection and required status checks are not yet configured.
 
 ## Next Steps
 
-- Configure the GitHub remote and push so CI, the security pipeline, and Scorecard run.
-- Enable branch protection and required status checks once the remote is live.
+- Enable branch protection and required status checks now that remote CI is green.
 - Add per-rule pass/fail fixtures so every baseline rule has an explicit example.
 - Keep engine export design separate from this validator fixture work.
 - Expand baseline rules only when each addition has evidence and validation steps.
