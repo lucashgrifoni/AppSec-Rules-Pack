@@ -1,0 +1,18 @@
+# Gitleaks configuration for AppSec Rules Pack.
+#
+# Extends the default Gitleaks ruleset and adds a narrow allowlist for the
+# intentional fake secrets used as test fixtures. These values exist solely to
+# exercise the validator's sensitive-value detection and are not real
+# credentials. The allowlist is scoped to the single fixture file so secret
+# scanning stays active everywhere else, including the rest of the test suite.
+
+title = "AppSec Rules Pack Gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Intentional fake secrets used as sensitive-value detection fixtures"
+paths = [
+  '''tests/test_validator_paths\.py''',
+]
