@@ -3,7 +3,7 @@
 ## Current Status
 
 - Project 12 contains a Python 3.12 rules-pack validator, JSON Schema contract,
-  a baseline AppSec rules pack of 10 rules across all schema categories, a Typer
+  a baseline AppSec rules pack of 12 rules across all schema categories, a Typer
   CLI, docs, unit fixtures, a coverage gate, and a hardened CI workflow.
 - Validator coverage includes schema validation, duplicate rule IDs within a file
   and across a validated directory, exception-window warnings, exception-policy
@@ -12,8 +12,9 @@
   `--require-examples`, `--version`, and `--format json` output.
 - Every baseline rule ships a compliant and a violating code example; the schema
   enforces the example shape and `--require-examples` flags enabled rules that omit it.
-- No export path for a real scanning engine exists yet; this remains intentionally
-  out of scope for the current increment.
+- An `export index` subcommand derives a machine-readable JSON rule index into
+  `exports/` (derivation only). No export path for a real scanning engine exists; an
+  execution/SARIF engine remains intentionally out of scope for the current increment.
 - The project is now tracked in its own standalone Git repository with a hardened
   CI/CD surface (build/lint/test CI, a security pipeline, and OpenSSF Scorecard),
   Dependabot, CODEOWNERS, and community-health files.
@@ -29,6 +30,10 @@
 
 ## Checks
 
+- `python -m pytest --cov` passed on 2026-06-01 with 78 tests at ~94% coverage
+  (gate 90%); `ruff check .` clean; `validate rules --require-examples
+  --fail-on-warnings` reported 1 file, 12 rules, 0 errors, 0 warnings; `export index`
+  regenerates `exports/appsec-baseline.index.json` with no drift.
 - `python -m pytest` passed on 2026-05-25 with 69 tests.
 - `python -m pytest --cov=appsec_rules_pack` reported 93% coverage on 2026-05-25
   (gate is 90%).

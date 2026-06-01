@@ -625,3 +625,130 @@ rules:
           debug: true          # verbose stack traces in production
           expose_admin: true   # management endpoints reachable
         explanation: Debug output and admin endpoints are exposed in a production configuration.
+
+  - id: APPSEC-SESSION-001
+    title: Harden session cookies and session lifecycle
+    description: Set secure session cookie attributes, rotate identifiers on privilege change, and invalidate sessions on logout to prevent hijacking and fixation.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V3.4
+      owasp_api_top_10_2023:
+        - API2:2023
+      cwe:
+        - CWE-614
+        - CWE-384
+        - CWE-613
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Session cookies set HttpOnly, Secure, and an explicit SameSite policy.
+        - Session identifiers rotate on privilege change and are invalidated server-side on logout.
+      signals:
+        - Tests for missing cookie flags, session fixation, and reuse after logout.
+        - Review of session idle timeout, expiry, and revocation handling.
+    match:
+      type: review
+      includes:
+        - Session middleware, cookie configuration, login and logout handlers, and privilege transitions.
+      excludes:
+        - Stateless tokens with no server-side session and no cookie-based identity.
+    remediation:
+      guidance: Configure HttpOnly, Secure, and SameSite cookie attributes, rotate session identifiers on privilege change, and invalidate sessions server-side on logout with a bounded idle timeout.
+      validation:
+        - Add tests asserting session cookies carry HttpOnly, Secure, and SameSite.
+        - Confirm a session is unusable after logout and after its idle timeout.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: javascript
+        snippet: |
+          res.cookie("sid", id, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "lax",
+            maxAge: 900000,
+          });
+        explanation: The session cookie sets HttpOnly, Secure, SameSite, and a bounded lifetime.
+      violating:
+        language: javascript
+        snippet: |
+          // No HttpOnly/Secure/SameSite and no expiry: exposed to theft and fixation.
+          res.cookie("sid", id);
+        explanation: A session cookie without security attributes is readable by scripts and never expires.
+
+  - id: APPSEC-XSS-001
+    title: Encode output to prevent cross-site scripting
+    description: Encode or escape untrusted data for its output context so user-controlled values render as inert text rather than executable markup or script.
+    severity: high
+    category: injection
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V5.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      cwe:
+        - CWE-79
+        - CWE-80
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Context-aware output encoding for HTML, attribute, JavaScript, and URL sinks.
+        - Templates escape by default and only bypass escaping for vetted, sanitized values.
+      signals:
+        - Tests that script payloads render as inert text in the response.
+        - Review of raw/unescaped template directives and innerHTML-style sinks.
+    match:
+      type: review
+      includes:
+        - Server-side templates, client-side rendering, response builders, and any sink that emits user-controlled data into markup.
+      excludes:
+        - Static markup with no user-controlled values.
+    remediation:
+      guidance: Render untrusted data through context-aware output encoding, keep template auto-escaping on, and sanitize any value that must be emitted as markup.
+      validation:
+        - Add tests injecting script payloads and confirm they are escaped in the output.
+        - Confirm raw/unescaped rendering paths are removed or routed through a sanitizer.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: text
+        snippet: |
+          <!-- EJS auto-escapes with <%= %> -->
+          <h1><%= product.name %></h1>
+        explanation: The escaped output directive renders the product name as inert text.
+      violating:
+        language: text
+        snippet: |
+          <!-- EJS <%- %> emits raw, unescaped HTML -->
+          <h1><%- product.name %></h1>
+        explanation: Raw output of a user-controlled product name allows stored or reflected XSS.

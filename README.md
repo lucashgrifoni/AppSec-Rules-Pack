@@ -18,12 +18,16 @@ configuration.
 - A short technical specification in `TECHNICAL_SPEC.md` and a direction summary in
   `ROADMAP.md`.
 - A JSON Schema rule contract in `src/appsec_rules_pack/schemas/appsec-rule.schema.json`.
-- A baseline YAML rules pack of 10 generic rules in `rules/appsec-baseline.yaml`,
-  covering authentication, authorization, input validation, injection, SSRF, secrets,
-  file handling, logging, dependency risk, and configuration. Every rule ships an
-  explicit compliant and violating code example.
+- A baseline YAML rules pack of 12 generic rules in `rules/appsec-baseline.yaml`,
+  covering authentication, authorization, input validation, injection (including
+  output-encoding/XSS), SSRF, secrets, file handling, logging, dependency risk,
+  configuration, and session hardening. Every rule ships an explicit compliant and
+  violating code example.
 - A Python 3.12 validator with a Typer CLI supporting `--version`,
-  `--fail-on-warnings`, `--require-examples`, and `--format json` output for CI.
+  `--fail-on-warnings`, `--require-examples`, `--format json` output for CI, and an
+  `export index` subcommand that derives a machine-readable rule index.
+- A derived, machine-readable rule index at `exports/appsec-baseline.index.json`
+  (derivation only — the validator stays engine-agnostic and never executes rules).
 - Unit tests and pass/fail/warn fixtures for valid packs, invalid schema shape,
   enum/type/additionalProperties failures, duplicate rule IDs, cross-file
   duplicate IDs, exception-window warnings, exception-policy contradictions,
@@ -148,6 +152,14 @@ Show the installed version:
 
 ```bash
 appsec-rules --version
+```
+
+Derive a machine-readable rule index (JSON) for downstream tooling. This only reads
+and derives pack metadata; it does not execute rules or emit findings:
+
+```bash
+appsec-rules export index rules/appsec-baseline.yaml
+appsec-rules export index rules/appsec-baseline.yaml --output exports/appsec-baseline.index.json
 ```
 
 The JSON report contains a `summary` object (`files`, `rules`, `errors`, `warnings`,

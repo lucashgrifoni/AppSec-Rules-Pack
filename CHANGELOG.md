@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Added two baseline rules, raising the pack to 12 rules: `APPSEC-SESSION-001`
+  (session cookie and lifecycle hardening) and `APPSEC-XSS-001` (output encoding /
+  cross-site scripting). Both ship compliant and violating examples and were prioritised
+  from coverage gaps observed against a vulnerable-app test suite.
+- Added an `export index` CLI subcommand that derives a machine-readable JSON rule
+  index (pack id/name/version plus per-rule id, title, severity, category, status,
+  enforcement, targets, and mappings). Derivation only — it never executes rules,
+  preserving the engine-agnostic boundary.
+- Added a checked-in derived index at `exports/appsec-baseline.index.json` with a
+  drift test that keeps it in sync with the pack.
+- Replaced the schema `$id` placeholder (`example.invalid`) with a canonical,
+  tag-versioned URL and documented the versioning policy via a schema `$comment`.
 - Added an optional `examples` field to the rule schema: each rule may declare a
   `compliant` and a `violating` example with `language`, `snippet`, and `explanation`.
   The schema enforces the shape when present.

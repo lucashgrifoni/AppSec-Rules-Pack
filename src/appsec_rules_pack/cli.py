@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from appsec_rules_pack import __version__
+from appsec_rules_pack.exporter import build_index_from_files
 from appsec_rules_pack.validator import (
     ValidationIssue,
     ValidationResult,
@@ -16,6 +17,8 @@ from appsec_rules_pack.validator import (
 )
 
 app = typer.Typer(help="Validate AppSec rules pack files.")
+export_app = typer.Typer(help="Derive machine-readable artifacts from rules packs.")
+app.add_typer(export_app, name="export")
 
 
 class OutputFormat(StrEnum):
@@ -52,6 +55,22 @@ FormatOpt = Annotated[
     ),
 ]
 RULE_FILE_SUFFIXES = frozenset((".yaml", ".yml"))
+
+
+class IndexFormat(StrEnum):
+    """Supported export index formats."""
+
+    json = "json"
+
+
+IndexFormatOpt = Annotated[
+    IndexFormat,
+    typer.Option("--format", "-f", help="Index output format (json)."),
+]
+IndexOutputOpt = Annotated[
+    Path | None,
+    typer.Option("--output", "-o", help="Write the index to this file instead of stdout."),
+]
 
 
 def _issue_path_str(issue: ValidationIssue) -> str:
@@ -215,3 +234,31 @@ def validate(
     )
     if not passed:
         raise typer.Exit(code=1)
+
+
+@export_app.command("index")
+def export_index(
+    rules_path: RulesPathArg,
+    output_format: IndexFormatOpt = IndexFormat.json,
+    output: IndexOutputOpt = None,
+) -> None:
+    """Derive a machine-readable JSON index from a rules pack file or directory.
+
+    Derivation only: this reads pack and rule metadata and never executes rules.
+    """
+
+    rule_files = _iter_rule_files(rules_path)
+    if not rule_files:
+        typer.echo(f"Export failed: no YAML rule files found in {rules_path}.", err=True)
+        raise typer.Exit(code=1)
+
+    index = build_index_from_files(list(rule_files))
+    document = json.dumps(index, indent=2) + "\n"
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(document, encoding="utf-8")
+        typer.echo(f"Wrote index for {_plural(len(rule_files), 'file', 'files')} to {output}.")
+        return
+
+    typer.echo(document, nl=False)

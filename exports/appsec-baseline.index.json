@@ -1,0 +1,350 @@
+{
+  "schema": "appsec-rules-index/v1",
+  "packs": [
+    {
+      "pack": {
+        "id": "appsec-baseline",
+        "name": "AppSec Baseline Rules Pack",
+        "version": "0.1.0"
+      },
+      "rules": [
+        {
+          "id": "APPSEC-AUTHZ-001",
+          "title": "Enforce server-side object authorization",
+          "severity": "high",
+          "category": "authorization",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V4.1"
+            ],
+            "owasp_api_top_10_2023": [
+              "API1:2023",
+              "API5:2023"
+            ],
+            "cwe": [
+              "CWE-639"
+            ],
+            "nist_ssdf": [
+              "PW.8"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-INPUT-001",
+          "title": "Validate untrusted input at boundaries",
+          "severity": "high",
+          "category": "input-validation",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V5.1"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-20"
+            ],
+            "nist_ssdf": [
+              "PW.7"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-INJECT-001",
+          "title": "Prevent injection into interpreters and queries",
+          "severity": "critical",
+          "category": "injection",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "ci"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V5.3"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-89",
+              "CWE-78"
+            ],
+            "nist_ssdf": [
+              "PW.9"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-SSRF-001",
+          "title": "Restrict user-influenced outbound requests",
+          "severity": "high",
+          "category": "ssrf",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V12.6"
+            ],
+            "owasp_api_top_10_2023": [
+              "API7:2023"
+            ],
+            "cwe": [
+              "CWE-918"
+            ],
+            "nist_ssdf": [
+              "PW.8"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-AUTHN-001",
+          "title": "Enforce strong authentication and session integrity",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V2.1",
+              "V3.2"
+            ],
+            "owasp_api_top_10_2023": [
+              "API2:2023"
+            ],
+            "cwe": [
+              "CWE-287",
+              "CWE-384"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-SECRETS-001",
+          "title": "Keep secrets out of code, logs, and rules",
+          "severity": "high",
+          "category": "secrets",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "frontend",
+            "ci",
+            "general"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V14.8"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-798",
+              "CWE-532"
+            ],
+            "nist_ssdf": [
+              "PW.4"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-FILE-001",
+          "title": "Harden file upload and file path handling",
+          "severity": "high",
+          "category": "file-handling",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V12.1"
+            ],
+            "owasp_api_top_10_2023": [
+              "API4:2023",
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-22",
+              "CWE-434"
+            ],
+            "nist_ssdf": [
+              "PW.7"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-LOG-001",
+          "title": "Log security events without leaking sensitive data",
+          "severity": "medium",
+          "category": "logging",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "api",
+            "ci"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V7.1"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-778",
+              "CWE-532"
+            ],
+            "nist_ssdf": [
+              "RV.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-DEP-001",
+          "title": "Manage known-vulnerable and unmaintained dependencies",
+          "severity": "high",
+          "category": "dependency-risk",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "dependencies",
+            "ci",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V14.2"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-1104",
+              "CWE-1395"
+            ],
+            "nist_ssdf": [
+              "PW.4"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-CONFIG-001",
+          "title": "Apply secure defaults and remove risky configuration",
+          "severity": "medium",
+          "category": "configuration",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "api",
+            "iac"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V14.1"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-16",
+              "CWE-1188"
+            ],
+            "nist_ssdf": [
+              "PW.9"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-SESSION-001",
+          "title": "Harden session cookies and session lifecycle",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V3.4"
+            ],
+            "owasp_api_top_10_2023": [
+              "API2:2023"
+            ],
+            "cwe": [
+              "CWE-614",
+              "CWE-384",
+              "CWE-613"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-XSS-001",
+          "title": "Encode output to prevent cross-site scripting",
+          "severity": "high",
+          "category": "injection",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "frontend",
+            "backend",
+            "api"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V5.3"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "cwe": [
+              "CWE-79",
+              "CWE-80"
+            ],
+            "nist_ssdf": [
+              "PW.9"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

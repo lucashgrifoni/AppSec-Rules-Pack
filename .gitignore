@@ -10,3 +10,6 @@ dist/
 .coverage.*
 htmlcov/
 .vscode/
+
+# Operational improvement control area (local only, do not commit)
+melhorias/

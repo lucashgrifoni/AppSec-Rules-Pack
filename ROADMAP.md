@@ -14,14 +14,15 @@ statement of intent, not a delivery commitment, and is kept consistent with
 
 ## Now — Delivered (v0.1.0, pre-release)
 
-- JSON Schema rule contract and a baseline pack of 10 rules across all schema
-  categories.
+- JSON Schema rule contract and a baseline pack of 12 rules across all schema
+  categories (including session hardening and output-encoding/XSS).
 - Python 3.12 validator with a Typer CLI: single-file and directory validation,
-  `--fail-on-warnings`, `--version`, and `--format json` output.
+  `--fail-on-warnings`, `--version`, `--format json` output, and an `export index`
+  subcommand that derives a machine-readable rule index (derivation only).
 - Semantic checks: duplicate IDs within a file and across a directory, exception
   window warnings, exception-policy consistency, framework mapping format validation,
   and sensitive-value detection.
-- 59 tests, a 90% coverage gate (currently ~93%), ruff linting, and a build check.
+- 78 tests, a 90% coverage gate (currently ~94%), ruff linting, and a build check.
 - A hardened GitHub Actions CI workflow (least-privilege permissions, SHA-pinned
   actions), staged locally and ready for first use.
 - Per-rule compliant and violating examples on every baseline rule, with an opt-in

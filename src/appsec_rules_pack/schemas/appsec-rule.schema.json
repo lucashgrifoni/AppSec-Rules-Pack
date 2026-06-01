@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.invalid/schemas/appsec-rule.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.1.0/src/appsec_rules_pack/schemas/appsec-rule.schema.json",
+  "$comment": "Canonical versioned $id pinned to the release tag. When the schema changes in a way that affects consumers, publish it under a new tag and update this $id to that tag.",
   "title": "AppSec Rules Pack",
   "type": "object",
   "additionalProperties": false,
