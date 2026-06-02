@@ -46,24 +46,26 @@ statement of intent, not a delivery commitment, and is kept consistent with
   remediation, and validation steps (for example, cryptography-at-rest and additional
   business-logic abuse cases); the CSRF, enumeration, webhook-authenticity, data-exposure,
   mass-assignment, open-redirect, and rate-limiting rules are now delivered.
-- Supply-chain release evidence for v0.3: PyPI Trusted Publishing (OIDC), GitHub Artifact
-  Attestations (SLSA), and a CycloneDX SBOM as a release asset.
+- Finish the v0.3 supply-chain release path: the `release.yml` workflow (CycloneDX SBOM +
+  SLSA build-provenance attestation + PyPI Trusted Publishing via OIDC) is in place;
+  configure the PyPI Trusted Publisher and the `pypi` environment, then cut a tagged
+  release to exercise it end to end.
 
 ## Later — Mid term
 
-- Optional scanner-specific exports under `exports/` (for example, a mapping layer
-  to Semgrep or policy formats), kept strictly separate from the validator so the
-  rule contract stays engine-agnostic.
-- Richer mapping coverage and validation (additional ASVS chapters, CWE coverage
-  reports, and NIST SSDF task-level mapping).
-- A machine-readable rule index and summary export to support downstream tooling.
+- Deepen the reference exports (delivered: rule index, Semgrep scaffold, SARIF rule
+  catalog, and a coverage report) — for example real Semgrep detection patterns or an
+  OPA/Rego mapping, kept strictly separate from the validator so the contract stays
+  engine-agnostic.
+- Richer mapping coverage (additional ASVS chapters and NIST SSDF task-level mapping).
 
 ## Future — Longer term
 
-- Signed release evidence and provenance once versioned releases begin.
-- Integration points for CI policy gates that consume the JSON output to block,
-  warn, or baseline based on validation results.
-- A documented rule lifecycle (draft → enabled → deprecated) with migration notes.
+- Stabilize the expanded contract (new categories, rule lifecycle, the optional 2025
+  mapping, and the exports) and cut a `v1.0` with frozen schema guarantees once it has
+  had real-world use.
+- Promote the reference `policy-gate.yml` (which already consumes the validator JSON) to
+  an enforced required check where teams want it, with tunable severity thresholds.
 
 ## Explicit Non-Goals (current)
 

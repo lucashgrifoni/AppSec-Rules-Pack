@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Added derivation-only export and reporting commands (engine-agnostic, see ADR-0001):
+  `report coverage` (framework-mapping coverage as text/JSON), `export semgrep` (a clearly
+  labeled NON-runnable Semgrep scaffold), and `export sarif` (a SARIF 2.1.0 rule catalog
+  with empty results). Checked-in `exports/` artifacts are drift-tested.
+- Added reference CI workflows: `policy-gate.yml` (a separate gate that consumes the
+  validator JSON, per ADR-0004) and `release.yml` (build + CycloneDX SBOM + SLSA build
+  provenance attestation + PyPI Trusted Publishing via OIDC; the PyPI publisher config is
+  an owner handoff).
 - Expanded the baseline pack from 12 to 19 rules: `APPSEC-CSRF-001` (CSRF),
   `APPSEC-ENUM-001` (user enumeration), `APPSEC-MSGAUTH-001` (webhook/message authenticity),
   `APPSEC-DATAEXPO-001` (excessive data exposure), `APPSEC-MASSASSIGN-001` (mass assignment),

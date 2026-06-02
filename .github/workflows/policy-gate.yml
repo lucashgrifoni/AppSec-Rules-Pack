@@ -1,0 +1,81 @@
+name: Policy Gate (reference)
+
+# Reference policy gate (see ADR-0004): a SEPARATE workflow consumes the validator's
+# JSON output to decide block/warn. Enforcement is never embedded in the validator
+# itself — the validator only reports; this workflow makes the gate decision. It runs
+# the pack's own CLI against the baseline pack as a worked example.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "rules/**"
+      - "src/**"
+      - ".github/workflows/policy-gate.yml"
+
+# Least privilege: this gate only needs to read the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: policy-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Validate and gate on JSON output
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project
+        run: python -m pip install -e .
+
+      - name: Produce validation report (JSON)
+        run: python -m appsec_rules_pack validate rules --format json > validation.json
+
+      - name: Produce coverage report (JSON)
+        run: python -m appsec_rules_pack report coverage rules --format json > coverage.json
+
+      - name: Gate on the JSON output
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+
+          report = json.load(open("validation.json"))
+          summary = report["summary"]
+          errors, warnings = summary["errors"], summary["warnings"]
+          print(f"rules={summary['rules']} errors={errors} warnings={warnings}")
+
+          coverage = json.load(open("coverage.json"))
+          for framework, stats in coverage["frameworks"].items():
+              print(f"coverage {framework}: {stats['covered']}/{stats['total']}")
+
+          # Policy decision (reference): block on any validation error; treat warnings
+          # as advisory. Tune this threshold per your own risk appetite.
+          if errors:
+              print("::error::policy gate: validation errors present")
+              sys.exit(1)
+          print("policy gate: PASS")
+          PY

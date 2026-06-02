@@ -1,0 +1,746 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "AppSec Rules Pack",
+          "informationUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+          "version": "0.1.0",
+          "rules": [
+            {
+              "id": "APPSEC-AUTHZ-001",
+              "name": "APPSEC-AUTHZ-001",
+              "shortDescription": {
+                "text": "Enforce server-side object authorization"
+              },
+              "fullDescription": {
+                "text": "Verify that every object access is authorized on the server side and does not rely on client-provided identifiers alone."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authorization",
+                  "CWE-639"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-639"
+                ],
+                "owasp-asvs": [
+                  "V8.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API1:2023",
+                  "API5:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.8"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-INPUT-001",
+              "name": "APPSEC-INPUT-001",
+              "shortDescription": {
+                "text": "Validate untrusted input at boundaries"
+              },
+              "fullDescription": {
+                "text": "Require typed validation, length limits, and allowlisted formats for externally supplied input before business logic or storage."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "input-validation",
+                  "CWE-20"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-20"
+                ],
+                "owasp-asvs": [
+                  "V2.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A05:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.7"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-INJECT-001",
+              "name": "APPSEC-INJECT-001",
+              "shortDescription": {
+                "text": "Prevent injection into interpreters and queries"
+              },
+              "fullDescription": {
+                "text": "Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or log formats without effective sanitization."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "CWE-89",
+                  "CWE-78"
+                ],
+                "security-severity": "9.5",
+                "cwe": [
+                  "CWE-89",
+                  "CWE-78"
+                ],
+                "owasp-asvs": [
+                  "V1.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A05:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.9"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-SSRF-001",
+              "name": "APPSEC-SSRF-001",
+              "shortDescription": {
+                "text": "Restrict user-influenced outbound requests"
+              },
+              "fullDescription": {
+                "text": "Guard server-side HTTP, DNS, or metadata fetches influenced by untrusted input with allowlists and private-network protections."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "ssrf",
+                  "CWE-918"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-918"
+                ],
+                "owasp-asvs": [
+                  "V1.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API7:2023"
+                ],
+                "nist-ssdf": [
+                  "PW.8"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-AUTHN-001",
+              "name": "APPSEC-AUTHN-001",
+              "shortDescription": {
+                "text": "Enforce strong authentication and session integrity"
+              },
+              "fullDescription": {
+                "text": "Verify credentials, multi-factor where required, and session tokens are validated server-side and rotated on privilege change to prevent spoofing or fixation."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-287",
+                  "CWE-384"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-287",
+                  "CWE-384"
+                ],
+                "owasp-asvs": [
+                  "V6.3",
+                  "V7.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API2:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-SECRETS-001",
+              "name": "APPSEC-SECRETS-001",
+              "shortDescription": {
+                "text": "Keep secrets out of code, logs, and rules"
+              },
+              "fullDescription": {
+                "text": "Detect and prevent credentials, tokens, private keys, session identifiers, and sensitive values from being committed or logged."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "secrets",
+                  "CWE-798",
+                  "CWE-532"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-798",
+                  "CWE-532"
+                ],
+                "owasp-asvs": [
+                  "V13.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A02:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.4"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-FILE-001",
+              "name": "APPSEC-FILE-001",
+              "shortDescription": {
+                "text": "Harden file upload and file path handling"
+              },
+              "fullDescription": {
+                "text": "Validate file type, size, storage location, and path handling before accepting or processing user-controlled files."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "file-handling",
+                  "CWE-22",
+                  "CWE-434"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-22",
+                  "CWE-434"
+                ],
+                "owasp-asvs": [
+                  "V5.2",
+                  "V5.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API4:2023",
+                  "API8:2023"
+                ],
+                "nist-ssdf": [
+                  "PW.7"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-LOG-001",
+              "name": "APPSEC-LOG-001",
+              "shortDescription": {
+                "text": "Log security events without leaking sensitive data"
+              },
+              "fullDescription": {
+                "text": "Record authentication, authorization, and integrity-relevant events with enough context for detection while redacting credentials, tokens, and personal data."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "logging",
+                  "CWE-778",
+                  "CWE-532"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-778",
+                  "CWE-532"
+                ],
+                "owasp-asvs": [
+                  "V16.2",
+                  "V16.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A09:2025"
+                ],
+                "nist-ssdf": [
+                  "RV.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-DEP-001",
+              "name": "APPSEC-DEP-001",
+              "shortDescription": {
+                "text": "Manage known-vulnerable and unmaintained dependencies"
+              },
+              "fullDescription": {
+                "text": "Track direct and transitive dependencies, remediate known-vulnerable versions, and avoid unmaintained components that increase supply-chain risk."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "dependency-risk",
+                  "CWE-1104",
+                  "CWE-1395"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-1104",
+                  "CWE-1395"
+                ],
+                "owasp-asvs": [
+                  "V15.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A03:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.4"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-CONFIG-001",
+              "name": "APPSEC-CONFIG-001",
+              "shortDescription": {
+                "text": "Apply secure defaults and remove risky configuration"
+              },
+              "fullDescription": {
+                "text": "Ship hardened default configuration, disable unused features and verbose errors, and keep environment-specific settings outside the application artifact."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "configuration",
+                  "CWE-16",
+                  "CWE-1188"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-16",
+                  "CWE-1188"
+                ],
+                "owasp-asvs": [
+                  "V13.4"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A02:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.9"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-SESSION-001",
+              "name": "APPSEC-SESSION-001",
+              "shortDescription": {
+                "text": "Harden session cookies and session lifecycle"
+              },
+              "fullDescription": {
+                "text": "Set secure session cookie attributes, rotate identifiers on privilege change, and invalidate sessions on logout to prevent hijacking and fixation."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-614",
+                  "CWE-384",
+                  "CWE-613"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-614",
+                  "CWE-384",
+                  "CWE-613"
+                ],
+                "owasp-asvs": [
+                  "V7.4",
+                  "V3.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API2:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-XSS-001",
+              "name": "APPSEC-XSS-001",
+              "shortDescription": {
+                "text": "Encode output to prevent cross-site scripting"
+              },
+              "fullDescription": {
+                "text": "Encode or escape untrusted data for its output context so user-controlled values render as inert text rather than executable markup or script."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "CWE-79",
+                  "CWE-80"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-79",
+                  "CWE-80"
+                ],
+                "owasp-asvs": [
+                  "V1.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A05:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.9"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-CSRF-001",
+              "name": "APPSEC-CSRF-001",
+              "shortDescription": {
+                "text": "Protect state-changing requests against CSRF"
+              },
+              "fullDescription": {
+                "text": "Require anti-forgery tokens or origin validation and a SameSite cookie policy so cookie-authenticated, state-changing requests cannot be forged from another site."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "csrf",
+                  "CWE-352"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-352"
+                ],
+                "owasp-asvs": [
+                  "V3.5",
+                  "V3.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-ENUM-001",
+              "name": "APPSEC-ENUM-001",
+              "shortDescription": {
+                "text": "Avoid user and account enumeration"
+              },
+              "fullDescription": {
+                "text": "Return uniform responses and timing for authentication, registration, and password-reset flows so attackers cannot discover whether an account exists."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-204",
+                  "CWE-203"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-204",
+                  "CWE-203"
+                ],
+                "owasp-asvs": [
+                  "V6.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API2:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-MSGAUTH-001",
+              "name": "APPSEC-MSGAUTH-001",
+              "shortDescription": {
+                "text": "Verify authenticity of inbound webhooks and signed messages"
+              },
+              "fullDescription": {
+                "text": "Verify a cryptographic signature or MAC on inbound webhooks and signed messages before processing, and reject unsigned, mismatched, or replayed payloads."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "integrity",
+                  "CWE-345",
+                  "CWE-347"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-345",
+                  "CWE-347"
+                ],
+                "owasp-asvs": [
+                  "V11.4",
+                  "V11.6"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A08:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.9"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-DATAEXPO-001",
+              "name": "APPSEC-DATAEXPO-001",
+              "shortDescription": {
+                "text": "Return only the minimum required data"
+              },
+              "fullDescription": {
+                "text": "Shape responses to the fields the consumer needs and mask or omit sensitive values, so APIs do not over-expose data by serializing whole internal objects."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "data-exposure",
+                  "CWE-213"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-213"
+                ],
+                "owasp-asvs": [
+                  "V14.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API3:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-MASSASSIGN-001",
+              "name": "APPSEC-MASSASSIGN-001",
+              "shortDescription": {
+                "text": "Allowlist fields bound from request input"
+              },
+              "fullDescription": {
+                "text": "Bind only an explicit allowlist of fields from request payloads to internal objects so clients cannot set privileged or internal attributes via mass assignment."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "input-validation",
+                  "CWE-915"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-915"
+                ],
+                "owasp-asvs": [
+                  "V2.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API3:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.7"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-REDIRECT-001",
+              "name": "APPSEC-REDIRECT-001",
+              "shortDescription": {
+                "text": "Validate redirect destinations against an allowlist"
+              },
+              "fullDescription": {
+                "text": "Restrict user-influenced redirects to an allowlist of trusted destinations so the application cannot be used to send users to attacker-controlled sites."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "open-redirect",
+                  "CWE-601"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-601"
+                ],
+                "owasp-asvs": [
+                  "V3.7"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API8:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.7"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-RATELIMIT-001",
+              "name": "APPSEC-RATELIMIT-001",
+              "shortDescription": {
+                "text": "Apply rate limiting and resource quotas"
+              },
+              "fullDescription": {
+                "text": "Enforce rate limits and resource quotas on expensive, authentication, and abuse-prone endpoints so the application resists brute force, scraping, and resource exhaustion."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "rate-limiting",
+                  "CWE-770",
+                  "CWE-307"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-770",
+                  "CWE-307"
+                ],
+                "owasp-asvs": [
+                  "V2.4"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API4:2023"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": []
+    }
+  ]
+}

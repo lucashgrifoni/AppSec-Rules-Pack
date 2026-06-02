@@ -1,0 +1,457 @@
+# Reference Semgrep scaffold derived from the AppSec Rules Pack (derivation only).
+# NOT a runnable ruleset: the source rules are engine-agnostic review rules with no
+# detection patterns (see ADR-0001). Replace each rule's placeholder pattern-regex
+# ('TODO-REPLACE-WITH-DETECTION-PATTERN') with a real detection before use. Only enabled rules are
+# emitted. Regenerate: appsec-rules export semgrep <rules> -o <out>.semgrep.yaml
+rules:
+- id: APPSEC-AUTHZ-001
+  message: Enforce server-side object authorization - Verify that every object access
+    is authorized on the server side and does not rely on client-provided identifiers
+    alone.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-AUTHZ-001
+    category: authorization
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-639
+    owasp-asvs:
+    - V8.2
+    owasp-api-top-10-2023:
+    - API1:2023
+    - API5:2023
+    owasp-top-10-2025:
+    - A01:2025
+    nist-ssdf:
+    - PW.8
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-INPUT-001
+  message: Validate untrusted input at boundaries - Require typed validation, length
+    limits, and allowlisted formats for externally supplied input before business
+    logic or storage.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-INPUT-001
+    category: input-validation
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-20
+    owasp-asvs:
+    - V2.2
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A05:2025
+    nist-ssdf:
+    - PW.7
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-INJECT-001
+  message: Prevent injection into interpreters and queries - Ensure untrusted data
+    is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or
+    log formats without effective sanitization.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-INJECT-001
+    category: injection
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-89
+    - CWE-78
+    owasp-asvs:
+    - V1.2
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A05:2025
+    nist-ssdf:
+    - PW.9
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-SSRF-001
+  message: Restrict user-influenced outbound requests - Guard server-side HTTP, DNS,
+    or metadata fetches influenced by untrusted input with allowlists and private-network
+    protections.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-SSRF-001
+    category: ssrf
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-918
+    owasp-asvs:
+    - V1.3
+    owasp-api-top-10-2023:
+    - API7:2023
+    nist-ssdf:
+    - PW.8
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-AUTHN-001
+  message: Enforce strong authentication and session integrity - Verify credentials,
+    multi-factor where required, and session tokens are validated server-side and
+    rotated on privilege change to prevent spoofing or fixation.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-AUTHN-001
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-287
+    - CWE-384
+    owasp-asvs:
+    - V6.3
+    - V7.2
+    owasp-api-top-10-2023:
+    - API2:2023
+    owasp-top-10-2025:
+    - A07:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-SECRETS-001
+  message: Keep secrets out of code, logs, and rules - Detect and prevent credentials,
+    tokens, private keys, session identifiers, and sensitive values from being committed
+    or logged.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-SECRETS-001
+    category: secrets
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-798
+    - CWE-532
+    owasp-asvs:
+    - V13.3
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A02:2025
+    nist-ssdf:
+    - PW.4
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-FILE-001
+  message: Harden file upload and file path handling - Validate file type, size, storage
+    location, and path handling before accepting or processing user-controlled files.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-FILE-001
+    category: file-handling
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-22
+    - CWE-434
+    owasp-asvs:
+    - V5.2
+    - V5.3
+    owasp-api-top-10-2023:
+    - API4:2023
+    - API8:2023
+    nist-ssdf:
+    - PW.7
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-LOG-001
+  message: Log security events without leaking sensitive data - Record authentication,
+    authorization, and integrity-relevant events with enough context for detection
+    while redacting credentials, tokens, and personal data.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-LOG-001
+    category: logging
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-778
+    - CWE-532
+    owasp-asvs:
+    - V16.2
+    - V16.3
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A09:2025
+    nist-ssdf:
+    - RV.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-DEP-001
+  message: Manage known-vulnerable and unmaintained dependencies - Track direct and
+    transitive dependencies, remediate known-vulnerable versions, and avoid unmaintained
+    components that increase supply-chain risk.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-DEP-001
+    category: dependency-risk
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-1104
+    - CWE-1395
+    owasp-asvs:
+    - V15.2
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A03:2025
+    nist-ssdf:
+    - PW.4
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-CONFIG-001
+  message: Apply secure defaults and remove risky configuration - Ship hardened default
+    configuration, disable unused features and verbose errors, and keep environment-specific
+    settings outside the application artifact.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-CONFIG-001
+    category: configuration
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-16
+    - CWE-1188
+    owasp-asvs:
+    - V13.4
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A02:2025
+    nist-ssdf:
+    - PW.9
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-SESSION-001
+  message: Harden session cookies and session lifecycle - Set secure session cookie
+    attributes, rotate identifiers on privilege change, and invalidate sessions on
+    logout to prevent hijacking and fixation.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-SESSION-001
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-614
+    - CWE-384
+    - CWE-613
+    owasp-asvs:
+    - V7.4
+    - V3.3
+    owasp-api-top-10-2023:
+    - API2:2023
+    owasp-top-10-2025:
+    - A07:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-XSS-001
+  message: Encode output to prevent cross-site scripting - Encode or escape untrusted
+    data for its output context so user-controlled values render as inert text rather
+    than executable markup or script.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-XSS-001
+    category: injection
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-79
+    - CWE-80
+    owasp-asvs:
+    - V1.2
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A05:2025
+    nist-ssdf:
+    - PW.9
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-CSRF-001
+  message: Protect state-changing requests against CSRF - Require anti-forgery tokens
+    or origin validation and a SameSite cookie policy so cookie-authenticated, state-changing
+    requests cannot be forged from another site.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-CSRF-001
+    category: csrf
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-352
+    owasp-asvs:
+    - V3.5
+    - V3.3
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A01:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-ENUM-001
+  message: Avoid user and account enumeration - Return uniform responses and timing
+    for authentication, registration, and password-reset flows so attackers cannot
+    discover whether an account exists.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-ENUM-001
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-204
+    - CWE-203
+    owasp-asvs:
+    - V6.3
+    owasp-api-top-10-2023:
+    - API2:2023
+    owasp-top-10-2025:
+    - A07:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-MSGAUTH-001
+  message: Verify authenticity of inbound webhooks and signed messages - Verify a
+    cryptographic signature or MAC on inbound webhooks and signed messages before
+    processing, and reject unsigned, mismatched, or replayed payloads.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-MSGAUTH-001
+    category: integrity
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-345
+    - CWE-347
+    owasp-asvs:
+    - V11.4
+    - V11.6
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A08:2025
+    nist-ssdf:
+    - PW.9
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-DATAEXPO-001
+  message: Return only the minimum required data - Shape responses to the fields the
+    consumer needs and mask or omit sensitive values, so APIs do not over-expose data
+    by serializing whole internal objects.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-DATAEXPO-001
+    category: data-exposure
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-213
+    owasp-asvs:
+    - V14.2
+    owasp-api-top-10-2023:
+    - API3:2023
+    owasp-top-10-2025:
+    - A01:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-MASSASSIGN-001
+  message: Allowlist fields bound from request input - Bind only an explicit allowlist
+    of fields from request payloads to internal objects so clients cannot set privileged
+    or internal attributes via mass assignment.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-MASSASSIGN-001
+    category: input-validation
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-915
+    owasp-asvs:
+    - V2.2
+    owasp-api-top-10-2023:
+    - API3:2023
+    owasp-top-10-2025:
+    - A01:2025
+    nist-ssdf:
+    - PW.7
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-REDIRECT-001
+  message: Validate redirect destinations against an allowlist - Restrict user-influenced
+    redirects to an allowlist of trusted destinations so the application cannot be
+    used to send users to attacker-controlled sites.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-REDIRECT-001
+    category: open-redirect
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-601
+    owasp-asvs:
+    - V3.7
+    owasp-api-top-10-2023:
+    - API8:2023
+    owasp-top-10-2025:
+    - A01:2025
+    nist-ssdf:
+    - PW.7
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-RATELIMIT-001
+  message: Apply rate limiting and resource quotas - Enforce rate limits and resource
+    quotas on expensive, authentication, and abuse-prone endpoints so the application
+    resists brute force, scraping, and resource exhaustion.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-RATELIMIT-001
+    category: rate-limiting
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-770
+    - CWE-307
+    owasp-asvs:
+    - V2.4
+    owasp-api-top-10-2023:
+    - API4:2023
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN

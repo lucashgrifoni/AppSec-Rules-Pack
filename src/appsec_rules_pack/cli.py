@@ -6,9 +6,16 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+import yaml
 
 from appsec_rules_pack import __version__
 from appsec_rules_pack.exporter import build_index_from_files
+from appsec_rules_pack.reporter import build_coverage_from_files
+from appsec_rules_pack.sarif_export import build_sarif_from_files
+from appsec_rules_pack.semgrep_scaffold import (
+    PATTERN_PLACEHOLDER,
+    build_semgrep_scaffold_from_files,
+)
 from appsec_rules_pack.validator import (
     ValidationIssue,
     ValidationResult,
@@ -19,6 +26,8 @@ from appsec_rules_pack.validator import (
 app = typer.Typer(help="Validate AppSec rules pack files.")
 export_app = typer.Typer(help="Derive machine-readable artifacts from rules packs.")
 app.add_typer(export_app, name="export")
+report_app = typer.Typer(help="Derive coverage and summary reports from rules packs.")
+app.add_typer(report_app, name="report")
 
 
 class OutputFormat(StrEnum):
@@ -55,6 +64,14 @@ FormatOpt = Annotated[
     ),
 ]
 RULE_FILE_SUFFIXES = frozenset((".yaml", ".yml"))
+
+SEMGREP_HEADER = (
+    "# Reference Semgrep scaffold derived from the AppSec Rules Pack (derivation only).\n"
+    "# NOT a runnable ruleset: the source rules are engine-agnostic review rules with no\n"
+    "# detection patterns (see ADR-0001). Replace each rule's placeholder pattern-regex\n"
+    f"# ('{PATTERN_PLACEHOLDER}') with a real detection before use. Only enabled rules are\n"
+    "# emitted. Regenerate: appsec-rules export semgrep <rules> -o <out>.semgrep.yaml\n"
+)
 
 
 class IndexFormat(StrEnum):
@@ -262,3 +279,106 @@ def export_index(
         return
 
     typer.echo(document, nl=False)
+
+
+@export_app.command("semgrep")
+def export_semgrep(
+    rules_path: RulesPathArg,
+    output: IndexOutputOpt = None,
+) -> None:
+    """Derive a NON-RUNNABLE reference Semgrep scaffold (derivation only).
+
+    The scaffold carries rule metadata but placeholder patterns; it is not a working
+    ruleset and must have real detections added before use (see ADR-0001).
+    """
+
+    rule_files = _iter_rule_files(rules_path)
+    if not rule_files:
+        typer.echo(f"Export failed: no YAML rule files found in {rules_path}.", err=True)
+        raise typer.Exit(code=1)
+
+    scaffold = build_semgrep_scaffold_from_files(list(rule_files))
+    body = yaml.safe_dump(scaffold, sort_keys=False, allow_unicode=True)
+    document = SEMGREP_HEADER + body
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(document, encoding="utf-8")
+        typer.echo(
+            f"Wrote Semgrep scaffold for {_plural(len(rule_files), 'file', 'files')} to {output}."
+        )
+        return
+
+    typer.echo(document, nl=False)
+
+
+@export_app.command("sarif")
+def export_sarif(
+    rules_path: RulesPathArg,
+    output: IndexOutputOpt = None,
+) -> None:
+    """Derive a SARIF 2.1.0 rule-catalog (reportingDescriptors, no results).
+
+    The pack does not execute, so the SARIF ``results`` array is intentionally empty;
+    this publishes the rule catalog and metadata for SARIF-aware tools (see ADR-0001).
+    """
+
+    rule_files = _iter_rule_files(rules_path)
+    if not rule_files:
+        typer.echo(f"Export failed: no YAML rule files found in {rules_path}.", err=True)
+        raise typer.Exit(code=1)
+
+    sarif = build_sarif_from_files(list(rule_files))
+    document = json.dumps(sarif, indent=2) + "\n"
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(document, encoding="utf-8")
+        typer.echo(
+            f"Wrote SARIF rule-catalog for {_plural(len(rule_files), 'file', 'files')} to {output}."
+        )
+        return
+
+    typer.echo(document, nl=False)
+
+
+@report_app.command("coverage")
+def report_coverage(
+    rules_path: RulesPathArg,
+    output_format: FormatOpt = OutputFormat.text,
+    output: IndexOutputOpt = None,
+) -> None:
+    """Report framework-mapping coverage across a rules pack.
+
+    Derivation only: this summarizes mapping metadata and never executes rules.
+    """
+
+    rule_files = _iter_rule_files(rules_path)
+    if not rule_files:
+        typer.echo(f"Report failed: no YAML rule files found in {rules_path}.", err=True)
+        raise typer.Exit(code=1)
+
+    coverage = build_coverage_from_files(list(rule_files))
+
+    if output_format is OutputFormat.json:
+        document = json.dumps(coverage, indent=2) + "\n"
+        if output is not None:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(document, encoding="utf-8")
+            typer.echo(f"Wrote coverage report to {output}.")
+            return
+        typer.echo(document, nl=False)
+        return
+
+    total = coverage["rules"]
+    typer.echo(f"Mapping coverage for {_plural(total, 'rule', 'rules')}:")
+    for framework, stats in coverage["frameworks"].items():
+        covered = stats["covered"]
+        pct = round(100 * covered / total) if total else 0
+        line = f"  {framework:<22} {covered}/{total}  ({pct}%)"
+        if stats["missing"]:
+            line += "  missing: " + ", ".join(stats["missing"])
+        typer.echo(line)
+    if coverage["categories"]:
+        cats = ", ".join(f"{name}={count}" for name, count in coverage["categories"].items())
+        typer.echo(f"Categories: {cats}")

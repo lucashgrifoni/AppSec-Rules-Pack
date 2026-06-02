@@ -1,0 +1,93 @@
+name: Release
+
+# Release pipeline (supply-chain evidence). On a version tag it:
+#   - builds the wheel and sdist,
+#   - generates a CycloneDX SBOM for the built distribution,
+#   - attests build provenance (GitHub Artifact Attestations / SLSA),
+#   - publishes to PyPI via Trusted Publishing (OIDC) — no long-lived API token,
+#   - attaches the SBOM and distribution artifacts to the GitHub Release.
+#
+# OWNER HANDOFF — required before the publish step can succeed:
+#   1. Configure a PyPI Trusted Publisher for this repo + workflow + the "pypi"
+#      environment: https://docs.pypi.org/trusted-publishers/
+#   2. Create a GitHub Environment named "pypi" (optionally with required reviewers).
+# The build, SBOM, and attestation steps run without that config; only the PyPI
+# publish step depends on the Trusted Publisher existing.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+# Default to least privilege; the job widens only what it needs.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, attest, and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: pypi
+    permissions:
+      contents: write # create the GitHub Release and upload assets
+      id-token: write # OIDC for PyPI Trusted Publishing and provenance attestation
+      attestations: write # write the build-provenance attestation
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          # Release publishing reaches several endpoints (PyPI upload, Sigstore,
+          # attestation); audit mode records egress without breaking the publish.
+          egress-policy: audit
+
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Build distribution artifacts
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Generate CycloneDX SBOM for the built distribution
+        run: |
+          python -m pip install cyclonedx-bom
+          python -m venv /tmp/sbomenv
+          /tmp/sbomenv/bin/python -m pip install dist/*.whl
+          cyclonedx-py environment /tmp/sbomenv/bin/python \
+            --output-format json --outfile sbom.cdx.json
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+      - name: Publish to PyPI (Trusted Publishing / OIDC)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        with:
+          # dist/ holds only the wheel and sdist; the SBOM lives at the repo root and
+          # is attached to the GitHub Release instead of uploaded to PyPI.
+          attestations: true
+
+      - name: Attach SBOM and artifacts to the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            sbom.cdx.json dist/*.whl dist/*.tar.gz --clobber

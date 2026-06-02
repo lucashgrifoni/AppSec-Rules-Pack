@@ -24,6 +24,11 @@
 
 ## Last Increment
 
+- 2026-06-02 (tooling + workflows): added derivation-only `report coverage`,
+  `export semgrep` (non-runnable scaffold), and `export sarif` (rule catalog, no results)
+  commands with drift-tested `exports/` artifacts; added reference `policy-gate.yml`
+  (consumes validator JSON, ADR-0004) and `release.yml` (SBOM + SLSA attestation + PyPI
+  OIDC; PyPI publisher config is an owner handoff). Suite is now 96 tests at ~93% coverage.
 - 2026-06-02 (rules v0.2 expansion): grew the baseline pack from 12 to 19 rules
   (`APPSEC-CSRF-001`, `APPSEC-ENUM-001`, `APPSEC-MSGAUTH-001`, `APPSEC-DATAEXPO-001`,
   `APPSEC-MASSASSIGN-001`, `APPSEC-REDIRECT-001`, `APPSEC-RATELIMIT-001`); added the

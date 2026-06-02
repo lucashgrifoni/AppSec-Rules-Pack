@@ -66,7 +66,8 @@ for CI consumption.
 
 ## Future Extension Points
 
-- Add scanner-specific exports under `exports/`.
+- Deepen reference exports under `exports/` (rule index, Semgrep scaffold, and SARIF
+  rule catalog are delivered; add real detection patterns or other formats as needed).
 - Add pass/fail fixtures per rule under `fixtures/`.
 - Add signed release evidence once versioned releases begin.
 

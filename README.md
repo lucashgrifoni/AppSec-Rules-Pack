@@ -21,13 +21,17 @@ configuration.
 - A baseline YAML rules pack of 19 generic rules in `rules/appsec-baseline.yaml`,
   covering authentication, authorization, input validation, injection (including
   output-encoding/XSS), SSRF, secrets, file handling, logging, dependency risk,
-  configuration, and session hardening. Every rule ships an explicit compliant and
-  violating code example.
+  configuration, session hardening, CSRF, webhook/message integrity, excessive data
+  exposure, mass assignment, open redirect, and rate limiting. Every rule ships an
+  explicit compliant and violating code example.
 - A Python 3.12 validator with a Typer CLI supporting `--version`,
-  `--fail-on-warnings`, `--require-examples`, `--format json` output for CI, and an
-  `export index` subcommand that derives a machine-readable rule index.
-- A derived, machine-readable rule index at `exports/appsec-baseline.index.json`
-  (derivation only — the validator stays engine-agnostic and never executes rules).
+  `--fail-on-warnings`, `--require-examples`, and `--format json` output for CI, plus
+  derivation-only `export index`, `export semgrep`, `export sarif`, and `report coverage`
+  subcommands.
+- Derived, drift-tested artifacts under `exports/`: a machine-readable rule index
+  (`appsec-baseline.index.json`), a clearly labeled NON-runnable Semgrep scaffold, and a
+  SARIF 2.1.0 rule catalog (empty results). Derivation only — the validator stays
+  engine-agnostic and never executes rules (ADR-0001).
 - Unit tests and pass/fail/warn fixtures for valid packs, invalid schema shape,
   enum/type/additionalProperties failures, duplicate rule IDs, cross-file
   duplicate IDs, exception-window warnings, exception-policy contradictions,
