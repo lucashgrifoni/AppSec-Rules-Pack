@@ -158,12 +158,17 @@
             "file-handling",
             "logging",
             "dependency-risk",
-            "configuration"
+            "configuration",
+            "csrf",
+            "integrity",
+            "data-exposure",
+            "open-redirect",
+            "rate-limiting"
           ]
         },
         "status": {
           "type": "string",
-          "enum": ["enabled", "disabled", "draft"]
+          "enum": ["enabled", "disabled", "draft", "deprecated"]
         },
         "enforcement": {
           "type": "string",
@@ -187,6 +192,9 @@
               "$ref": "#/$defs/nonEmptyStringList"
             },
             "owasp_api_top_10_2023": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "owasp_top_10_2025": {
               "$ref": "#/$defs/nonEmptyStringList"
             },
             "cwe": {
@@ -267,6 +275,26 @@
         },
         "examples": {
           "$ref": "#/$defs/examples"
+        },
+        "deprecation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": {
+            "reason": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 240
+            },
+            "replaced_by": {
+              "type": "string",
+              "pattern": "^APPSEC-[A-Z0-9]+-[0-9]{3}$"
+            },
+            "since": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            }
+          }
         }
       }
     }

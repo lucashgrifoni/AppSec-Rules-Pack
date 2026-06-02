@@ -276,7 +276,7 @@ def test_cli_json_output_passing_baseline() -> None:
     report = json.loads(result.output)
     assert report["summary"] == {
         "files": 1,
-        "rules": 12,
+        "rules": 19,
         "errors": 0,
         "warnings": 0,
         "ok": True,

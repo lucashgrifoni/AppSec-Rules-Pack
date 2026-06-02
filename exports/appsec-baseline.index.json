@@ -27,6 +27,9 @@
               "API1:2023",
               "API5:2023"
             ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
             "cwe": [
               "CWE-639"
             ],
@@ -54,6 +57,9 @@
             "owasp_api_top_10_2023": [
               "API8:2023"
             ],
+            "owasp_top_10_2025": [
+              "A05:2025"
+            ],
             "cwe": [
               "CWE-20"
             ],
@@ -80,6 +86,9 @@
             ],
             "owasp_api_top_10_2023": [
               "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A05:2025"
             ],
             "cwe": [
               "CWE-89",
@@ -136,6 +145,9 @@
             "owasp_api_top_10_2023": [
               "API2:2023"
             ],
+            "owasp_top_10_2025": [
+              "A07:2025"
+            ],
             "cwe": [
               "CWE-287",
               "CWE-384"
@@ -164,6 +176,9 @@
             ],
             "owasp_api_top_10_2023": [
               "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A02:2025"
             ],
             "cwe": [
               "CWE-798",
@@ -224,6 +239,9 @@
             "owasp_api_top_10_2023": [
               "API8:2023"
             ],
+            "owasp_top_10_2025": [
+              "A09:2025"
+            ],
             "cwe": [
               "CWE-778",
               "CWE-532"
@@ -252,6 +270,9 @@
             "owasp_api_top_10_2023": [
               "API8:2023"
             ],
+            "owasp_top_10_2025": [
+              "A03:2025"
+            ],
             "cwe": [
               "CWE-1104",
               "CWE-1395"
@@ -279,6 +300,9 @@
             ],
             "owasp_api_top_10_2023": [
               "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A02:2025"
             ],
             "cwe": [
               "CWE-16",
@@ -309,6 +333,9 @@
             "owasp_api_top_10_2023": [
               "API2:2023"
             ],
+            "owasp_top_10_2025": [
+              "A07:2025"
+            ],
             "cwe": [
               "CWE-614",
               "CWE-384",
@@ -338,12 +365,222 @@
             "owasp_api_top_10_2023": [
               "API8:2023"
             ],
+            "owasp_top_10_2025": [
+              "A05:2025"
+            ],
             "cwe": [
               "CWE-79",
               "CWE-80"
             ],
             "nist_ssdf": [
               "PW.9"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-CSRF-001",
+          "title": "Protect state-changing requests against CSRF",
+          "severity": "high",
+          "category": "csrf",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "frontend",
+            "backend",
+            "api"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V3.5",
+              "V3.3"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
+            "cwe": [
+              "CWE-352"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-ENUM-001",
+          "title": "Avoid user and account enumeration",
+          "severity": "medium",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V6.3"
+            ],
+            "owasp_api_top_10_2023": [
+              "API2:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A07:2025"
+            ],
+            "cwe": [
+              "CWE-204",
+              "CWE-203"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-MSGAUTH-001",
+          "title": "Verify authenticity of inbound webhooks and signed messages",
+          "severity": "high",
+          "category": "integrity",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V11.4",
+              "V11.6"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A08:2025"
+            ],
+            "cwe": [
+              "CWE-345",
+              "CWE-347"
+            ],
+            "nist_ssdf": [
+              "PW.9"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-DATAEXPO-001",
+          "title": "Return only the minimum required data",
+          "severity": "medium",
+          "category": "data-exposure",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V14.2"
+            ],
+            "owasp_api_top_10_2023": [
+              "API3:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
+            "cwe": [
+              "CWE-213"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-MASSASSIGN-001",
+          "title": "Allowlist fields bound from request input",
+          "severity": "high",
+          "category": "input-validation",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V2.2"
+            ],
+            "owasp_api_top_10_2023": [
+              "API3:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
+            "cwe": [
+              "CWE-915"
+            ],
+            "nist_ssdf": [
+              "PW.7"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-REDIRECT-001",
+          "title": "Validate redirect destinations against an allowlist",
+          "severity": "medium",
+          "category": "open-redirect",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "frontend",
+            "backend",
+            "api"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V3.7"
+            ],
+            "owasp_api_top_10_2023": [
+              "API8:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
+            "cwe": [
+              "CWE-601"
+            ],
+            "nist_ssdf": [
+              "PW.7"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-RATELIMIT-001",
+          "title": "Apply rate limiting and resource quotas",
+          "severity": "medium",
+          "category": "rate-limiting",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V2.4"
+            ],
+            "owasp_api_top_10_2023": [
+              "API4:2023"
+            ],
+            "cwe": [
+              "CWE-770",
+              "CWE-307"
+            ],
+            "nist_ssdf": [
+              "PW.1"
             ]
           }
         }

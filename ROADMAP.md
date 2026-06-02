@@ -14,8 +14,10 @@ statement of intent, not a delivery commitment, and is kept consistent with
 
 ## Now — Delivered (v0.1.0, pre-release)
 
-- JSON Schema rule contract and a baseline pack of 12 rules across all schema
-  categories (including session hardening and output-encoding/XSS).
+- JSON Schema rule contract and a baseline pack of 19 rules spanning access control,
+  injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
+  dependencies, configuration, CSRF, integrity/webhook authenticity, excessive data
+  exposure, mass assignment, open redirect, and rate limiting.
 - Python 3.12 validator with a Typer CLI: single-file and directory validation,
   `--fail-on-warnings`, `--version`, `--format json` output, and an `export index`
   subcommand that derives a machine-readable rule index (derivation only).
@@ -31,14 +33,19 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - All `owasp_asvs` mappings migrated to OWASP ASVS 5.0.0 (re-derived by topic; OWASP
   publishes no official v4->v5 crosswalk). Mappings remain evidence aids, not a claim.
 - Tagged `v0.1.0` release published; the GitHub repository is public as of 2026-06-02.
+- Optional `owasp_top_10_2025` mapping field (additive, backward-compatible) populated on
+  the rules where a 2025 category maps cleanly.
+- Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
+  (reason, replaced_by, since), with validator consistency checks.
 
 ## Next — Near term
 
 - Enable branch protection and required status checks on `master` now that the repository
   is public and CI is green.
-- Expand the baseline pack with additional generic rules where each addition has clear
-  evidence, remediation, and validation steps (for example, CSRF, user enumeration,
-  webhook authenticity, and rate limiting / resource consumption).
+- Expand the baseline pack further by demand where each addition has clear evidence,
+  remediation, and validation steps (for example, cryptography-at-rest and additional
+  business-logic abuse cases); the CSRF, enumeration, webhook-authenticity, data-exposure,
+  mass-assignment, open-redirect, and rate-limiting rules are now delivered.
 - Supply-chain release evidence for v0.3: PyPI Trusted Publishing (OIDC), GitHub Artifact
   Attestations (SLSA), and a CycloneDX SBOM as a release asset.
 

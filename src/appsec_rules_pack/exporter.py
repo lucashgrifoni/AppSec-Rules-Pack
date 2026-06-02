@@ -25,6 +25,7 @@ _RULE_FIELDS = (
     "enforcement",
     "targets",
     "mappings",
+    "deprecation",
 )
 _PACK_FIELDS = ("id", "name", "version")
 

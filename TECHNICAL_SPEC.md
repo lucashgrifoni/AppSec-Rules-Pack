@@ -47,7 +47,9 @@ The validator performs two layers of checks:
      declares a non-zero window or required fields (error), or an allowed exception
      missing core accountability fields (warning);
    - malformed framework mapping identifiers for CWE, OWASP API Top 10 2023,
-     OWASP ASVS, and NIST SSDF (warning);
+     OWASP ASVS, NIST SSDF, and the optional OWASP Top 10:2025 (warning);
+   - rule-lifecycle consistency: a `deprecated` status should carry a `deprecation`
+     block, and a `deprecation` block should accompany a `deprecated` status (warning);
    - sensitive-value patterns in free-text fields (error).
 
 Results are available as human-readable text or as structured JSON (`--format json`)

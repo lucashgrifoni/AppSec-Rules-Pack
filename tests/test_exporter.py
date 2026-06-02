@@ -40,7 +40,7 @@ def test_build_index_derives_pack_and_rule_summaries() -> None:
         "name": "AppSec Baseline Rules Pack",
         "version": "0.1.0",
     }
-    assert len(pack["rules"]) == 12
+    assert len(pack["rules"]) == 19
 
     first = pack["rules"][0]
     assert first["id"] == "APPSEC-AUTHZ-001"
@@ -74,7 +74,7 @@ def test_cli_export_index_to_stdout() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.output)
     assert payload["schema"] == INDEX_SCHEMA
-    assert len(payload["packs"][0]["rules"]) == 12
+    assert len(payload["packs"][0]["rules"]) == 19
 
 
 def test_cli_export_index_to_file(tmp_path: Path) -> None:

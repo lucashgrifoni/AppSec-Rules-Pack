@@ -3,7 +3,7 @@
 ## Current Status
 
 - Project 12 contains a Python 3.12 rules-pack validator, JSON Schema contract,
-  a baseline AppSec rules pack of 12 rules across all schema categories, a Typer
+  a baseline AppSec rules pack of 19 rules across all schema categories, a Typer
   CLI, docs, unit fixtures, a coverage gate, and a hardened CI workflow.
 - Validator coverage includes schema validation, duplicate rule IDs within a file
   and across a validated directory, exception-window warnings, exception-policy
@@ -24,6 +24,12 @@
 
 ## Last Increment
 
+- 2026-06-02 (rules v0.2 expansion): grew the baseline pack from 12 to 19 rules
+  (`APPSEC-CSRF-001`, `APPSEC-ENUM-001`, `APPSEC-MSGAUTH-001`, `APPSEC-DATAEXPO-001`,
+  `APPSEC-MASSASSIGN-001`, `APPSEC-REDIRECT-001`, `APPSEC-RATELIMIT-001`); added the
+  optional `owasp_top_10_2025` mapping; added rule-lifecycle support (`deprecated` status +
+  `deprecation` block); and extended the `category` vocabulary by five values. Suite is now
+  83 tests at ~94% coverage; baseline 19 rules, 0 errors, 0 warnings.
 - 2026-06-02 (commit `0c23202`, pushed to `origin/master`): migrated all 12 baseline rules'
   `owasp_asvs` mappings to OWASP ASVS 5.0.0, re-derived by topic against the 5.0.0 chapter
   sources (OWASP publishes no official v4->v5 crosswalk). Regenerated
@@ -49,6 +55,9 @@
   (gate 90%); `ruff check .` clean; `validate rules --require-examples
   --fail-on-warnings` reported 1 file, 12 rules, 0 errors, 0 warnings; `export index`
   regenerates `exports/appsec-baseline.index.json` with no drift.
+- 2026-06-02 (rules v0.2 expansion): `pytest --cov` 83 passed at ~94% (gate 90%); `ruff check .`
+  clean; `validate ... --require-examples --fail-on-warnings` = 1 file, 19 rules, 0 errors,
+  0 warnings; `export index` regenerated with no drift.
 - 2026-06-02 (ASVS 5.0 remap): `pytest --cov` 78 passed at 93.71% (gate 90%); `ruff check .`
   clean; `validate ... --require-examples --fail-on-warnings` = 1 file, 12 rules, 0 errors,
   0 warnings; `export index` regenerated with no drift.

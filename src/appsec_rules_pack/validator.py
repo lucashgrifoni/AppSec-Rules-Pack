@@ -37,6 +37,10 @@ MAPPING_ID_PATTERNS: dict[str, tuple[re.Pattern[str], str]] = {
         re.compile(r"^API([1-9]|10):2023$"),
         "expected an OWASP API Top 10 2023 id such as API1:2023",
     ),
+    "owasp_top_10_2025": (
+        re.compile(r"^A(0[1-9]|10):2025$"),
+        "expected an OWASP Top 10:2025 id such as A01:2025",
+    ),
     "cwe": (
         re.compile(r"^CWE-\d+$"),
         "expected a CWE id such as CWE-79",
@@ -303,6 +307,7 @@ def _semantic_issues(payload: dict[str, Any], *, require_examples: bool) -> list
         issues.extend(_exception_issues(rules))
         issues.extend(_exception_consistency_issues(rules))
         issues.extend(_mapping_format_issues(rules))
+        issues.extend(_deprecation_issues(rules))
         if require_examples:
             issues.extend(_missing_examples_issues(rules))
 
@@ -462,6 +467,36 @@ def _mapping_format_issues(rules: list[Any]) -> list[ValidationIssue]:
                             path=("rules", index, "mappings", field, value_index),
                         )
                     )
+
+    return issues
+
+
+def _deprecation_issues(rules: list[Any]) -> list[ValidationIssue]:
+    """Flag inconsistencies between rule status and deprecation metadata."""
+
+    issues: list[ValidationIssue] = []
+
+    for index, rule in enumerate(rules):
+        if not isinstance(rule, dict):
+            continue
+        status = rule.get("status")
+        has_block = isinstance(rule.get("deprecation"), dict)
+        if status == "deprecated" and not has_block:
+            issues.append(
+                ValidationIssue(
+                    level="warning",
+                    message="deprecated rule should document a deprecation reason",
+                    path=("rules", index, "deprecation"),
+                )
+            )
+        elif has_block and status != "deprecated":
+            issues.append(
+                ValidationIssue(
+                    level="warning",
+                    message="deprecation metadata present but status is not 'deprecated'",
+                    path=("rules", index, "status"),
+                )
+            )
 
     return issues
 

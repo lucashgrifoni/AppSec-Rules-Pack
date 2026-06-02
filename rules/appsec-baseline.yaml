@@ -27,6 +27,8 @@ rules:
       owasp_api_top_10_2023:
         - API1:2023
         - API5:2023
+      owasp_top_10_2025:
+        - A01:2025
       cwe:
         - CWE-639
       nist_ssdf:
@@ -89,6 +91,8 @@ rules:
         - V2.2
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
       cwe:
         - CWE-20
       nist_ssdf:
@@ -152,6 +156,8 @@ rules:
         - V1.2
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
       cwe:
         - CWE-89
         - CWE-78
@@ -274,6 +280,8 @@ rules:
         - V7.2
       owasp_api_top_10_2023:
         - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
       cwe:
         - CWE-287
         - CWE-384
@@ -338,6 +346,8 @@ rules:
         - V13.3
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A02:2025
       cwe:
         - CWE-798
         - CWE-532
@@ -464,6 +474,8 @@ rules:
         - V16.3
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A09:2025
       cwe:
         - CWE-778
         - CWE-532
@@ -525,6 +537,8 @@ rules:
         - V15.2
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A03:2025
       cwe:
         - CWE-1104
         - CWE-1395
@@ -586,6 +600,8 @@ rules:
         - V13.4
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A02:2025
       cwe:
         - CWE-16
         - CWE-1188
@@ -649,6 +665,8 @@ rules:
         - V3.3
       owasp_api_top_10_2023:
         - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
       cwe:
         - CWE-614
         - CWE-384
@@ -715,6 +733,8 @@ rules:
         - V1.2
       owasp_api_top_10_2023:
         - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
       cwe:
         - CWE-79
         - CWE-80
@@ -759,3 +779,437 @@ rules:
           <!-- EJS <%- %> emits raw, unescaped HTML -->
           <h1><%- product.name %></h1>
         explanation: Raw output of a user-controlled product name allows stored or reflected XSS.
+
+  - id: APPSEC-CSRF-001
+    title: Protect state-changing requests against CSRF
+    description: Require anti-forgery tokens or origin validation and a SameSite cookie policy so cookie-authenticated, state-changing requests cannot be forged from another site.
+    severity: high
+    category: csrf
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V3.5
+        - V3.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-352
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Anti-forgery token or origin/referer validation on state-changing, cookie-authenticated requests.
+        - Session cookies set an explicit SameSite policy appropriate to their purpose.
+      signals:
+        - Tests that a forged cross-site POST without a valid token is rejected.
+        - Review of state-changing endpoints that rely only on ambient cookie authentication.
+    match:
+      type: review
+      includes:
+        - Cookie-authenticated POST/PUT/PATCH/DELETE handlers, form submissions, and account or money-moving actions.
+      excludes:
+        - Stateless token-authenticated APIs with no cookie-based ambient authority.
+    remediation:
+      guidance: Require a per-session anti-forgery token or validated origin on state-changing requests, set SameSite on session cookies, and avoid relying on ambient cookie authority alone.
+      validation:
+        - Add a test that a cross-site request without a valid anti-forgery token is rejected.
+        - Confirm session cookies carry an explicit SameSite attribute.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          token = request.headers.get("X-CSRF-Token")
+          if not csrf.valid(session, token):
+              raise Forbidden()
+          transfer_funds(session.user_id, request.json)
+        explanation: The state-changing action requires a valid per-session anti-forgery token before it runs.
+      violating:
+        language: python
+        snippet: |
+          # State change relies only on the session cookie; any site can forge it.
+          transfer_funds(session.user_id, request.json)
+        explanation: With no anti-forgery token or origin check, an attacker page can submit the request using the victim's cookie.
+
+  - id: APPSEC-ENUM-001
+    title: Avoid user and account enumeration
+    description: Return uniform responses and timing for authentication, registration, and password-reset flows so attackers cannot discover whether an account exists.
+    severity: medium
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V6.3
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-204
+        - CWE-203
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Uniform success/failure messages for login, registration, and password reset regardless of account existence.
+        - Comparable response timing for existing and non-existing accounts.
+      signals:
+        - Tests comparing responses and timing for known and unknown identifiers.
+        - Review of error messages that reveal whether a username or email is registered.
+    match:
+      type: review
+      includes:
+        - Login, registration, password reset, account lookup, and email/username availability endpoints.
+      excludes:
+        - Admin-only interfaces where account existence is intentionally visible to authorized staff.
+    remediation:
+      guidance: Use generic messages such as "if the account exists, an email was sent", normalize response timing, and rate-limit identifier probing.
+      validation:
+        - Add tests asserting identical responses for existing and non-existing accounts.
+        - Confirm no endpoint discloses account existence through status, body, or timing.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          send_reset_email_if_exists(email)
+          return Response("If the account exists, a reset link was sent.", status=200)
+        explanation: The response is identical whether or not the account exists.
+      violating:
+        language: python
+        snippet: |
+          if not user_exists(email):
+              return Response("No account with that email", status=404)
+          send_reset_email(email)
+        explanation: The distinct 404 lets an attacker enumerate which emails are registered.
+
+  - id: APPSEC-MSGAUTH-001
+    title: Verify authenticity of inbound webhooks and signed messages
+    description: Verify a cryptographic signature or MAC on inbound webhooks and signed messages before processing, and reject unsigned, mismatched, or replayed payloads.
+    severity: high
+    category: integrity
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V11.4
+        - V11.6
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A08:2025
+      cwe:
+        - CWE-345
+        - CWE-347
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Signature or MAC verification using a constant-time comparison before any webhook side effect.
+        - Replay protection via timestamp or nonce within an accepted window.
+      signals:
+        - Tests that unsigned, tampered, and replayed payloads are rejected.
+        - Review of webhook handlers that act before verifying authenticity.
+    match:
+      type: review
+      includes:
+        - Webhook receivers, callback endpoints, and consumers of signed events or messages.
+      excludes:
+        - Internal events on a trusted bus with authenticity already enforced at the transport boundary.
+    remediation:
+      guidance: Verify the provider signature with the shared secret using a constant-time check, bind a timestamp or nonce to reject replays, and process the payload only after verification succeeds.
+      validation:
+        - Add tests for missing, invalid, and replayed signatures.
+        - Confirm the handler performs no side effect before verification passes.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          expected = hmac.new(secret, body, hashlib.sha256).hexdigest()
+          if not hmac.compare_digest(expected, request.headers["X-Signature"]):
+              raise Forbidden()
+          handle(body)
+        explanation: The payload is processed only after a constant-time signature check passes.
+      violating:
+        language: python
+        snippet: |
+          # Trusts the webhook body without verifying any signature.
+          handle(request.body)
+        explanation: An attacker who can reach the endpoint can forge events because authenticity is never verified.
+
+  - id: APPSEC-DATAEXPO-001
+    title: Return only the minimum required data
+    description: Shape responses to the fields the consumer needs and mask or omit sensitive values, so APIs do not over-expose data by serializing whole internal objects.
+    severity: medium
+    category: data-exposure
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V14.2
+      owasp_api_top_10_2023:
+        - API3:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-213
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Explicit response schema or serializer that allowlists returned fields.
+        - Sensitive fields masked, truncated, or omitted unless explicitly required.
+      signals:
+        - Tests asserting responses exclude internal or sensitive fields.
+        - Review of endpoints that serialize entire ORM models to the client.
+    match:
+      type: review
+      includes:
+        - API responses, serializers, DTO mapping, and list or detail endpoints returning user or business objects.
+      excludes:
+        - Internal service responses behind a trust boundary with no external exposure.
+    remediation:
+      guidance: Define explicit output schemas that allowlist fields, mask sensitive values, and never serialize internal model objects directly to external consumers.
+      validation:
+        - Add tests asserting sensitive and internal fields are absent from responses.
+        - Confirm responses are built from an explicit field allowlist.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          return {"id": user.id, "name": user.name}  # explicit field allowlist
+        explanation: Only the fields the client needs are returned; internal and sensitive fields stay server-side.
+      violating:
+        language: python
+        snippet: |
+          # Serializes the whole model, including password_hash and internal flags.
+          return user.__dict__
+        explanation: Dumping the entire object exposes sensitive and internal fields to the client.
+
+  - id: APPSEC-MASSASSIGN-001
+    title: Allowlist fields bound from request input
+    description: Bind only an explicit allowlist of fields from request payloads to internal objects so clients cannot set privileged or internal attributes via mass assignment.
+    severity: high
+    category: input-validation
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V2.2
+      owasp_api_top_10_2023:
+        - API3:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-915
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Explicit allowlist of bindable fields for create and update operations.
+        - Privileged or internal attributes (role, is_admin, balance, owner_id) are not client-settable.
+      signals:
+        - Tests that sending an unexpected privileged field does not change it.
+        - Review of handlers that bind whole request bodies to models.
+    match:
+      type: review
+      includes:
+        - Create and update handlers, ORM model binding, deserialization into entities, and admin object editing.
+      excludes:
+        - Internal jobs binding trusted, server-generated data with no external input.
+    remediation:
+      guidance: Bind requests through an explicit field allowlist or typed input model, and set privileged attributes only from trusted server-side context.
+      validation:
+        - Add a test sending a privileged field (for example, is_admin) and confirm it is ignored.
+        - Confirm create/update paths bind only allowlisted fields.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          data = {k: body[k] for k in ("name", "email") if k in body}
+          user.update(data)  # role/is_admin cannot be set by the client
+        explanation: Only allowlisted fields are bound; privileged attributes are never taken from the request.
+      violating:
+        language: python
+        snippet: |
+          # Binds every field in the body, including is_admin.
+          user.update(**request.json)
+        explanation: A client can escalate privileges by sending is_admin=true in the request body.
+
+  - id: APPSEC-REDIRECT-001
+    title: Validate redirect destinations against an allowlist
+    description: Restrict user-influenced redirects to an allowlist of trusted destinations so the application cannot be used to send users to attacker-controlled sites.
+    severity: medium
+    category: open-redirect
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V3.7
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-601
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Redirect targets validated against an allowlist of trusted hosts or relative paths.
+        - External or absolute-URL redirects rejected or routed through an interstitial.
+      signals:
+        - Tests that a redirect to an external host is rejected.
+        - Review of login, logout, and "next"/"returnUrl" parameters used as redirect targets.
+    match:
+      type: review
+      includes:
+        - Redirect helpers, post-login/logout navigation, and any endpoint using a user-supplied URL or path to redirect.
+      excludes:
+        - Fixed, configuration-owned redirects not influenced by user input.
+    remediation:
+      guidance: Accept only relative paths or allowlisted hosts for redirects, reject untrusted absolute URLs, and avoid reflecting raw user-supplied URLs into redirects.
+      validation:
+        - Add a test that a redirect to an external host is rejected.
+        - Confirm only allowlisted destinations are honored.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          target = request.args.get("next", "/")
+          if not target.startswith("/") or target.startswith("//"):
+              target = "/"
+          return redirect(target)
+        explanation: Only same-site relative paths are honored; external or protocol-relative URLs fall back to a safe default.
+      violating:
+        language: python
+        snippet: |
+          # Redirects to any user-supplied URL, including external phishing sites.
+          return redirect(request.args["next"])
+        explanation: An attacker can craft a link that sends the user to an attacker-controlled domain.
+
+  - id: APPSEC-RATELIMIT-001
+    title: Apply rate limiting and resource quotas
+    description: Enforce rate limits and resource quotas on expensive, authentication, and abuse-prone endpoints so the application resists brute force, scraping, and resource exhaustion.
+    severity: medium
+    category: rate-limiting
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V2.4
+      owasp_api_top_10_2023:
+        - API4:2023
+      cwe:
+        - CWE-770
+        - CWE-307
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Rate limits or quotas on authentication, search, export, and other expensive or abuse-prone operations.
+        - A defined response (throttling or backoff) when limits are exceeded.
+      signals:
+        - Tests that repeated requests beyond the limit are throttled.
+        - Review of unbounded loops, pagination, and request-driven resource allocation.
+    match:
+      type: review
+      includes:
+        - Login and OTP endpoints, search, export, file processing, and other resource-intensive or automatable operations.
+      excludes:
+        - Internal health checks and trusted batch jobs with their own scheduling controls.
+    remediation:
+      guidance: Apply per-identity and per-IP rate limits and resource quotas, throttle or reject excess requests, and add backoff or lockout on repeated authentication failures.
+      validation:
+        - Add a test that requests beyond the configured limit are throttled or rejected.
+        - Confirm authentication endpoints apply backoff or lockout on repeated failures.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          @limiter.limit("5/minute")
+          def login():
+              ...
+        explanation: The login endpoint is rate limited, resisting brute-force and credential-stuffing attacks.
+      violating:
+        language: python
+        snippet: |
+          # No rate limit: unlimited login attempts enable brute force.
+          def login():
+              ...
+        explanation: Without throttling, an attacker can try unlimited credentials against the endpoint.

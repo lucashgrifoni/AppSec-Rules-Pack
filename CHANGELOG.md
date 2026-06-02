@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+- Expanded the baseline pack from 12 to 19 rules: `APPSEC-CSRF-001` (CSRF),
+  `APPSEC-ENUM-001` (user enumeration), `APPSEC-MSGAUTH-001` (webhook/message authenticity),
+  `APPSEC-DATAEXPO-001` (excessive data exposure), `APPSEC-MASSASSIGN-001` (mass assignment),
+  `APPSEC-REDIRECT-001` (open redirect), and `APPSEC-RATELIMIT-001` (rate limiting). Each
+  ships compliant and violating examples and ASVS 5.0 / API Top 10 / CWE / NIST SSDF mappings.
+- Added an optional `owasp_top_10_2025` mapping field (OWASP Top 10:2025, for example
+  `A01:2025`), populated where a 2025 category maps cleanly. Backward-compatible.
+- Added rule-lifecycle support: a `deprecated` status and an optional `deprecation` block
+  (reason, replaced_by, since), with validator consistency warnings.
+- Extended the `category` vocabulary with `csrf`, `integrity`, `data-exposure`,
+  `open-redirect`, and `rate-limiting` (additive; existing rules unaffected).
 - Migrated all baseline rule `owasp_asvs` mappings to OWASP ASVS 5.0.0. The 5.0
   reorganization renumbered chapters, so identifiers were re-derived by topic against
   the official 5.0.0 chapter sources (OWASP publishes no v4-to-v5 crosswalk) — for

@@ -18,7 +18,7 @@ configuration.
 - A short technical specification in `TECHNICAL_SPEC.md` and a direction summary in
   `ROADMAP.md`.
 - A JSON Schema rule contract in `src/appsec_rules_pack/schemas/appsec-rule.schema.json`.
-- A baseline YAML rules pack of 12 generic rules in `rules/appsec-baseline.yaml`,
+- A baseline YAML rules pack of 19 generic rules in `rules/appsec-baseline.yaml`,
   covering authentication, authorization, input validation, injection (including
   output-encoding/XSS), SSRF, secrets, file handling, logging, dependency risk,
   configuration, and session hardening. Every rule ships an explicit compliant and
@@ -179,7 +179,8 @@ Rules are advisory by default. Each rule defines:
 
 - a stable ID and severity;
 - the target surface and AppSec category;
-- framework mappings such as OWASP ASVS 5.0, OWASP API Security Top 10, CWE, and NIST SSDF;
+- framework mappings such as OWASP ASVS 5.0, OWASP API Security Top 10, OWASP Top 10:2025
+  (optional), CWE, and NIST SSDF;
 - expected evidence and review signals;
 - match guidance for reviewers or automation;
 - remediation and validation guidance;
