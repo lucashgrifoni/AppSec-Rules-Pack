@@ -435,12 +435,11 @@ jobs:
       - name: Harden runner
         uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
         with:
-          egress-policy: block
-          allowed-endpoints: >
-            github.com:443
-            auth.docker.io:443
-            registry-1.docker.io:443
-            production.cloudflare.docker.com:443
+          # actionlint runs as a SHA256-digest-pinned Docker image, so its integrity is
+          # fixed. Docker Hub serves image layers from dynamic CDN IPs that egress-block
+          # cannot reliably allow, which made the pull fail intermittently (exit 125).
+          # Audit keeps egress recorded while letting the pinned image pull succeed.
+          egress-policy: audit
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
