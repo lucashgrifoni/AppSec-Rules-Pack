@@ -1,0 +1,17 @@
+# Normalize line endings: store and check out text files as LF.
+# Stops the autocrlf LF<->CRLF churn on Windows working copies.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF (future-proofing; none tracked today).
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Treat common binaries as binary (no EOL or diff munging).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.whl binary
+*.zip binary
+*.gz binary

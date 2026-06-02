@@ -23,20 +23,24 @@ statement of intent, not a delivery commitment, and is kept consistent with
   window warnings, exception-policy consistency, framework mapping format validation,
   and sensitive-value detection.
 - 78 tests, a 90% coverage gate (currently ~94%), ruff linting, and a build check.
-- A hardened GitHub Actions CI workflow (least-privilege permissions, SHA-pinned
-  actions), staged locally and ready for first use.
+- A hardened GitHub Actions CI/CD surface (least-privilege permissions, SHA-pinned
+  actions): build/lint/test CI, a security pipeline, and OpenSSF Scorecard, running on
+  the public GitHub remote and green on `master`.
 - Per-rule compliant and violating examples on every baseline rule, with an opt-in
   `--require-examples` validation flag (delivered after the v0.1.0 tag).
+- All `owasp_asvs` mappings migrated to OWASP ASVS 5.0.0 (re-derived by topic; OWASP
+  publishes no official v4->v5 crosswalk). Mappings remain evidence aids, not a claim.
+- Tagged `v0.1.0` release published; the GitHub repository is public as of 2026-06-02.
 
 ## Next — Near term
 
-- Track this project in its own Git repository so the CI workflow runs on push and
-  pull request.
-- Cut the first tagged release (`v0.1.0`) with changelog and release notes once the
-  repository is in place.
-- Expand the baseline pack with additional generic rules where each addition has
-  clear evidence, remediation, and validation steps (for example, cryptography,
-  session management depth, and rate limiting / resource consumption).
+- Enable branch protection and required status checks on `master` now that the repository
+  is public and CI is green.
+- Expand the baseline pack with additional generic rules where each addition has clear
+  evidence, remediation, and validation steps (for example, CSRF, user enumeration,
+  webhook authenticity, and rate limiting / resource consumption).
+- Supply-chain release evidence for v0.3: PyPI Trusted Publishing (OIDC), GitHub Artifact
+  Attestations (SLSA), and a CycloneDX SBOM as a release asset.
 
 ## Later — Mid term
 

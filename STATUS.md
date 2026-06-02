@@ -18,13 +18,18 @@
 - The project is now tracked in its own standalone Git repository with a hardened
   CI/CD surface (build/lint/test CI, a security pipeline, and OpenSSF Scorecard),
   Dependabot, CODEOWNERS, and community-health files.
+- The GitHub repository `lucashgrifoni/AppSec-Rules-Pack` is **public** as of 2026-06-02,
+  with About metadata populated (description, website, topics). `master` is not yet
+  branch-protected (MEL-001).
 
 ## Last Increment
 
-- 2026-06-02 (local; not yet committed/pushed): migrated all 12 baseline rules' `owasp_asvs`
-  mappings to OWASP ASVS 5.0.0, re-derived by topic against the 5.0.0 chapter sources (no
-  official v4->v5 crosswalk exists). Regenerated `exports/appsec-baseline.index.json` and
-  updated docs. Suite green: 78 tests at ~94% coverage; baseline 12 rules, 0 errors, 0 warnings.
+- 2026-06-02 (commit `0c23202`, pushed to `origin/master`): migrated all 12 baseline rules'
+  `owasp_asvs` mappings to OWASP ASVS 5.0.0, re-derived by topic against the 5.0.0 chapter
+  sources (OWASP publishes no official v4->v5 crosswalk). Regenerated
+  `exports/appsec-baseline.index.json` and updated docs. Suite green: 78 tests at ~94%
+  coverage; baseline 12 rules, 0 errors, 0 warnings. The repository was then made **public**
+  and its About metadata (description, website, topics) populated.
 - 2026-06-01 (commit `1e94c7b`, pushed to `origin/master`): added two baseline rules,
   `APPSEC-SESSION-001` (session cookie/lifecycle hardening) and `APPSEC-XSS-001`
   (output encoding / XSS), bringing the pack to 12 rules; added an `export index` CLI
@@ -47,9 +52,8 @@
 - 2026-06-02 (ASVS 5.0 remap): `pytest --cov` 78 passed at 93.71% (gate 90%); `ruff check .`
   clean; `validate ... --require-examples --fail-on-warnings` = 1 file, 12 rules, 0 errors,
   0 warnings; `export index` regenerated with no drift.
-- Commit `1e94c7b` was pushed to `origin/master` on 2026-06-01. Remote CI/CD
-  (`CI`, `Security CI/CD`, `OpenSSF Scorecard`) runs on push but is **not yet verified
-  green in this session** — confirm before relying on it.
+- 2026-06-02: commit `0c23202` pushed to `origin/master`; remote CI/CD verified **green**
+  (`CI`, `Security CI/CD`, `OpenSSF Scorecard`, and `Dependency Graph` all succeeded).
 - `python -m pytest` passed on 2026-05-25 with 69 tests.
 - `python -m pytest --cov=appsec_rules_pack` reported 93% coverage on 2026-05-25
   (gate is 90%).
@@ -73,13 +77,14 @@
   changes must update tests and CLI expectations together.
 - Mapping format checks are warnings, not errors, so unusual but valid identifiers
   are not blocked; review warnings during contribution.
-- The CI/CD workflows now run on the GitHub remote and are green on `master`.
-  Branch protection and required status checks are not yet configured.
+- The CI/CD workflows run on the GitHub remote and are green on `master`. The repository
+  is now public, but branch protection and required status checks are not yet configured
+  (MEL-001) — direct pushes to `master` are still possible.
 
 ## Next Steps
 
-- Confirm the pushed commit `1e94c7b` passes remote CI/CD.
-- Enable branch protection and required status checks now that remote CI is green.
+- Enable branch protection and required status checks on `master` now that the repo is
+  public and remote CI is green (MEL-001) — highest-value next step.
 - (Done 2026-06-02) Migrated framework mappings to OWASP ASVS 5.0. OWASP publishes no
   official v4->v5 crosswalk, so identifiers were re-derived by topic against the 5.0.0
   chapter sources; mappings remain evidence aids, not a conformance claim.
