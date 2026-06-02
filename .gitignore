@@ -13,3 +13,7 @@ htmlcov/
 
 # Operational improvement control area (local only, do not commit)
 melhorias/
+
+# Local landing-page draft — NOT for publication until its claims match reality
+# (current draft overclaims: rule count, languages, SARIF/engine, license, IDE plugins).
+gitpage/
