@@ -53,7 +53,8 @@ python -m build
 
 Validation must report zero errors and zero warnings before a rule change is merged.
 Framework mapping identifiers must use canonical formats (for example `CWE-79`,
-`API1:2023`, `V5.3`, `PW.4`); malformed identifiers are reported as warnings.
+`API1:2023`, `V1.2` (OWASP ASVS 5.0), `PW.4`); malformed identifiers are reported
+as warnings. ASVS identifiers reference OWASP ASVS 5.0.0.
 
 When validating multiple YAML packs in one directory, rule IDs must be unique across
 all files, not only within a single file.

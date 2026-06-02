@@ -6,6 +6,10 @@ pack:
   owner: appsec
   description: Generic application security baseline rules for review and CI evidence.
 
+# Framework mapping basis:
+#   owasp_asvs identifiers reference OWASP ASVS 5.0.0
+#   (https://github.com/OWASP/ASVS/tree/v5.0.0). Mappings are evidence aids for
+#   review, not a claim of ASVS conformance.
 rules:
   - id: APPSEC-AUTHZ-001
     title: Enforce server-side object authorization
@@ -19,7 +23,7 @@ rules:
       - backend
     mappings:
       owasp_asvs:
-        - V4.1
+        - V8.2
       owasp_api_top_10_2023:
         - API1:2023
         - API5:2023
@@ -82,7 +86,7 @@ rules:
       - frontend
     mappings:
       owasp_asvs:
-        - V5.1
+        - V2.2
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -145,7 +149,7 @@ rules:
       - ci
     mappings:
       owasp_asvs:
-        - V5.3
+        - V1.2
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -204,7 +208,7 @@ rules:
       - backend
     mappings:
       owasp_asvs:
-        - V12.6
+        - V1.3
       owasp_api_top_10_2023:
         - API7:2023
       cwe:
@@ -266,8 +270,8 @@ rules:
       - frontend
     mappings:
       owasp_asvs:
-        - V2.1
-        - V3.2
+        - V6.3
+        - V7.2
       owasp_api_top_10_2023:
         - API2:2023
       cwe:
@@ -331,7 +335,7 @@ rules:
       - general
     mappings:
       owasp_asvs:
-        - V14.8
+        - V13.3
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -388,7 +392,8 @@ rules:
       - frontend
     mappings:
       owasp_asvs:
-        - V12.1
+        - V5.2
+        - V5.3
       owasp_api_top_10_2023:
         - API4:2023
         - API8:2023
@@ -455,7 +460,8 @@ rules:
       - ci
     mappings:
       owasp_asvs:
-        - V7.1
+        - V16.2
+        - V16.3
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -516,7 +522,7 @@ rules:
       - backend
     mappings:
       owasp_asvs:
-        - V14.2
+        - V15.2
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -577,7 +583,7 @@ rules:
       - iac
     mappings:
       owasp_asvs:
-        - V14.1
+        - V13.4
       owasp_api_top_10_2023:
         - API8:2023
       cwe:
@@ -639,7 +645,8 @@ rules:
       - frontend
     mappings:
       owasp_asvs:
-        - V3.4
+        - V7.4
+        - V3.3
       owasp_api_top_10_2023:
         - API2:2023
       cwe:
@@ -705,7 +712,7 @@ rules:
       - api
     mappings:
       owasp_asvs:
-        - V5.3
+        - V1.2
       owasp_api_top_10_2023:
         - API8:2023
       cwe:

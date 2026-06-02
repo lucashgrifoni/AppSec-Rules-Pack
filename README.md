@@ -179,7 +179,7 @@ Rules are advisory by default. Each rule defines:
 
 - a stable ID and severity;
 - the target surface and AppSec category;
-- framework mappings such as OWASP ASVS, OWASP API Security Top 10, CWE, and NIST SSDF;
+- framework mappings such as OWASP ASVS 5.0, OWASP API Security Top 10, CWE, and NIST SSDF;
 - expected evidence and review signals;
 - match guidance for reviewers or automation;
 - remediation and validation guidance;

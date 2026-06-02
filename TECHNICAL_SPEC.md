@@ -59,7 +59,8 @@ for CI consumption.
 - Rules must include owner-ready remediation and validation guidance.
 - Exceptions require owner, justification, and expiry metadata.
 - Sensitive or environment-specific data must not be committed to the pack.
-- Framework mappings are evidence aids, not a claim of full ASVS or NIST compliance.
+- Framework mappings reference OWASP ASVS 5.0.0 and are evidence aids, not a claim of
+  full ASVS or NIST compliance.
 
 ## Future Extension Points
 

@@ -21,12 +21,22 @@
 
 ## Last Increment
 
-- Released v0.1.0 (tag + GitHub Release) with wheel/sdist assets and green remote CI/CD.
-- Added an optional `examples` field to the rule schema (compliant + violating, each
-  with language/snippet/explanation) and populated all 10 baseline rules.
-- Added the `--require-examples` CLI flag and wired it into the CI baseline validation;
-  excluded examples from sensitive-value detection.
-- Added `tests/test_examples.py`; the suite is now 69 tests at ~93% coverage.
+- 2026-06-02 (local; not yet committed/pushed): migrated all 12 baseline rules' `owasp_asvs`
+  mappings to OWASP ASVS 5.0.0, re-derived by topic against the 5.0.0 chapter sources (no
+  official v4->v5 crosswalk exists). Regenerated `exports/appsec-baseline.index.json` and
+  updated docs. Suite green: 78 tests at ~94% coverage; baseline 12 rules, 0 errors, 0 warnings.
+- 2026-06-01 (commit `1e94c7b`, pushed to `origin/master`): added two baseline rules,
+  `APPSEC-SESSION-001` (session cookie/lifecycle hardening) and `APPSEC-XSS-001`
+  (output encoding / XSS), bringing the pack to 12 rules; added an `export index` CLI
+  subcommand plus a checked-in `exports/appsec-baseline.index.json` with a drift test;
+  and replaced the schema `$id` placeholder with a canonical, tag-versioned URL
+  (documented via a schema `$comment`). The suite is now 78 tests at ~94% coverage.
+  The two new rules were prioritised from a read-only coverage validation of the pack
+  against a vulnerable-app test suite (gaps: session, rate limiting, CSRF, enumeration,
+  XSS, webhook authenticity, data exposure).
+- Prior (v0.1.0, 2026-05-25): released v0.1.0 (tag + GitHub Release) with wheel/sdist
+  assets and green remote CI/CD; added the optional `examples` field plus the
+  `--require-examples` flag and `tests/test_examples.py`.
 
 ## Checks
 
@@ -34,6 +44,12 @@
   (gate 90%); `ruff check .` clean; `validate rules --require-examples
   --fail-on-warnings` reported 1 file, 12 rules, 0 errors, 0 warnings; `export index`
   regenerates `exports/appsec-baseline.index.json` with no drift.
+- 2026-06-02 (ASVS 5.0 remap): `pytest --cov` 78 passed at 93.71% (gate 90%); `ruff check .`
+  clean; `validate ... --require-examples --fail-on-warnings` = 1 file, 12 rules, 0 errors,
+  0 warnings; `export index` regenerated with no drift.
+- Commit `1e94c7b` was pushed to `origin/master` on 2026-06-01. Remote CI/CD
+  (`CI`, `Security CI/CD`, `OpenSSF Scorecard`) runs on push but is **not yet verified
+  green in this session** — confirm before relying on it.
 - `python -m pytest` passed on 2026-05-25 with 69 tests.
 - `python -m pytest --cov=appsec_rules_pack` reported 93% coverage on 2026-05-25
   (gate is 90%).
@@ -62,9 +78,14 @@
 
 ## Next Steps
 
+- Confirm the pushed commit `1e94c7b` passes remote CI/CD.
 - Enable branch protection and required status checks now that remote CI is green.
-- Keep engine export design separate from this validator fixture work.
-- Expand baseline rules only when each addition has evidence and validation steps.
+- (Done 2026-06-02) Migrated framework mappings to OWASP ASVS 5.0. OWASP publishes no
+  official v4->v5 crosswalk, so identifiers were re-derived by topic against the 5.0.0
+  chapter sources; mappings remain evidence aids, not a conformance claim.
+- Keep engine export design separate from this validator. Expand baseline rules only
+  when each addition has evidence and validation steps; decide whether rate limiting
+  warrants a new schema `category` value before adding a rate-limiting rule.
 
 ## Resume Command
 
