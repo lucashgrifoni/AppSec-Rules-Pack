@@ -11,7 +11,29 @@ dist/
 .coverage
 .coverage.*
 htmlcov/
+.mypy_cache/
+.tox/
+.nox/
+
+# Editors and IDEs
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment and secrets. Nothing in this project reads a .env today; the rule is
+# here so an experiment never turns into a committed credential.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
 
 # Operational improvement control area (local only, do not commit)
 melhorias/

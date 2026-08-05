@@ -3,8 +3,8 @@
 [![CI](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml)
 [![Security CI/CD](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lucashgrifoni/AppSec-Rules-Pack/badge)](https://scorecard.dev/viewer/?uri=github.com/lucashgrifoni/AppSec-Rules-Pack)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](pyproject.toml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/LICENSE)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/pyproject.toml)
 [![PyPI](https://img.shields.io/pypi/v/appsec-rules-pack.svg)](https://pypi.org/project/appsec-rules-pack/)
 
 Reusable AppSec policy-as-code rules for secure application review, CI quality gates,
@@ -42,7 +42,7 @@ configuration.
   pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks, Dependency Review,
   actionlint), and OpenSSF Scorecard analysis. The build/lint/test, cross-platform, and
   security jobs are required status checks on `master`.
-- Architecture decision records in [`docs/adr/`](docs/adr/README.md), including the two that
+- Architecture decision records in [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/docs/adr/README.md), including the two that
   define this project's boundary: the validator stays engine-agnostic (ADR-0001) and the CI
   gate consumes its JSON rather than embedding enforcement (ADR-0004).
 - Contribution guidance for safe rule additions, a code of conduct, and issue/PR
@@ -67,6 +67,8 @@ configuration.
 |   |-- CODEOWNERS
 |   |-- PULL_REQUEST_TEMPLATE.md
 |   `-- dependabot.yml
+|-- docs/
+|   `-- adr/            # architecture decision records
 |-- examples/
 |   `-- README.md
 |-- exports/
@@ -135,7 +137,7 @@ GitHub Release:
 curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.3.0/appsec-baseline.yaml
 ```
 
-or copy [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml) from this repository.
+or copy [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/rules/appsec-baseline.yaml) from this repository.
 You can also write your own pack from the example below.
 
 ### From source (development)
@@ -160,8 +162,8 @@ also be run directly with `PYTHONPATH=src`.
 A pack is a `pack` block plus one or more `rules`. This is a complete, valid minimal pack —
 copy it, run `appsec-rules validate` on it, then grow it. Every field shown is required; the
 full contract is in
-[`appsec-rule.schema.json`](src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
-19 baseline rules in [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml) are worked
+[`appsec-rule.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
+19 baseline rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/rules/appsec-baseline.yaml) are worked
 examples.
 
 <!-- readme-example:minimal-pack (validated by tests/test_readme_example.py) -->

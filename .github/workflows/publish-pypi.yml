@@ -7,12 +7,11 @@ name: Publish to PyPI
 #   - publishes to PyPI via Trusted Publishing (OIDC) — no long-lived API token,
 #   - attaches the SBOM and distribution artifacts to the GitHub Release.
 #
-# OWNER HANDOFF — required before the publish step can succeed:
-#   1. Configure a PyPI Trusted Publisher for this repo + workflow + the "pypi"
-#      environment: https://docs.pypi.org/trusted-publishers/
-#   2. Create a GitHub Environment named "pypi" (optionally with required reviewers).
-# The build, SBOM, and attestation steps run without that config; only the PyPI
-# publish step depends on the Trusted Publisher existing.
+# Publishing depends on a PyPI Trusted Publisher being configured for this repository,
+# this workflow file, and the "pypi" environment (https://docs.pypi.org/trusted-publishers/).
+# That configuration is in place and has published releases end to end. Anyone forking this
+# repository has to set up their own before the publish step can succeed; the build, SBOM,
+# and attestation steps run without it.
 
 on:
   push:
