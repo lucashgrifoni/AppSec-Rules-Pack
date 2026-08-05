@@ -1,0 +1,9 @@
+# The sdist was shipping tests/*.py without tests/helpers.py, tests/fixtures/, or
+# rules/appsec-baseline.yaml, so the suite it carried could not run at all -- it failed
+# on `from helpers import run_python` before reaching a single assertion.
+#
+# Shipping a runnable suite instead would mean putting the rules pack and the fixtures
+# into the distribution, which contradicts what this project deliberately distributes:
+# the validator, the CLI, and the schema, with the rules pack attached to the GitHub
+# Release rather than bundled. Running the tests means cloning the repository.
+prune tests
