@@ -16,9 +16,15 @@ Earlier builds and pre-release commits are not maintained; upgrade to the latest
 
 ## Reporting a Vulnerability
 
-Report suspected vulnerabilities privately through GitHub Security Advisories
-(the repository "Security" tab, "Report a vulnerability"). Include the affected
-version or commit, reproduction steps, and expected impact.
+Report suspected vulnerabilities privately through GitHub Security Advisories:
+
+**https://github.com/lucashgrifoni/AppSec-Rules-Pack/security/advisories/new**
+
+Private vulnerability reporting is enabled on this repository, so that form is open to
+anyone. Include the affected version or commit, reproduction steps, and expected impact.
+
+Expect an acknowledgement within 7 days. This is a single-maintainer project, so please
+allow a reasonable disclosure window before publishing.
 
 Do not include proprietary source code, private findings, credentials, customer
 data, or exploit payloads from systems you do not own.
