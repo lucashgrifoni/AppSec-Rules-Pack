@@ -42,21 +42,21 @@ the `Branch-Protection` note under Risks and limits.
 
 ## Verified checks
 
-Measured 2026-10-04 on Linux with Python 3.12.14, from source based on
-`d785f85b8c02c8b8768fc8ac76ca84e9ebd0731d`.
+Measured 2026-10-04 on Windows 11 with Python 3.12.10 at `6b2b479`, after the
+pending pull requests were merged.
 
 | Check | Result |
 | --- | --- |
 | `ruff check .` | Clean |
-| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 149 passed; 97.22% coverage (gate 95%) |
+| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 173 passed; 97.22% coverage (gate 95%) |
 | `validate rules --require-examples --fail-on-warnings` | 1 file, 19 rules, 0 errors, 0 warnings |
 | `report coverage rules/appsec-baseline.yaml` | ASVS, API Top 10, CWE, SSDF: 19/19; optional Top 10:2025: 18/19 |
 | `exports/` regeneration | All three exports regenerated; byte-comparison drift tests pass |
 | `python -m build` | Wheel and source distribution built successfully |
 | CLI exit codes | Baseline: 0; missing-title fixture: 1; output recorded in `docs/assets/cli-demo.svg` |
 | Repository visibility | Public on 2026-10-04 |
-| Remote CI and security | On `d785f85`, [CI 37176413041](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37176413041) and [Security CI/CD 37176413414](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37176413414) passed on 2026-10-04, including CodeQL and all fourteen required jobs; push-only Dependency Review was skipped as designed |
-| Remote Scorecard | [Run 37176413045](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37176413045) passed on `d785f85` on 2026-10-04 |
+| Remote CI and security | On `6b2b479`, [CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233), [Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236), and [Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285) passed on 2026-10-04, including CodeQL and all fourteen required jobs |
+| Remote Scorecard | [Run 37212550305](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550305) passed on `6b2b479` on 2026-10-04 |
 
 The v0.3.1 release and prior end-user installation checks are documented in
 [`CHANGELOG.md`](CHANGELOG.md). See the README's release-verification instructions for
@@ -151,8 +151,9 @@ recorded scope decision, not a failed validation or a claim that the control is 
 
 ## Next steps
 
-- Deepen the reference exports — real Semgrep detection patterns or an OPA/Rego mapping —
-  kept strictly separate from the validator so the contract stays engine-agnostic.
+- Extend the optional Semgrep layer beyond its two Python/Flask detections, or add an
+  OPA/Rego mapping, kept strictly separate from the validator so the contract stays
+  engine-agnostic.
 - Extend mapping coverage: further ASVS chapters and NIST SSDF task-level mapping.
 - Stabilize the expanded contract and cut `v1.0` with frozen schema guarantees, once it has
   had real-world use.
