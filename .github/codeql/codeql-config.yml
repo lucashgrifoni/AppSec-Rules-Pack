@@ -1,0 +1,7 @@
+name: AppSec Rules Pack CodeQL config
+
+# The Semgrep rule fixtures are deliberately vulnerable test inputs. They are exercised
+# by the "Executable Semgrep rules" workflow and are never imported or shipped. Keep this
+# list limited to that fixture directory; never exclude src/, tests/, or the rules.
+paths-ignore:
+  - exports/semgrep-rules/tests

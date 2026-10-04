@@ -103,8 +103,9 @@ Fixtures are parsed as source; do not import or execute them as applications.
 
 The root `.semgrepignore` excludes only these two intentionally vulnerable
 fixture files from general repository scans. The explicit `--test` invocation
-still scans both files and checks their annotations. Existing repository SAST
-jobs are unchanged. `tests/test_semgrep_rules.py` guards baseline links, unique
+still scans both files and checks their annotations. For the same reason,
+`.github/codeql/codeql-config.yml` excludes the `tests/` fixture directory from
+CodeQL; no other path is excluded. `tests/test_semgrep_rules.py` guards baseline links, unique
 rule IDs, fixture inventory, and the exact ignore list without importing Semgrep.
 The existing drift tests continue to guard the non-runnable generated scaffold.
 
