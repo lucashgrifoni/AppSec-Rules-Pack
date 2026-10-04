@@ -114,7 +114,7 @@
 </nav>
 
 <header class="hero wrap">
-  <span class="eyebrow">v0.3.0 · Apache-2.0 · engine-agnostic</span>
+  <span class="eyebrow">v0.3.1 · Apache-2.0 · engine-agnostic</span>
   <h1>A reviewable <span class="accent">AppSec baseline</span><br/>your pipeline can verify.</h1>
   <p class="lede">A curated pack of 19 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
@@ -131,7 +131,7 @@
   <div class="stats">
     <div class="stat"><div class="n">19</div><div class="l">baseline rules</div></div>
     <div class="stat"><div class="n">5</div><div class="l">framework maps</div></div>
-    <div class="stat"><div class="n">130 <span>✓</span></div><div class="l">tests · 97% cov</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">export formats</div></div>
     <div class="stat"><div class="n">0</div><div class="l">errors / warnings</div></div>
   </div>
 </header>
@@ -164,14 +164,14 @@
 <span class="p">$</span> <span class="o">pip install appsec-rules-pack</span>
 
 <span class="c"># the distribution ships the validator, not the rules — grab the pack</span>
-<span class="p">$</span> <span class="o">mkdir rules && curl -sL -o rules/appsec-baseline.yaml \</span>
-<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.3.0/appsec-baseline.yaml</span>
+<span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
+<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/latest/download/appsec-baseline.yaml</span>
 
 <span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
 <span class="c">Validation passed: 1 file, 19 rules, 0 errors, 0 warnings.</span>
 
 <span class="p">$</span> <span class="o">appsec-rules report coverage rules</span>
-<span class="c">owasp_asvs 19/19 · owasp_top_10_2025 17/19 · cwe 19/19 …</span>
+<span class="c"># reports mapping coverage and unmapped rules for each framework</span>
 
 <span class="p">$</span> <span class="o">appsec-rules export index rules/appsec-baseline.yaml -o exports/index.json</span>
 <span class="c"># derivation only — no rule execution, no scanning</span>
