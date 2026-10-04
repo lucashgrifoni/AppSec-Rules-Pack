@@ -1,0 +1,40 @@
+# Hand-maintained executable subset; not output from `export semgrep`.
+rules:
+  - id: appsec-python-flask-requests-tainted-url
+    languages: [python]
+    mode: taint
+    severity: WARNING
+    message: >-
+      Flask query/form input reaches a Requests URL (APPSEC-SSRF-001).
+      Prefer a server-selected destination; otherwise validate the destination,
+      resolved addresses, and redirect targets against an explicit allowlist.
+    metadata:
+      baseline_id: APPSEC-SSRF-001
+      category: security
+      technology: [flask, requests]
+      cwe: ["CWE-918: Server-Side Request Forgery (SSRF)"]
+      confidence: MEDIUM
+      references:
+        - https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args[$KEY]
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form[$KEY]
+          - pattern: flask.request.form.get(...)
+        exact: true
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: requests.$METHOD($URL, ...)
+              - pattern: requests.$METHOD(url=$URL, ...)
+          - metavariable-regex:
+              metavariable: $METHOD
+              regex: ^(get|post|put|patch|delete|head|options)$
+          - focus-metavariable: $URL
+      - patterns:
+          - pattern-either:
+              - pattern: requests.request($METHOD, $URL, ...)
+              - pattern: requests.request($METHOD, url=$URL, ...)
+              - pattern: requests.request(method=$METHOD, url=$URL, ...)
+          - focus-metavariable: $URL

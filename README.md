@@ -378,3 +378,30 @@ requirements, and the required checks. All participation is governed by
 ## License
 
 Licensed under the Apache License 2.0. See `LICENSE`.
+
+## Optional executable Semgrep references
+
+The hand-maintained [Semgrep reference layer](exports/semgrep-rules/README.md)
+contains two tested Python/Flask detections:
+
+- `APPSEC-INJECT-001`: Flask query/form values reaching locally established sqlite3
+  SQL arguments; parameterized values are negative fixtures
+- `APPSEC-SSRF-001`: Flask query/form values reaching module-level Requests URL
+  arguments; fixed destination URLs are negative fixtures
+
+The other 17 baseline rule IDs have no executable detection. Even these two detections
+cover only their documented source/sink combinations, with known false positives and
+false negatives. They do not establish complete coverage of SQL injection or SSRF.
+See the layer README for the full coverage inventory and limitations.
+
+Install Semgrep separately and run the fixture suite from a source checkout:
+
+```bash
+python -m pip install "semgrep==1.179.0"
+semgrep --test --strict --metrics=off --config exports/semgrep-rules/rules exports/semgrep-rules/tests
+```
+
+To scan your own Python source, point that separately installed engine at the
+reference rules and your source directory. The `appsec-rules` CLI does not invoke
+Semgrep, and `export semgrep` continues to emit the non-executable metadata scaffold.
+[ADR-0005](docs/adr/0005-executable-semgrep-subset.md) records this boundary.
