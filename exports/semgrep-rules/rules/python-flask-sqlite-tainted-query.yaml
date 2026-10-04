@@ -1,0 +1,55 @@
+# Hand-maintained executable subset; not output from `export semgrep`.
+rules:
+  - id: appsec-python-flask-sqlite-tainted-query
+    languages: [python]
+    mode: taint
+    severity: ERROR
+    message: >-
+      Flask query/form input reaches sqlite3 SQL text (APPSEC-INJECT-001).
+      Keep the SQL statement constant and pass user values as bound parameters.
+    metadata:
+      baseline_id: APPSEC-INJECT-001
+      category: security
+      technology: [flask, sqlite3]
+      cwe: ["CWE-89: SQL Injection"]
+      confidence: MEDIUM
+      references:
+        - https://docs.python.org/3/library/sqlite3.html#sqlite3-placeholders
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args[$KEY]
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form[$KEY]
+          - pattern: flask.request.form.get(...)
+        exact: true
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern-inside: |
+                  $DB = sqlite3.connect(...)
+                  ...
+              - pattern-inside: |
+                  with sqlite3.connect(...) as $DB:
+                    ...
+          - pattern-either:
+              - pattern: $DB.execute($SQL, ...)
+              - pattern: $DB.executemany($SQL, ...)
+              - pattern: $DB.executescript($SQL)
+          - focus-metavariable: $SQL
+      - patterns:
+          - pattern-either:
+              - pattern-inside: |
+                  $DB = sqlite3.connect(...)
+                  ...
+                  $CURSOR = $DB.cursor(...)
+                  ...
+              - pattern-inside: |
+                  with sqlite3.connect(...) as $DB:
+                    ...
+                    $CURSOR = $DB.cursor(...)
+                    ...
+          - pattern-either:
+              - pattern: $CURSOR.execute($SQL, ...)
+              - pattern: $CURSOR.executemany($SQL, ...)
+              - pattern: $CURSOR.executescript($SQL)
+          - focus-metavariable: $SQL

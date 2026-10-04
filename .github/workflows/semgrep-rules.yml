@@ -1,0 +1,56 @@
+name: Executable Semgrep rules
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: semgrep-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rule-tests:
+    name: Semgrep executable rule tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SEMGREP_ENABLE_VERSION_CHECK: "0"
+      SEMGREP_SEND_METRICS: "off"
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # This engine is a CI-only tool, not a validator dependency. Review upgrades
+      # together with the positive and negative fixtures before changing the pin.
+      - name: Install tested Semgrep version
+        run: python -m pip install "semgrep==1.179.0"
+
+      - name: Test executable rule fixtures
+        run: >-
+          semgrep --test --strict --metrics=off
+          --config exports/semgrep-rules/rules
+          exports/semgrep-rules/tests
