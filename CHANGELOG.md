@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   passing and a failing validation.
 - Corrected the roadmap and technical specification to separate what shipped through
   v0.3.1 from future work, and added the Python 3.13 classifier that CI already covers.
+- Added an optional, hand-maintained Semgrep layer under `exports/semgrep-rules/` with two
+  tested Python/Flask detections (`APPSEC-INJECT-001`, `APPSEC-SSRF-001`), positive and
+  negative fixtures, a dedicated `semgrep --test` workflow, and ADR-0005. The validator and
+  `export semgrep` are unchanged. CodeQL skips only the intentionally vulnerable fixtures.
+- Added `examples/validation_gate.py`, a stdlib-only downstream gate that consumes
+  `validate --format json` outside GitHub Actions (contributed by @LEKKALAGANESH, #35).
+- The downstream examples and the pull request template now use the strict
+  `--require-examples --fail-on-warnings` gate, with tests that run the documented
+  commands; `CONTRIBUTING.md` states the automated test policy.
+- Replaced the Markdown issue templates with issue forms and added a social-preview image.
+- Bumped pinned GitHub Actions: `attest-build-provenance` 4.2.2, `gh-action-pypi-publish`
+  1.14.2, `harden-runner` 2.21.0, `setup-python` 6.3.0, `actionlint` 0.1.13, and
+  `scorecard-action` 2.4.4.
 
 ## v0.3.1 - 2026-08-27
 
