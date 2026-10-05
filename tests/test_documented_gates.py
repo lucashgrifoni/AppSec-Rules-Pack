@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import runpy
 import shlex
 import textwrap
 from pathlib import Path
@@ -93,10 +94,12 @@ def test_template_gate_stops_on_critical_high_or_blocking(
     reports.mkdir()
     summary = {"open_by_severity": open_by_severity, "open_by_enforcement": open_by_enforcement}
     (reports / "svc.json").write_text(json.dumps({"summary": summary}), encoding="utf-8")
+    gate = tmp_path / "gate.py"
+    gate.write_text(GATE_SCRIPT, encoding="utf-8")
     monkeypatch.chdir(tmp_path)
 
     # In-process: a child started outside the repository would not find the coverage config.
     with pytest.raises(SystemExit) as stopped:
-        exec(compile(GATE_SCRIPT, "gate.py", "exec"), {"__name__": "__main__"})
+        runpy.run_path(str(gate), run_name="__main__")
 
     assert stopped.value.code == expected
