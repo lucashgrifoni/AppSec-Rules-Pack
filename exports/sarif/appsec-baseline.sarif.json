@@ -7,7 +7,7 @@
         "driver": {
           "name": "AppSec Rules Pack",
           "informationUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
-          "version": "0.3.0",
+          "version": "0.4.0",
           "rules": [
             {
               "id": "APPSEC-AUTHZ-001",

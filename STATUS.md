@@ -6,10 +6,11 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
-**Released:** `appsec-rules-pack` **0.3.1**, published to PyPI via Trusted Publishing
+**Released:** `appsec-rules-pack` **0.4.0**, published to PyPI via Trusted Publishing
 (OIDC, no long-lived credential). The release workflow publishes the wheel, the sdist, a
-CycloneDX SBOM, and `appsec-baseline.yaml` as GitHub Release assets. Its SLSA
-build-provenance step covers all four assets. Provenance is verified through GitHub
+CycloneDX SBOM, `appsec-baseline.yaml`, and the signed provenance bundle
+(`appsec-rules-pack-<tag>.intoto.jsonl`) as GitHub Release assets. Its SLSA
+build-provenance step covers the first four. Provenance is verified through GitHub
 Artifact Attestations; downloading a release asset alone does not verify it.
 
 **What ships:** a JSON Schema rule contract, a Python 3.12+ validator with a Typer CLI, and
@@ -58,7 +59,7 @@ pending pull requests were merged.
 | Remote CI and security | On `6b2b479`, [CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233), [Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236), and [Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285) passed on 2026-10-04, including CodeQL and all fourteen required jobs |
 | Remote Scorecard | [Run 37212550305](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550305) passed on `6b2b479` on 2026-10-04 |
 
-The v0.3.1 release and prior end-user installation checks are documented in
+Release history and prior end-user installation checks are documented in
 [`CHANGELOG.md`](CHANGELOG.md). See the README's release-verification instructions for
 checking the provenance of a downloaded asset independently.
 

@@ -12,7 +12,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Add capabilities only when each one has tests and validation evidence.
 - Treat scanner-specific execution engines as a deliberate, separate boundary.
 
-## Now — Delivered through v0.3.1
+## Now — Delivered through v0.4.0
 
 - JSON Schema rule contract and a baseline pack of 19 rules spanning access control,
   injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
@@ -33,7 +33,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - All `owasp_asvs` mappings migrated to OWASP ASVS 5.0.0 (assigned by topic and verified
   against the 5.0.0 chapter/section structure and the official v5.0.0-to-v4.0.3 mapping
   under `5.0/mappings/`). Mappings remain evidence aids, not a claim.
-- Tagged releases through `v0.3.1` published; see `STATUS.md` for current repository visibility.
+- Tagged releases through `v0.4.0` published; see `STATUS.md` for current repository visibility.
 - `master` branch-protected via the `master-protection` ruleset (2026-06-03).
 - Tagged `v0.2.0` published to PyPI as `appsec-rules-pack` via OIDC Trusted Publishing
   (2026-06-03), with a CycloneDX SBOM and a SLSA build-provenance attestation attached to
@@ -44,6 +44,9 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Tagged `v0.3.1` published (2026-08-27), with controlled CLI read/write errors,
   text coverage-report output, and corrected validation-summary pluralization. The
   release workflow attests the baseline pack and SBOM as well as the wheel and sdist.
+- Tagged `v0.4.0` (2026-10-05): an optional, tested Semgrep layer with two Python/Flask
+  detections, a portable downstream JSON gate example, strict example commands, issue
+  forms, and the signed provenance bundle attached to each Release.
 - Optional `owasp_top_10_2025` mapping field (additive, backward-compatible) populated on
   the rules where a 2025 category maps cleanly.
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block

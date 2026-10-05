@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v0.4.0 - 2026-10-05
+
+- Each GitHub Release now carries the signed build-provenance bundle as
+  `appsec-rules-pack-<tag>.intoto.jsonl`. The publish workflow verifies the bundle against
+  the wheel before publishing, and consumers can verify any asset offline with
+  `gh attestation verify --bundle`.
+- The baseline pack version moves to 0.4.0 because rule content changed
+  (`APPSEC-RATELIMIT-001` gained an OWASP Top 10:2025 mapping); the derived exports are
+  regenerated. The rule schema is unchanged.
 
 - Mapped `APPSEC-RATELIMIT-001` to OWASP Top 10:2025 `A10:2025`, whose prevention
   guidance explicitly calls for rate limits and resource quotas, and regenerated all three
@@ -28,7 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the Markdown issue templates with issue forms and added a social-preview image.
 - Bumped pinned GitHub Actions: `attest-build-provenance` 4.2.2, `gh-action-pypi-publish`
   1.14.2, `harden-runner` 2.21.0, `setup-python` 6.3.0, `actionlint` 0.1.13, and
-  `scorecard-action` 2.4.4.
+  `scorecard-action` 2.4.4, later `harden-runner` 2.21.1 and the `codeql-action` group
+  4.38.2.
 
 ## v0.3.1 - 2026-08-27
 

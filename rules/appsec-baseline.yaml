@@ -1,7 +1,7 @@
 pack:
   id: appsec-baseline
   name: AppSec Baseline Rules Pack
-  version: 0.3.0
+  version: 0.4.0
   mode: advisory
   owner: appsec
   description: Generic application security baseline rules for review and CI evidence.
