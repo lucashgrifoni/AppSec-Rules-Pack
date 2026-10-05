@@ -1,0 +1,27 @@
+{
+  "schema": "appsec-rules-validation/v1",
+  "summary": {
+    "files": 1,
+    "rules": 1,
+    "errors": 1,
+    "warnings": 0,
+    "ok": false
+  },
+  "files": [
+    {
+      "path": "invalid-enum.yaml",
+      "rules": 1,
+      "errors": 1,
+      "warnings": 0,
+      "issues": [
+        {
+          "level": "error",
+          "code": "schema-enum",
+          "rule_id": "APPSEC-TEST-004",
+          "path": "rules.0.severity",
+          "message": "value must be one of: critical, high, medium, low"
+        }
+      ]
+    }
+  ]
+}

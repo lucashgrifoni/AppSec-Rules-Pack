@@ -1,0 +1,267 @@
+{
+  "schema": "appsec-rules-review/v1",
+  "pack": {
+    "id": "appsec-baseline",
+    "version": "0.6.0"
+  },
+  "review": {
+    "date": "2026-10-01",
+    "pack": "appsec-baseline",
+    "pack_version": "0.6.0",
+    "reviewer": "appsec-team",
+    "scope": "Release 3.2 of payments-api; the admin console is reviewed separately.",
+    "subject": "payments-api (JSON API behind the public gateway)"
+  },
+  "as_of": "2026-10-05",
+  "summary": {
+    "rules": 20,
+    "met": 12,
+    "not_met": 1,
+    "not_applicable": 6,
+    "excepted": 1,
+    "unreviewed": 0,
+    "open_by_enforcement": {
+      "advisory": 1
+    },
+    "open_by_severity": {
+      "medium": 1
+    },
+    "errors": 1,
+    "warnings": 0,
+    "ok": false
+  },
+  "results": [
+    {
+      "rule_id": "APPSEC-AUTHZ-001",
+      "title": "Enforce server-side object authorization",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-INPUT-001",
+      "title": "Validate untrusted input at boundaries",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Request bodies are parsed by pydantic models in src/payments/schemas.py.",
+        "tests/test_input.py covers oversize amounts and unknown currency codes."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-INJECT-001",
+      "title": "Prevent injection into interpreters and queries",
+      "severity": "critical",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "All queries go through SQLAlchemy Core with bound parameters; no raw SQL strings.",
+        "Semgrep python.sqlalchemy rules run in CI with no open findings."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-SSRF-001",
+      "title": "Restrict user-influenced outbound requests",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Outbound calls go only to the card processor, whose host is fixed in config."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-AUTHN-001",
+      "title": "Enforce strong authentication and session integrity",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Authentication is delegated to the gateway; the service verifies the signed JWT.",
+        "tests/test_auth.py rejects expired, unsigned, and wrong-audience tokens."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-SECRETS-001",
+      "title": "Keep secrets out of code, logs, and rules",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Processor credentials come from the secrets manager at start-up.",
+        "Gitleaks runs on every pull request with no findings."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-FILE-001",
+      "title": "Harden file upload and file path handling",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "The service accepts no uploads and reads no paths derived from input."
+    },
+    {
+      "rule_id": "APPSEC-LOG-001",
+      "title": "Log security events without leaking sensitive data",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "not-met",
+      "evidence": [
+        "src/payments/refunds.py::handle_refund_failure logs the full processor response."
+      ],
+      "exception": null,
+      "notes": "Refund failures log the full processor response, which includes the card holder name."
+    },
+    {
+      "rule_id": "APPSEC-DEP-001",
+      "title": "Manage known-vulnerable and unmaintained dependencies",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Dependabot and pip-audit run weekly; the lock file has no known-vulnerable pins."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-CONFIG-001",
+      "title": "Apply secure defaults and remove risky configuration",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Debug mode is off in the production image; the settings test asserts it."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-SESSION-001",
+      "title": "Harden session cookies and session lifecycle",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "The service is stateless; sessions live in the gateway."
+    },
+    {
+      "rule_id": "APPSEC-XSS-001",
+      "title": "Encode output to prevent cross-site scripting",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "The service returns JSON only and renders no HTML."
+    },
+    {
+      "rule_id": "APPSEC-CSRF-001",
+      "title": "Protect state-changing requests against CSRF",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "Clients authenticate with bearer tokens, not cookies."
+    },
+    {
+      "rule_id": "APPSEC-ENUM-001",
+      "title": "Avoid user and account enumeration",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Unknown and foreign payment ids both return the same 404 body."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-MSGAUTH-001",
+      "title": "Verify authenticity of inbound webhooks and signed messages",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Processor webhooks are verified with HMAC and a five-minute timestamp window.",
+        "tests/test_webhooks.py rejects bad signatures and replayed events."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-DATAEXPO-001",
+      "title": "Return only the minimum required data",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Responses are built from explicit response models; card numbers are masked."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-MASSASSIGN-001",
+      "title": "Allowlist fields bound from request input",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "met",
+      "evidence": [
+        "Update endpoints accept only the fields declared in their request models."
+      ],
+      "exception": null
+    },
+    {
+      "rule_id": "APPSEC-REDIRECT-001",
+      "title": "Validate redirect destinations against an allowlist",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "The service issues no redirects."
+    },
+    {
+      "rule_id": "APPSEC-RATELIMIT-001",
+      "title": "Apply rate limiting and resource quotas",
+      "severity": "medium",
+      "enforcement": "advisory",
+      "status": "excepted",
+      "evidence": [],
+      "exception": {
+        "compensating_control": "Gateway limit of 50 requests per second and an alert on 429 spikes.",
+        "expires_at": "2026-12-15",
+        "granted_at": "2026-10-01",
+        "justification": "The gateway applies a global request limit; per-client quotas need a new store.",
+        "owner": "payments-team"
+      },
+      "notes": "Per-client limits are planned for release 3.3."
+    },
+    {
+      "rule_id": "APPSEC-PWSTORE-001",
+      "title": "Store passwords with an adaptive password hashing function",
+      "severity": "high",
+      "enforcement": "advisory",
+      "status": "not-applicable",
+      "evidence": [],
+      "exception": null,
+      "notes": "The service stores no passwords; users authenticate at the gateway."
+    }
+  ],
+  "issues": [
+    {
+      "level": "error",
+      "code": "review-evidence-missing",
+      "rule_id": "APPSEC-AUTHZ-001",
+      "path": "results.0",
+      "message": "a met rule must cite at least one piece of evidence"
+    }
+  ]
+}

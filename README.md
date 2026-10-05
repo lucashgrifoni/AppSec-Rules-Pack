@@ -381,6 +381,7 @@ tests/              Test suite and pass, fail, and warning fixtures
 | [`ROADMAP.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/ROADMAP.md) | What shipped and what comes next |
 | [`TECHNICAL_SPEC.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/TECHNICAL_SPEC.md) | Rule contract and validation design |
 | [`docs/rule-fields.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md) | Every pack and rule field, and how to adapt the baseline |
+| [`docs/v1-readiness.md`](docs/v1-readiness.md) | Proposed 1.0 contract freeze, migration policy, and pending acceptance criteria |
 | [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md) | Architecture decisions |
 
 ## Contributing, security, and license
