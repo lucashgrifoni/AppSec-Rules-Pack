@@ -105,9 +105,7 @@ def test_derivation_commands_reject_aliases(tmp_path: Path, command: list[str]) 
 
 
 def test_duplicate_rules_key_cannot_silently_drop_rules(tmp_path: Path) -> None:
-    text = BASELINE.read_text(encoding="utf-8") + (
-        "\nrules:\n  - id: APPSEC-ONLY-001\n"
-    )
+    text = BASELINE.read_text(encoding="utf-8") + ("\nrules:\n  - id: APPSEC-ONLY-001\n")
     pack = _write(tmp_path, "duplicate-rules.yaml", text)
 
     result = runner.invoke(app, ["validate", str(pack)])
@@ -244,9 +242,7 @@ def test_secret_is_found_in_a_later_rule_after_an_examples_block() -> None:
 
     result = validate_rules_payload(payload)
 
-    assert any(
-        issue.path == ("rules", 1, "remediation", "guidance") for issue in result.issues
-    )
+    assert any(issue.path == ("rules", 1, "remediation", "guidance") for issue in result.issues)
 
 
 def test_key_material_in_examples_is_a_warning_but_demo_passwords_are_not() -> None:

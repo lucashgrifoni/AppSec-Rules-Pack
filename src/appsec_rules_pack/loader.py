@@ -5,7 +5,9 @@ The loader therefore narrows YAML to what a rules pack needs. It refuses aliases
 because alias expansion turns a few hundred bytes into millions of nodes (CWE-776) and
 lets a pack refer to itself. It refuses duplicate mapping keys, because PyYAML keeps
 the last value silently, so a reviewer could read one value while another one wins.
-It also refuses files larger than ``MAX_RULES_FILE_BYTES`` before parsing them.
+It also refuses files larger than ``MAX_RULES_FILE_BYTES`` before parsing them, and
+reports an unquoted date that is not a real day as a YAML error instead of letting
+PyYAML's ValueError escape.
 """
 
 from pathlib import Path
@@ -15,7 +17,7 @@ import yaml
 from yaml.composer import ComposerError
 from yaml.constructor import ConstructorError
 from yaml.events import AliasEvent
-from yaml.nodes import MappingNode, Node
+from yaml.nodes import MappingNode, Node, ScalarNode
 
 MAX_RULES_FILE_BYTES = 10 * 1024 * 1024
 
@@ -56,6 +58,24 @@ class _RulesPackLoader(yaml.SafeLoader):
                 )
             seen.add(key)
         return super().construct_mapping(node, deep=deep)
+
+    def construct_yaml_timestamp(self, node: ScalarNode) -> Any:
+        try:
+            return super().construct_yaml_timestamp(node)
+        except ValueError as error:
+            raise ConstructorError(
+                None,
+                None,
+                f"{_key_label(node.value)} is not a valid date or timestamp ({error})",
+                node.start_mark,
+            ) from error
+
+
+# SafeLoader looks constructors up in a per-class registry, so the override above has to
+# be registered for the timestamp tag to take effect.
+_RulesPackLoader.add_constructor(
+    "tag:yaml.org,2002:timestamp", _RulesPackLoader.construct_yaml_timestamp
+)
 
 
 def _key_label(key: Any) -> str:

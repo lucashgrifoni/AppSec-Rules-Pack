@@ -62,9 +62,9 @@ def test_exception_checks_skip_rules_whose_exceptions_block_is_not_a_mapping() -
 
 
 def test_mapping_format_checks_skip_rules_whose_mappings_are_not_a_mapping() -> None:
-    result = validate_rules_payload(_payload([{"id": "APPSEC-D-002", "mappings": ["CWE-79"]}]))
+    result = validate_rules_payload(_payload([{"id": "APPSEC-D-002", "mappings": ["CWE 79"]}]))
 
-    assert not any("identifier" in issue.message.lower() for issue in result.issues)
+    assert "mapping-id-malformed" not in {issue.code for issue in result.issues}
 
 
 def test_require_examples_skips_non_dict_rules() -> None:
