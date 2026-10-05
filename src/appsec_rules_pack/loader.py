@@ -1,13 +1,84 @@
-"""File loading helpers for AppSec rules pack validation."""
+"""File loading helpers for AppSec rules pack validation.
+
+Rule packs are untrusted input: they arrive in pull requests and are validated by CI.
+The loader therefore narrows YAML to what a rules pack needs. It refuses aliases,
+because alias expansion turns a few hundred bytes into millions of nodes (CWE-776) and
+lets a pack refer to itself. It refuses duplicate mapping keys, because PyYAML keeps
+the last value silently, so a reviewer could read one value while another one wins.
+It also refuses files larger than ``MAX_RULES_FILE_BYTES`` before parsing them.
+"""
 
 from pathlib import Path
 from typing import Any
 
 import yaml
+from yaml.composer import ComposerError
+from yaml.constructor import ConstructorError
+from yaml.events import AliasEvent
+from yaml.nodes import MappingNode, Node
+
+MAX_RULES_FILE_BYTES = 10 * 1024 * 1024
+
+
+class RulesFileTooLargeError(yaml.MarkedYAMLError):
+    """Raised when a rules file exceeds ``MAX_RULES_FILE_BYTES``."""
+
+
+class _RulesPackLoader(yaml.SafeLoader):
+    """SafeLoader that rejects aliases and duplicate mapping keys."""
+
+    def compose_node(self, parent: Node | None, index: Any) -> Node | None:
+        if self.check_event(AliasEvent):
+            event = self.peek_event()
+            raise ComposerError(
+                None,
+                None,
+                "YAML aliases are not supported in rules packs",
+                event.start_mark,
+            )
+        return super().compose_node(parent, index)
+
+    def construct_mapping(self, node: MappingNode, deep: bool = False) -> dict[Any, Any]:
+        seen: set[Any] = set()
+        for key_node, _ in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            try:
+                duplicate = key in seen
+            except TypeError:
+                # An unhashable key fails in the base constructor with its own message.
+                continue
+            if duplicate:
+                raise ConstructorError(
+                    "while constructing a mapping",
+                    node.start_mark,
+                    f"duplicate key {_key_label(key)}",
+                    key_node.start_mark,
+                )
+            seen.add(key)
+        return super().construct_mapping(node, deep=deep)
+
+
+def _key_label(key: Any) -> str:
+    text = str(key)
+    return repr(text if len(text) <= 60 else text[:57] + "...")
 
 
 def load_yaml_file(path: Path) -> Any:
-    """Load a YAML file with safe parsing."""
+    """Load a rules pack YAML file with safe, restricted parsing."""
+
+    size = path.stat().st_size
+    if size > MAX_RULES_FILE_BYTES:
+        raise RulesFileTooLargeError(
+            problem=(
+                f"file is {size} bytes; the maximum supported rules file size is "
+                f"{MAX_RULES_FILE_BYTES} bytes"
+            )
+        )
 
     with path.open("r", encoding="utf-8") as handle:
-        return yaml.safe_load(handle)
+        # Same sequence yaml.safe_load uses, with the restricted SafeLoader subclass.
+        loader = _RulesPackLoader(handle)
+        try:
+            return loader.get_single_data()
+        finally:
+            loader.dispose()

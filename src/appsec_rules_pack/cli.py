@@ -24,10 +24,18 @@ from appsec_rules_pack.validator import (
     validate_rules_files,
 )
 
-app = typer.Typer(help="Validate AppSec rules pack files.")
-export_app = typer.Typer(help="Derive machine-readable artifacts from rules packs.")
+# Typer's rich tracebacks print local variables, which for this tool means the content
+# of the rules pack, into CI logs. Unexpected errors must not echo pack content.
+_TYPER_SETTINGS: dict[str, Any] = {"pretty_exceptions_show_locals": False}
+
+app = typer.Typer(help="Validate AppSec rules pack files.", **_TYPER_SETTINGS)
+export_app = typer.Typer(
+    help="Derive machine-readable artifacts from rules packs.", **_TYPER_SETTINGS
+)
 app.add_typer(export_app, name="export")
-report_app = typer.Typer(help="Derive coverage and summary reports from rules packs.")
+report_app = typer.Typer(
+    help="Derive coverage and summary reports from rules packs.", **_TYPER_SETTINGS
+)
 app.add_typer(report_app, name="report")
 
 
@@ -112,13 +120,24 @@ def _format_file_issue(base_path: Path, file_path: Path, issue: ValidationIssue)
     return f"{_display_path(base_path, file_path)}: {_format_issue(issue)}"
 
 
-def _write_document(output: Path, document: str) -> None:
+def _write_document(output: Path, document: str, inputs: tuple[Path, ...] = ()) -> None:
     """Write a derived document, reporting write failures as an actionable CLI error.
 
     Pointing ``--output`` at an existing directory, or at any path that cannot be
     written, used to escape as a raw Python traceback (``PermissionError`` on Windows,
-    ``IsADirectoryError`` on POSIX). The caller keeps its own success message.
+    ``IsADirectoryError`` on POSIX). Pointing it at one of the input packs replaced the
+    pack with the derived document, so that is refused. The caller keeps its own
+    success message.
     """
+
+    target = output.resolve()
+    if any(target == source.resolve() for source in inputs):
+        typer.echo(
+            f"Write failed: {output} is one of the input rules files; "
+            "choose a different output path.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
 
     try:
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -166,6 +185,24 @@ def _load_payloads(rule_files: tuple[Path, ...], action: str) -> list[Any]:
             )
             raise typer.Exit(code=1) from error
     return payloads
+
+
+def _dump_json(document: Any, action: str) -> str:
+    """Serialize a derived document, reporting unrepresentable values as a CLI error.
+
+    Exports skip validation, so a malformed pack can carry values JSON cannot hold, such
+    as an unquoted YAML date. That used to escape as a raw traceback.
+    """
+
+    try:
+        return json.dumps(document, indent=2) + "\n"
+    except (TypeError, ValueError) as error:
+        typer.echo(
+            f"{action} failed: the rules pack contains a value JSON cannot represent "
+            f"({error}). Run `validate` to find it.",
+            err=True,
+        )
+        raise typer.Exit(code=1) from error
 
 
 def _iter_rule_files(path: Path) -> tuple[Path, ...]:
@@ -328,10 +365,10 @@ def export_index(
         raise typer.Exit(code=1)
 
     index = build_index(_load_payloads(rule_files, "Export"))
-    document = json.dumps(index, indent=2) + "\n"
+    document = _dump_json(index, "Export")
 
     if output is not None:
-        _write_document(output, document)
+        _write_document(output, document, rule_files)
         typer.echo(f"Wrote index for {_plural(len(rule_files), 'file', 'files')} to {output}.")
         return
 
@@ -359,7 +396,7 @@ def export_semgrep(
     document = SEMGREP_HEADER + body
 
     if output is not None:
-        _write_document(output, document)
+        _write_document(output, document, rule_files)
         typer.echo(
             f"Wrote Semgrep scaffold for {_plural(len(rule_files), 'file', 'files')} to {output}."
         )
@@ -385,10 +422,10 @@ def export_sarif(
         raise typer.Exit(code=1)
 
     sarif = build_sarif(_load_payloads(rule_files, "Export"))
-    document = json.dumps(sarif, indent=2) + "\n"
+    document = _dump_json(sarif, "Export")
 
     if output is not None:
-        _write_document(output, document)
+        _write_document(output, document, rule_files)
         typer.echo(
             f"Wrote SARIF rule-catalog for {_plural(len(rule_files), 'file', 'files')} to {output}."
         )
@@ -427,9 +464,9 @@ def report_coverage(
         )
 
     if output_format is OutputFormat.json:
-        document = json.dumps(coverage, indent=2) + "\n"
+        document = _dump_json(coverage, "Report")
         if output is not None:
-            _write_document(output, document)
+            _write_document(output, document, rule_files)
             typer.echo(f"Wrote coverage report to {output}.")
             return
         typer.echo(document, nl=False)
@@ -452,7 +489,7 @@ def report_coverage(
     if output is not None:
         # `--output` in the default text mode used to be silently ignored; the text
         # report now lands in the file exactly like the JSON variant does.
-        _write_document(output, document)
+        _write_document(output, document, rule_files)
         typer.echo(f"Wrote coverage report to {output}.")
         return
     typer.echo(document, nl=False)

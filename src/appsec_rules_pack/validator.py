@@ -14,7 +14,7 @@ from typing import Any, Literal
 import jsonschema
 import yaml
 
-from appsec_rules_pack.loader import load_yaml_file
+from appsec_rules_pack.loader import RulesFileTooLargeError, load_yaml_file
 
 IssueLevel = Literal["error", "warning"]
 IssuePath = tuple[str | int, ...]
@@ -50,9 +50,20 @@ MAPPING_ID_PATTERNS: dict[str, tuple[re.Pattern[str], str]] = {
         "expected a NIST SSDF practice id such as PW.4 or PW.4.1",
     ),
 }
-SECRET_PATTERNS = (
+# Shapes of real credential material. These are checked everywhere, including inside
+# rule examples, because no example needs a working key to make its point.
+KEY_MATERIAL_PATTERNS = (
     re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}\b"),
+    re.compile(r"\bgithub_pat_[A-Za-z0-9_]{22,}"),
+    re.compile(r"\bxox[abposr]-[A-Za-z0-9-]{10,}"),
+    re.compile(r"\bAIza[0-9A-Za-z_\-]{35}"),
+    re.compile(r"\bsk_live_[0-9A-Za-z]{16,}"),
+)
+# Basic patterns, not a secret scanner. All are linear: no nested quantifiers.
+SECRET_PATTERNS = (
+    *KEY_MATERIAL_PATTERNS,
     re.compile(r"(?i)\b(api[_-]?key|secret|token|password)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{16,}"),
 )
 
@@ -179,6 +190,13 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
                 message="could not parse YAML file: nesting depth exceeds the supported limit",
             ),
         )
+    except RulesFileTooLargeError as exc:
+        return None, (
+            ValidationIssue(
+                level="error",
+                message=f"could not read YAML file: {exc.problem}",
+            ),
+        )
     except yaml.YAMLError as exc:
         return None, (
             ValidationIssue(
@@ -259,7 +277,7 @@ def _schema_issue_message(error: jsonschema.ValidationError) -> str:
     if error.validator == "additionalProperties" and isinstance(error.instance, dict):
         allowed_fields = set(error.schema.get("properties", {}))
         unexpected_fields = sorted(
-            str(field) for field in error.instance if field not in allowed_fields
+            _display_value(str(field)) for field in error.instance if field not in allowed_fields
         )
         return _format_unexpected_fields(unexpected_fields)
 
@@ -303,10 +321,20 @@ def _format_missing_fields(fields: list[str]) -> str:
     return "missing required fields: " + ", ".join(repr(field) for field in fields)
 
 
-def _format_unexpected_fields(fields: list[str]) -> str:
-    if len(fields) == 1:
-        return f"unexpected field {fields[0]!r} is not allowed"
-    return "unexpected fields are not allowed: " + ", ".join(repr(field) for field in fields)
+def _format_unexpected_fields(labels: list[str]) -> str:
+    if len(labels) == 1:
+        return f"unexpected field {labels[0]} is not allowed"
+    return "unexpected fields are not allowed: " + ", ".join(labels)
+
+
+def _display_value(value: str) -> str:
+    """Quote an input value for a message, without echoing secrets or huge strings."""
+
+    if any(pattern.search(value) for pattern in SECRET_PATTERNS):
+        return "<redacted>"
+    if len(value) > 60:
+        value = value[:57] + "..."
+    return repr(value)
 
 
 def _rule_count(payload: Any) -> int:
@@ -416,7 +444,11 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
         allowed = exceptions.get("allowed")
         max_days = exceptions.get("max_days")
         required_fields = exceptions.get("required_fields")
-        field_set = set(required_fields) if isinstance(required_fields, list) else set()
+        field_set = (
+            {field for field in required_fields if isinstance(field, str)}
+            if isinstance(required_fields, list)
+            else set()
+        )
 
         if allowed is False:
             if isinstance(max_days, int) and max_days > 0:
@@ -481,7 +513,7 @@ def _mapping_format_issues(rules: list[Any]) -> list[ValidationIssue]:
                     issues.append(
                         ValidationIssue(
                             level="warning",
-                            message=f"mapping id {value!r} is malformed; {hint}",
+                            message=f"mapping id {_display_value(value)} is malformed; {hint}",
                             path=("rules", index, "mappings", field, value_index),
                         )
                     )
@@ -549,9 +581,21 @@ def _sensitive_value_issues(payload: Any) -> list[ValidationIssue]:
     issues: list[ValidationIssue] = []
 
     for path, value in _walk_strings(payload):
-        # Rule examples deliberately contain insecure anti-pattern snippets
-        # (including hard-coded-secret demonstrations), so they are exempt.
         if "examples" in path:
+            # Rule examples deliberately show insecure snippets such as a hard-coded
+            # password, so the generic keyword pattern is skipped there. Real key
+            # material is still flagged, as a warning.
+            if any(pattern.search(value) for pattern in KEY_MATERIAL_PATTERNS):
+                issues.append(
+                    ValidationIssue(
+                        level="warning",
+                        message=(
+                            "example contains what looks like real key material; "
+                            "use an obvious placeholder instead"
+                        ),
+                        path=path,
+                    )
+                )
             continue
         if any(pattern.search(value) for pattern in SECRET_PATTERNS):
             issues.append(
@@ -565,20 +609,34 @@ def _sensitive_value_issues(payload: Any) -> list[ValidationIssue]:
     return issues
 
 
-def _walk_strings(value: Any, path: IssuePath = ()) -> list[StringItem]:
-    if isinstance(value, str):
-        return [(path, value)]
+def _walk_strings(value: Any) -> list[StringItem]:
+    """Collect every string in the payload, mapping keys included, in document order.
 
-    if isinstance(value, dict):
-        strings: list[StringItem] = []
-        for key, item in value.items():
-            strings.extend(_walk_strings(item, (*path, str(key))))
-        return strings
+    Iterative, so payload depth cannot exhaust the interpreter stack, and each container
+    is visited once, so a self-referencing payload cannot loop.
+    """
 
-    if isinstance(value, list):
-        strings = []
-        for index, item in enumerate(value):
-            strings.extend(_walk_strings(item, (*path, index)))
-        return strings
+    strings: list[StringItem] = []
+    seen: set[int] = set()
+    stack: list[tuple[IssuePath, Any]] = [((), value)]
 
-    return []
+    while stack:
+        path, node = stack.pop()
+        if isinstance(node, str):
+            strings.append((path, node))
+            continue
+        if not isinstance(node, dict | list) or id(node) in seen:
+            continue
+        seen.add(id(node))
+
+        children: list[tuple[IssuePath, Any]] = []
+        if isinstance(node, dict):
+            for key, item in node.items():
+                child_path = (*path, str(key))
+                children.append((child_path, key))
+                children.append((child_path, item))
+        else:
+            children.extend(((*path, index), item) for index, item in enumerate(node))
+        stack.extend(reversed(children))
+
+    return strings

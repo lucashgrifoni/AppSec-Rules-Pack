@@ -145,3 +145,49 @@ jobs:
 
       - name: Validate baseline rules pack (fail on warnings)
         run: python -m appsec_rules_pack validate rules --require-examples --fail-on-warnings
+
+  # The floors in pyproject.toml are what a downstream resolver may pick. This job
+  # installs exactly those versions and runs the suite, so a floor that breaks the CLI
+  # fails here first: typer 0.12.x once made every command exit 0 without validating,
+  # and typer below 0.16 could not render --help with click 8.3.
+  min-deps:
+    name: Minimum dependency versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+
+      - name: Install the declared minimum runtime versions
+        run: >-
+          python -m pip install
+          "click==8.3.3" "jsonschema==4.21.0" "PyYAML==6.0.1" "typer==0.16.0"
+
+      - name: Install the project and test tools without upgrading runtime dependencies
+        run: |
+          python -m pip install --no-deps -e .
+          python -m pip install "pytest>=8,<10" "build>=1.2,<2"
+          python -m pip check
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Validate baseline rules pack (fail on warnings)
+        run: python -m appsec_rules_pack validate rules --require-examples --fail-on-warnings

@@ -34,6 +34,8 @@ _METADATA_FIELDS = (
 
 def _semgrep_rule(rule: dict[str, Any]) -> dict[str, Any]:
     mappings = rule.get("mappings") if isinstance(rule.get("mappings"), dict) else {}
+    # Exports skip validation, so a malformed pack may carry a list or mapping here.
+    severity = rule.get("severity") if isinstance(rule.get("severity"), str) else None
     metadata: dict[str, Any] = {
         "source-rule": rule.get("id"),
         "category": rule.get("category"),
@@ -48,7 +50,7 @@ def _semgrep_rule(rule: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": rule.get("id"),
         "message": f"{rule.get('title')} - {rule.get('description')}",
-        "severity": _SEVERITY_MAP.get(rule.get("severity"), "WARNING"),
+        "severity": _SEVERITY_MAP.get(severity, "WARNING"),
         "languages": ["generic"],
         "metadata": metadata,
         "pattern-regex": PATTERN_PLACEHOLDER,

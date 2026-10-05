@@ -201,6 +201,9 @@ rules:
         - expires_at
 ```
 
+Rules files must be UTF-8 YAML without aliases or duplicate keys, and no larger than
+10 MiB; the validator rejects anything else before checking the schema.
+
 Shapes that are easy to get wrong: `evidence` and `match` are objects, not lists;
 `remediation` needs `guidance`; `required_fields` accepts only `owner`, `justification`,
 `expires_at`, `compensating_control`, and `validation_plan`.
