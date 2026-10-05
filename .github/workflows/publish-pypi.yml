@@ -122,10 +122,17 @@ jobs:
 
       - name: Generate CycloneDX SBOM for the built distribution
         run: |
-          python -m venv /tmp/sbomenv
-          /tmp/sbomenv/bin/python -m pip install dist/*.whl
+          python -m venv --without-pip /tmp/sbomenv
+          python -m pip --python /tmp/sbomenv install --only-binary :all: dist/*.whl
+          /tmp/sbomenv/bin/python .github/release/sbom_project.py \
+            pyproject.toml /tmp/sbom-project.toml
           cyclonedx-py environment /tmp/sbomenv/bin/python \
-            --output-format JSON --output-file sbom.cdx.json
+            --pyproject /tmp/sbom-project.toml --mc-type library \
+            --spec-version 1.6 --output-format JSON --output-file sbom.cdx.json
+          python .github/release/sbom_purl.py sbom.cdx.json
+
+      - name: Check SBOM root identity and exclude installer components
+        run: python .github/release/check_sbom.py sbom.cdx.json
 
       - name: Upload the release files
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -214,7 +221,7 @@ jobs:
           #
           # The baseline pack rides along as a Release asset. The distribution ships the
           # validator and the schema but no rules, so this is how a consumer gets a
-          # version-pinned copy of the 19 baseline rules without cloning the repository.
+          # version-pinned copy of the baseline rules without cloning the repository.
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" \
               sbom.cdx.json dist/*.whl dist/*.tar.gz rules/appsec-baseline.yaml \

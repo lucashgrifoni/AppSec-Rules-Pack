@@ -39,38 +39,40 @@ checkout with `python docs/assets/record-cli-demo.py`.
 | It does | It does not |
 | --- | --- |
 | Define a JSON Schema contract for AppSec review rules | Scan application code or execute rules |
-| Ship a generic baseline of 19 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
+| Ship a generic baseline of 20 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
 | Validate packs: schema, duplicate IDs, exception windows and policy, mapping formats, rule lifecycle, sensitive values | Embed enforcement: CI consumes the JSON report and decides ([ADR-0004](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0004-ci-gate-consumes-json.md)) |
 | Derive a rule index, a Semgrep metadata scaffold, a SARIF rule catalog, and a mapping coverage report | Turn the derived scaffold into detections: its patterns are placeholders ([ADR-0001](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0001-engine-agnostic-validator.md)) |
 | Check a review record against the pack: every rule accounted for, evidence for `met`, exceptions allowed, complete, unexpired, and inside the window | Confirm the evidence is true, or decide what may stay open: the record is self-declared and the gate decides ([ADR-0006](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0006-review-records.md)) |
 
-The baseline covers authentication, authorization, input validation, injection and XSS,
-SSRF, secrets, file handling, logging, dependency risk, configuration, session hardening,
+The baseline covers authentication, password storage, authorization, input validation,
+injection and XSS, SSRF, secrets, file handling, logging, dependency risk, configuration
+including CORS, session hardening,
 CSRF, webhook integrity, excessive data exposure, mass assignment, open redirect, and rate
 limiting. It contains no product names, tenant identifiers, customer data, secrets, or
 environment-specific configuration.
 
-Mapping coverage of the baseline: ASVS 5.0, API Top 10 2023, CWE, and NIST SSDF on 19 of
-19 rules; the optional OWASP Top 10:2025 field on 18 of 19.
+Mapping coverage of the baseline: ASVS 5.0, CWE, and NIST SSDF on 20 of 20 rules; the
+optional OWASP API Top 10 2023 and OWASP Top 10:2025 fields on 19 of 20 each.
 
 ## Quick start
 
 ```bash
-pip install "appsec-rules-pack==0.5.0"
-curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.5.0/appsec-baseline.yaml
+pip install "appsec-rules-pack==0.6.0"
+curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.6.0/appsec-baseline.yaml
 appsec-rules validate appsec-baseline.yaml --require-examples --fail-on-warnings
 ```
 
-Expected output: `Validation passed: 1 file, 19 rules, 0 errors, 0 warnings.`
+Expected output: `Validation passed: 1 file, 20 rules, 0 errors, 0 warnings.`
 
 ## Installation
 
 ```bash
-pip install appsec-rules-pack
+pip install "appsec-rules-pack==0.6.0"
 ```
 
 This installs the `appsec-rules` console script and requires Python 3.12 or newer. Pin a
-reviewed version, such as `appsec-rules-pack==0.5.0`, when the CLI runs as a quality gate.
+reviewed version, such as `appsec-rules-pack==0.6.0`, when the CLI runs
+as a quality gate.
 
 The distribution contains the validator, the CLI, and the JSON Schema. It does not contain
 a rules pack. Take the baseline from the assets of the
@@ -102,7 +104,7 @@ Verify a downloaded asset with a current [GitHub CLI](https://cli.github.com/man
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
   --signer-workflow lucashgrifoni/AppSec-Rules-Pack/.github/workflows/publish-pypi.yml \
-  --source-ref refs/tags/v0.5.0
+  --source-ref refs/tags/v0.6.0
 ```
 
 Or offline, against the bundle attached to the release:
@@ -110,7 +112,7 @@ Or offline, against the bundle attached to the release:
 ```bash
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
-  --bundle appsec-rules-pack-v0.5.0.intoto.jsonl
+  --bundle appsec-rules-pack-v0.6.0.intoto.jsonl
 ```
 
 The same commands work for the wheel, the sdist, and `sbom.cdx.json`. A passing check proves
@@ -160,7 +162,7 @@ the strict gate. `appsec-rules init my-pack.yaml` writes it for you; then valida
 grow it. Every field shown is required except `schema_version` and `examples`, which the
 strict gate (`--require-examples`) expects anyway. The full contract is
 [`appsec-rule.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
-19 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
+20 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
 
 <!-- readme-example:minimal-pack (validated by tests/test_readme_example.py) -->
 
@@ -265,7 +267,7 @@ subject (a service, a repository, a release), each rule is `met`, `not-met`,
 ```yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.4.0
+  pack_version: 0.6.0
   subject: payments-api
   reviewer: appsec-team
   date: 2026-10-01
@@ -296,6 +298,9 @@ exists and appears once, `met` cites evidence, and each exception is allowed by 
 has the fields the rule requires, has not expired, and fits in the rule's `max_days`.
 Enabled rules with no result are reported as `unreviewed`.
 
+For `not-met`, `evidence` is optional. Use it to point to the failing code, test,
+or observation so another reviewer can locate the defect. It does not change the status.
+
 The exit code says whether the record is valid, nothing more. A valid record can still
 have open rules. The JSON report (`"schema": "appsec-rules-review/v1"`, described by
 [`review-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-report.schema.json))
@@ -304,6 +309,17 @@ both, so the gate can apply your policy. The record format is
 [`review-record.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-record.schema.json).
 [`examples/review/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/review/README.md) has a complete record against the
 baseline.
+
+All 20 baseline rules have `enforcement: advisory`. A gate that checks only
+`summary.open_by_enforcement.blocking` would allow every open baseline rule.
+Gate on `summary.open_by_severity` instead, with the severity threshold your team
+requires. For example, reject a report when its `critical` or `high` count is non-zero,
+after checking that the command exited 0 and `summary.ok` is true. The worked review
+has one open `medium` rule. To gate by enforcement, fork the pack and raise selected
+rules to `blocking`; [the field reference](docs/rule-fields.md#rules) explains the field
+and [adapting the baseline](docs/rule-fields.md#adapting-the-baseline) explains the fork.
+Count maps omit zero entries; in Python, read a missing severity with
+`summary["open_by_severity"].get("high", 0)`.
 
 ## Use it in CI
 
@@ -326,7 +342,7 @@ tested Semgrep rules, kept separate from the validator
 | `APPSEC-INJECT-001` | Flask query/form values reaching SQL arguments on locally created sqlite3 connections and cursors |
 | `APPSEC-SSRF-001` | Flask query/form values reaching the URL argument of module-level Requests calls |
 
-The other 17 baseline rules have no executable detection, and these two cover only their
+The other 18 baseline rules have no executable detection, and these two cover only their
 documented source and sink combinations. The layer README lists the known false positives
 and false negatives. Run the fixture suite with a separately installed engine:
 
@@ -366,6 +382,7 @@ tests/              Test suite and pass, fail, and warning fixtures
 | [`ROADMAP.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/ROADMAP.md) | What shipped and what comes next |
 | [`TECHNICAL_SPEC.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/TECHNICAL_SPEC.md) | Rule contract and validation design |
 | [`docs/rule-fields.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md) | Every pack and rule field, and how to adapt the baseline |
+| [`docs/v1-readiness.md`](docs/v1-readiness.md) | Proposed 1.0 contract freeze, migration policy, and pending acceptance criteria |
 | [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md) | Architecture decisions |
 
 ## Contributing, security, and license

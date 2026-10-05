@@ -36,7 +36,7 @@ def test_baseline_passes_with_require_examples() -> None:
     result = validate_rules_file(BASELINE_PATH, require_examples=True)
 
     assert result.ok
-    assert result.rule_count == 19
+    assert result.rule_count == 20
     assert result.warning_count == 0
 
 

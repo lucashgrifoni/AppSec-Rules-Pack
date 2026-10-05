@@ -14,6 +14,10 @@ says so under "Breaking changes" and gives a migration step.
 The baseline pack version can lag the package version. v0.4.1, for example, shipped pack
 version 0.4.0 because no rule changed.
 
+The proposed 1.0 contract freeze, migration policy, and acceptance criteria are
+recorded in [docs/v1-readiness.md](docs/v1-readiness.md). External feedback and the
+1.0 release decision remain pending with the owner.
+
 ## Public surface
 
 These are the parts other tools can rely on:

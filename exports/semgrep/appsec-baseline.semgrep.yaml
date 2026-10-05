@@ -22,11 +22,10 @@ rules:
     - V8.2
     owasp-api-top-10-2023:
     - API1:2023
-    - API5:2023
     owasp-top-10-2025:
     - A01:2025
     nist-ssdf:
-    - PW.8
+    - PW.1
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-INPUT-001
   message: Validate untrusted input at boundaries - Require typed validation, length
@@ -49,7 +48,7 @@ rules:
     owasp-top-10-2025:
     - A05:2025
     nist-ssdf:
-    - PW.7
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-INJECT-001
   message: Prevent injection into interpreters and queries - Ensure untrusted data
@@ -73,7 +72,7 @@ rules:
     owasp-top-10-2025:
     - A05:2025
     nist-ssdf:
-    - PW.9
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-SSRF-001
   message: Restrict user-influenced outbound requests - Guard server-side HTTP, DNS,
@@ -96,7 +95,7 @@ rules:
     owasp-top-10-2025:
     - A01:2025
     nist-ssdf:
-    - PW.8
+    - PW.1
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-AUTHN-001
   message: Enforce strong authentication and session integrity - Verify credentials,
@@ -145,7 +144,7 @@ rules:
     owasp-top-10-2025:
     - A02:2025
     nist-ssdf:
-    - PW.4
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-FILE-001
   message: Harden file upload and file path handling - Validate file type, size, storage
@@ -168,7 +167,7 @@ rules:
     - API4:2023
     - API8:2023
     nist-ssdf:
-    - PW.7
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-LOG-001
   message: Log security events without leaking sensitive data - Record authentication,
@@ -193,7 +192,7 @@ rules:
     owasp-top-10-2025:
     - A09:2025
     nist-ssdf:
-    - RV.1
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-DEP-001
   message: Manage known-vulnerable and unmaintained dependencies - Track direct and
@@ -234,8 +233,10 @@ rules:
     cwe:
     - CWE-16
     - CWE-1188
+    - CWE-942
     owasp-asvs:
     - V13.4
+    - V3.4
     owasp-api-top-10-2023:
     - API8:2023
     owasp-top-10-2025:
@@ -291,7 +292,7 @@ rules:
     owasp-top-10-2025:
     - A05:2025
     nist-ssdf:
-    - PW.9
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-CSRF-001
   message: Protect state-changing requests against CSRF - Require anti-forgery tokens
@@ -364,7 +365,7 @@ rules:
     owasp-top-10-2025:
     - A08:2025
     nist-ssdf:
-    - PW.9
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-DATAEXPO-001
   message: Return only the minimum required data - Shape responses to the fields the
@@ -410,7 +411,7 @@ rules:
     owasp-top-10-2025:
     - A01:2025
     nist-ssdf:
-    - PW.7
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-REDIRECT-001
   message: Validate redirect destinations against an allowlist - Restrict user-influenced
@@ -433,7 +434,7 @@ rules:
     owasp-top-10-2025:
     - A01:2025
     nist-ssdf:
-    - PW.7
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-RATELIMIT-001
   message: Apply rate limiting and resource quotas - Enforce rate limits and resource
@@ -458,4 +459,26 @@ rules:
     - A10:2025
     nist-ssdf:
     - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-PWSTORE-001
+  message: Store passwords with an adaptive password hashing function - Verify that
+    stored passwords use a salted, computationally intensive password hashing function
+    such as Argon2id, scrypt, bcrypt, or PBKDF2, never a fast hash or reversible encryption.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-PWSTORE-001
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-916
+    - CWE-759
+    owasp-asvs:
+    - V11.4
+    owasp-top-10-2025:
+    - A04:2025
+    nist-ssdf:
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN

@@ -5,7 +5,7 @@
       "pack": {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.4.0"
+        "version": "0.6.0"
       },
       "rules": [
         {
@@ -24,8 +24,7 @@
               "V8.2"
             ],
             "owasp_api_top_10_2023": [
-              "API1:2023",
-              "API5:2023"
+              "API1:2023"
             ],
             "owasp_top_10_2025": [
               "A01:2025"
@@ -34,7 +33,7 @@
               "CWE-639"
             ],
             "nist_ssdf": [
-              "PW.8"
+              "PW.1"
             ]
           }
         },
@@ -64,7 +63,7 @@
               "CWE-20"
             ],
             "nist_ssdf": [
-              "PW.7"
+              "PW.5"
             ]
           }
         },
@@ -95,7 +94,7 @@
               "CWE-78"
             ],
             "nist_ssdf": [
-              "PW.9"
+              "PW.5"
             ]
           }
         },
@@ -124,7 +123,7 @@
               "CWE-918"
             ],
             "nist_ssdf": [
-              "PW.8"
+              "PW.1"
             ]
           }
         },
@@ -188,7 +187,7 @@
               "CWE-532"
             ],
             "nist_ssdf": [
-              "PW.4"
+              "PW.5"
             ]
           }
         },
@@ -218,7 +217,7 @@
               "CWE-434"
             ],
             "nist_ssdf": [
-              "PW.7"
+              "PW.5"
             ]
           }
         },
@@ -250,7 +249,7 @@
               "CWE-532"
             ],
             "nist_ssdf": [
-              "RV.1"
+              "PW.5"
             ]
           }
         },
@@ -299,7 +298,8 @@
           ],
           "mappings": {
             "owasp_asvs": [
-              "V13.4"
+              "V13.4",
+              "V3.4"
             ],
             "owasp_api_top_10_2023": [
               "API8:2023"
@@ -309,7 +309,8 @@
             ],
             "cwe": [
               "CWE-16",
-              "CWE-1188"
+              "CWE-1188",
+              "CWE-942"
             ],
             "nist_ssdf": [
               "PW.9"
@@ -376,7 +377,7 @@
               "CWE-80"
             ],
             "nist_ssdf": [
-              "PW.9"
+              "PW.5"
             ]
           }
         },
@@ -468,7 +469,7 @@
               "CWE-347"
             ],
             "nist_ssdf": [
-              "PW.9"
+              "PW.5"
             ]
           }
         },
@@ -526,7 +527,7 @@
               "CWE-915"
             ],
             "nist_ssdf": [
-              "PW.7"
+              "PW.5"
             ]
           }
         },
@@ -556,7 +557,7 @@
               "CWE-601"
             ],
             "nist_ssdf": [
-              "PW.7"
+              "PW.5"
             ]
           }
         },
@@ -587,6 +588,33 @@
             ],
             "nist_ssdf": [
               "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-PWSTORE-001",
+          "title": "Store passwords with an adaptive password hashing function",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "data"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V11.4"
+            ],
+            "owasp_top_10_2025": [
+              "A04:2025"
+            ],
+            "cwe": [
+              "CWE-916",
+              "CWE-759"
+            ],
+            "nist_ssdf": [
+              "PW.5"
             ]
           }
         }

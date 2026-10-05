@@ -12,9 +12,9 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Add capabilities only when each one has tests and validation evidence.
 - Treat scanner-specific execution engines as a deliberate, separate boundary.
 
-## Now — Delivered through v0.5.0
+## Now — Delivered through v0.6.0
 
-- JSON Schema rule contract and a baseline pack of 19 rules spanning access control,
+- JSON Schema rule contract and a released baseline pack of 19 rules spanning access control,
   injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
   dependencies, configuration, CSRF, integrity/webhook authenticity, excessive data
   exposure, mass assignment, open redirect, and rate limiting.
@@ -60,6 +60,19 @@ statement of intent, not a delivery commitment, and is kept consistent with
   the rules where a 2025 category maps cleanly.
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
   (reason, replaced_by, since), with validator consistency checks.
+
+## Delivered in v0.6.0 (2026-10-05)
+
+- Baseline version 0.6.0 with 20 rules, including password storage, CORS guidance,
+  and a prohibition on secret fallback values.
+- Per-rule mapping rationale, ASVS release-tag ID tests, and practice-level SSDF
+  mappings with a proposed ADR.
+- Advisory review-gate guidance, a versioned report compatibility floor, and a
+  [1.0 readiness proposal](docs/v1-readiness.md) with external feedback pending
+  from at least three users, subject to owner confirmation.
+- SBOM root identity and installer-exclusion checks before artifact upload.
+- Landing copy limited to pack validation and review records, with drift tests
+  for its numeric claims and package version.
 
 ## Next — Near term
 

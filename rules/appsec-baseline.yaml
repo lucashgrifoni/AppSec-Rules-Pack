@@ -1,7 +1,7 @@
 pack:
   id: appsec-baseline
   name: AppSec Baseline Rules Pack
-  version: 0.4.0
+  version: 0.6.0
   mode: advisory
   owner: appsec
   description: Generic application security baseline rules for review and CI evidence.
@@ -26,13 +26,12 @@ rules:
         - V8.2
       owasp_api_top_10_2023:
         - API1:2023
-        - API5:2023
       owasp_top_10_2025:
         - A01:2025
       cwe:
         - CWE-639
       nist_ssdf:
-        - PW.8
+        - PW.1
     evidence:
       required:
         - Object-level authorization check tied to the authenticated principal.
@@ -96,7 +95,7 @@ rules:
       cwe:
         - CWE-20
       nist_ssdf:
-        - PW.7
+        - PW.5
     evidence:
       required:
         - Schema or typed parser for request, message, file metadata, or form input.
@@ -162,7 +161,7 @@ rules:
         - CWE-89
         - CWE-78
       nist_ssdf:
-        - PW.9
+        - PW.5
     evidence:
       required:
         - Parameterized query, safe API call, shell-free execution, or allowlisted command arguments.
@@ -222,7 +221,7 @@ rules:
       cwe:
         - CWE-918
       nist_ssdf:
-        - PW.8
+        - PW.1
     evidence:
       required:
         - Destination allowlist or trusted resolver policy for outbound calls.
@@ -354,14 +353,16 @@ rules:
         - CWE-798
         - CWE-532
       nist_ssdf:
-        - PW.4
+        - PW.5
     evidence:
       required:
         - Secrets are loaded from approved environment or secret-manager boundaries.
         - Logs redact tokens, credentials, session identifiers, and sensitive personal data.
+        - No secret has a hard-coded default or fallback value; a missing secret stops start-up.
       signals:
         - Secret scanning in repository and CI.
         - Tests or review evidence for log redaction paths.
+        - Search for "or default" patterns next to secret names, such as env.get(KEY) or 'value'.
     match:
       type: review
       includes:
@@ -413,7 +414,7 @@ rules:
         - CWE-22
         - CWE-434
       nist_ssdf:
-        - PW.7
+        - PW.5
     evidence:
       required:
         - Server-side file size and type validation.
@@ -482,7 +483,7 @@ rules:
         - CWE-778
         - CWE-532
       nist_ssdf:
-        - RV.1
+        - PW.5
     evidence:
       required:
         - Security-relevant events are logged with actor, action, and outcome.
@@ -600,6 +601,7 @@ rules:
     mappings:
       owasp_asvs:
         - V13.4
+        - V3.4
       owasp_api_top_10_2023:
         - API8:2023
       owasp_top_10_2025:
@@ -607,14 +609,17 @@ rules:
       cwe:
         - CWE-16
         - CWE-1188
+        - CWE-942
       nist_ssdf:
         - PW.9
     evidence:
       required:
         - Secure default configuration with unused features and debug endpoints disabled.
         - Environment-specific configuration supplied at deploy time, not embedded in the artifact.
+        - CORS allows only a fixed list of trusted origins, and never reflects the request Origin when credentials are allowed.
       signals:
         - Review of default settings, error verbosity, and exposed management interfaces.
+        - CORS configuration that sets origin to true, echoes the Origin header, or pairs a wildcard with credentials.
         - Tests or checks confirming hardened defaults in built artifacts.
     match:
       type: configuration
@@ -741,7 +746,7 @@ rules:
         - CWE-79
         - CWE-80
       nist_ssdf:
-        - PW.9
+        - PW.5
     evidence:
       required:
         - Context-aware output encoding for HTML, attribute, JavaScript, and URL sinks.
@@ -931,7 +936,7 @@ rules:
         - CWE-345
         - CWE-347
       nist_ssdf:
-        - PW.9
+        - PW.5
     evidence:
       required:
         - Signature or MAC verification using a constant-time comparison before any webhook side effect.
@@ -1050,7 +1055,7 @@ rules:
       cwe:
         - CWE-915
       nist_ssdf:
-        - PW.7
+        - PW.5
     evidence:
       required:
         - Explicit allowlist of bindable fields for create and update operations.
@@ -1112,7 +1117,7 @@ rules:
       cwe:
         - CWE-601
       nist_ssdf:
-        - PW.7
+        - PW.5
     evidence:
       required:
         - Redirect targets validated against an allowlist of trusted hosts or relative paths.
@@ -1217,3 +1222,66 @@ rules:
           def login():
               ...
         explanation: Without throttling, an attacker can try unlimited credentials against the endpoint.
+
+  - id: APPSEC-PWSTORE-001
+    title: Store passwords with an adaptive password hashing function
+    description: Verify that stored passwords use a salted, computationally intensive password hashing function such as Argon2id, scrypt, bcrypt, or PBKDF2, never a fast hash or reversible encryption.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - data
+    mappings:
+      owasp_asvs:
+        - V11.4
+      owasp_top_10_2025:
+        - A04:2025
+      cwe:
+        - CWE-916
+        - CWE-759
+      nist_ssdf:
+        - PW.5
+    evidence:
+      required:
+        - Passwords are hashed with Argon2id, scrypt, bcrypt, or PBKDF2, with a unique salt per password and a work factor taken from current guidance.
+        - No password or password-equivalent is stored with a fast hash (MD5, SHA-1, SHA-256) or with reversible encryption.
+      signals:
+        - Search for md5, sha1, sha256, or createHash in registration, login, and password-reset code.
+        - Stored hashes carry an algorithm identifier and parameters, so they can be upgraded at the next login.
+    match:
+      type: review
+      includes:
+        - Registration, login, password reset, and credential import code, and the columns that store password hashes.
+      excludes:
+        - Hashes used for non-secret purposes such as cache keys, deduplication, or file integrity checks.
+    remediation:
+      guidance: Hash passwords with Argon2id (or scrypt, bcrypt, or PBKDF2 where a standard requires it) using a unique salt and current parameters, and rehash legacy hashes at the next successful login.
+      validation:
+        - Inspect a stored hash and confirm its algorithm identifier and work factor.
+        - Test that two users with the same password get different stored values, and that the stored value is not a fast hash of the password.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          from argon2 import PasswordHasher
+
+          hasher = PasswordHasher()  # Argon2id, random salt per call
+          user.password_hash = hasher.hash(password)
+        explanation: Argon2id with a random per-password salt; the stored string records the algorithm and its parameters.
+      violating:
+        language: python
+        snippet: |
+          import hashlib
+
+          user.password_hash = hashlib.md5(password.encode()).hexdigest()
+        explanation: Unsalted MD5 is fast to compute, so a leaked table can be cracked with precomputed or brute-force attacks.
