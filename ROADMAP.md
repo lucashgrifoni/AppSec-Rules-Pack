@@ -14,7 +14,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 
 ## Now — Delivered through v0.5.0
 
-- JSON Schema rule contract and a baseline pack of 19 rules spanning access control,
+- JSON Schema rule contract and a baseline pack of 20 rules spanning access control, password storage,
   injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
   dependencies, configuration, CSRF, integrity/webhook authenticity, excessive data
   exposure, mass assignment, open redirect, and rate limiting.

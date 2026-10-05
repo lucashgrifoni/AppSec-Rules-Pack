@@ -7,7 +7,7 @@
         "driver": {
           "name": "AppSec Rules Pack",
           "informationUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
-          "version": "0.4.0",
+          "version": "0.6.0",
           "rules": [
             {
               "id": "APPSEC-AUTHZ-001",
@@ -374,15 +374,18 @@
                   "security",
                   "configuration",
                   "CWE-16",
-                  "CWE-1188"
+                  "CWE-1188",
+                  "CWE-942"
                 ],
                 "security-severity": "5.0",
                 "cwe": [
                   "CWE-16",
-                  "CWE-1188"
+                  "CWE-1188",
+                  "CWE-942"
                 ],
                 "owasp-asvs": [
-                  "V13.4"
+                  "V13.4",
+                  "V3.4"
                 ],
                 "owasp-api-top-10-2023": [
                   "API8:2023"
@@ -740,6 +743,42 @@
                 ],
                 "nist-ssdf": [
                   "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-PWSTORE-001",
+              "name": "APPSEC-PWSTORE-001",
+              "shortDescription": {
+                "text": "Store passwords with an adaptive password hashing function"
+              },
+              "fullDescription": {
+                "text": "Verify that stored passwords use a salted, computationally intensive password hashing function such as Argon2id, scrypt, bcrypt, or PBKDF2, never a fast hash or reversible encryption."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-916",
+                  "CWE-759"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-916",
+                  "CWE-759"
+                ],
+                "owasp-asvs": [
+                  "V11.4"
+                ],
+                "owasp-top-10-2025": [
+                  "A04:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.5"
                 ]
               }
             }

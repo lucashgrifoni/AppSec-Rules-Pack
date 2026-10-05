@@ -39,19 +39,20 @@ checkout with `python docs/assets/record-cli-demo.py`.
 | It does | It does not |
 | --- | --- |
 | Define a JSON Schema contract for AppSec review rules | Scan application code or execute rules |
-| Ship a generic baseline of 19 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
+| Ship a generic baseline of 20 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
 | Validate packs: schema, duplicate IDs, exception windows and policy, mapping formats, rule lifecycle, sensitive values | Embed enforcement: CI consumes the JSON report and decides ([ADR-0004](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0004-ci-gate-consumes-json.md)) |
 | Derive a rule index, a Semgrep metadata scaffold, a SARIF rule catalog, and a mapping coverage report | Turn the derived scaffold into detections: its patterns are placeholders ([ADR-0001](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0001-engine-agnostic-validator.md)) |
 | Check a review record against the pack: every rule accounted for, evidence for `met`, exceptions allowed, complete, unexpired, and inside the window | Confirm the evidence is true, or decide what may stay open: the record is self-declared and the gate decides ([ADR-0006](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0006-review-records.md)) |
 
-The baseline covers authentication, authorization, input validation, injection and XSS,
-SSRF, secrets, file handling, logging, dependency risk, configuration, session hardening,
+The baseline covers authentication, password storage, authorization, input validation,
+injection and XSS, SSRF, secrets, file handling, logging, dependency risk, configuration
+including CORS, session hardening,
 CSRF, webhook integrity, excessive data exposure, mass assignment, open redirect, and rate
 limiting. It contains no product names, tenant identifiers, customer data, secrets, or
 environment-specific configuration.
 
-Mapping coverage of the baseline: ASVS 5.0, API Top 10 2023, CWE, and NIST SSDF on 19 of
-19 rules; the optional OWASP Top 10:2025 field on 18 of 19.
+Mapping coverage of the baseline: ASVS 5.0, CWE, and NIST SSDF on 20 of 20 rules; the
+optional OWASP API Top 10 2023 and OWASP Top 10:2025 fields on 19 of 20 each.
 
 ## Quick start
 
@@ -61,7 +62,7 @@ curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0
 appsec-rules validate appsec-baseline.yaml --require-examples --fail-on-warnings
 ```
 
-Expected output: `Validation passed: 1 file, 19 rules, 0 errors, 0 warnings.`
+Expected output: `Validation passed: 1 file, 20 rules, 0 errors, 0 warnings.`
 
 ## Installation
 
@@ -160,7 +161,7 @@ the strict gate. `appsec-rules init my-pack.yaml` writes it for you; then valida
 grow it. Every field shown is required except `schema_version` and `examples`, which the
 strict gate (`--require-examples`) expects anyway. The full contract is
 [`appsec-rule.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
-19 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
+20 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
 
 <!-- readme-example:minimal-pack (validated by tests/test_readme_example.py) -->
 
@@ -265,7 +266,7 @@ subject (a service, a repository, a release), each rule is `met`, `not-met`,
 ```yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.4.0
+  pack_version: 0.6.0
   subject: payments-api
   reviewer: appsec-team
   date: 2026-10-01
@@ -326,7 +327,7 @@ tested Semgrep rules, kept separate from the validator
 | `APPSEC-INJECT-001` | Flask query/form values reaching SQL arguments on locally created sqlite3 connections and cursors |
 | `APPSEC-SSRF-001` | Flask query/form values reaching the URL argument of module-level Requests calls |
 
-The other 17 baseline rules have no executable detection, and these two cover only their
+The other 18 baseline rules have no executable detection, and these two cover only their
 documented source and sink combinations. The layer README lists the known false positives
 and false negatives. Run the fixture suite with a separately installed engine:
 

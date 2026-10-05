@@ -1,13 +1,13 @@
 # Worked review: payments-api
 
 [`payments-api-review.yaml`](payments-api-review.yaml) is the review record of a fictional
-service, `payments-api`, against the 19 rules of the baseline pack. It shows each status
+service, `payments-api`, against the 20 rules of the baseline pack. It shows each status
 a rule can have:
 
 | Status | Rules | What the record must carry |
 | --- | --- | --- |
 | `met` | 12, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
-| `not-applicable` | 5, such as `APPSEC-XSS-001` (the service renders no HTML) | Nothing; `notes` says why |
+| `not-applicable` | 6, such as `APPSEC-XSS-001` (the service renders no HTML) | Nothing; `notes` says why |
 | `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | Nothing; `notes` says what is wrong |
 | `excepted` | `APPSEC-RATELIMIT-001` | An `exception` that the pack allows, with the fields the pack requires, inside its window |
 
@@ -29,7 +29,7 @@ APPSEC-AUTHZ-001         high      advisory  met
 APPSEC-LOG-001           medium    advisory  not-met
 ...
 APPSEC-RATELIMIT-001     medium    advisory  excepted
-Review passed: 19 rules; 12 met, 1 not met, 5 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
+Review passed: 20 rules; 12 met, 1 not met, 6 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
 ```
 
 "Review passed" means the record is consistent with the pack. It does not mean the service

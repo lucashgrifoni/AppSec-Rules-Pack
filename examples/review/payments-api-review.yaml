@@ -4,7 +4,7 @@
 #   appsec-rules review rules/appsec-baseline.yaml examples/review/payments-api-review.yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.4.0
+  pack_version: 0.6.0
   subject: payments-api (JSON API behind the public gateway)
   reviewer: appsec-team
   date: 2026-10-01
@@ -110,3 +110,7 @@ results:
       granted_at: 2026-10-01
       expires_at: 2026-12-15
       compensating_control: Gateway limit of 50 requests per second and an alert on 429 spikes.
+
+  - rule: APPSEC-PWSTORE-001
+    status: not-applicable
+    notes: The service stores no passwords; users authenticate at the gateway.

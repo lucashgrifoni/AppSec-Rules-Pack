@@ -5,7 +5,7 @@
       "pack": {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.4.0"
+        "version": "0.6.0"
       },
       "rules": [
         {
@@ -299,7 +299,8 @@
           ],
           "mappings": {
             "owasp_asvs": [
-              "V13.4"
+              "V13.4",
+              "V3.4"
             ],
             "owasp_api_top_10_2023": [
               "API8:2023"
@@ -309,7 +310,8 @@
             ],
             "cwe": [
               "CWE-16",
-              "CWE-1188"
+              "CWE-1188",
+              "CWE-942"
             ],
             "nist_ssdf": [
               "PW.9"
@@ -587,6 +589,33 @@
             ],
             "nist_ssdf": [
               "PW.1"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-PWSTORE-001",
+          "title": "Store passwords with an adaptive password hashing function",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "data"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V11.4"
+            ],
+            "owasp_top_10_2025": [
+              "A04:2025"
+            ],
+            "cwe": [
+              "CWE-916",
+              "CWE-759"
+            ],
+            "nist_ssdf": [
+              "PW.5"
             ]
           }
         }

@@ -234,8 +234,10 @@ rules:
     cwe:
     - CWE-16
     - CWE-1188
+    - CWE-942
     owasp-asvs:
     - V13.4
+    - V3.4
     owasp-api-top-10-2023:
     - API8:2023
     owasp-top-10-2025:
@@ -458,4 +460,26 @@ rules:
     - A10:2025
     nist-ssdf:
     - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-PWSTORE-001
+  message: Store passwords with an adaptive password hashing function - Verify that
+    stored passwords use a salted, computationally intensive password hashing function
+    such as Argon2id, scrypt, bcrypt, or PBKDF2, never a fast hash or reversible encryption.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-PWSTORE-001
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-916
+    - CWE-759
+    owasp-asvs:
+    - V11.4
+    owasp-top-10-2025:
+    - A04:2025
+    nist-ssdf:
+    - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN

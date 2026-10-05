@@ -21,7 +21,7 @@ reports described in [`VERSIONING.md`](VERSIONING.md). The distribution contains
 the schema — not the rules; the baseline pack is attached to each release and lives in
 [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml).
 
-**The baseline pack:** 19 generic rules spanning access control, injection and XSS, SSRF,
+**The baseline pack:** 20 generic rules spanning access control, password storage, injection and XSS, SSRF,
 authentication, session hardening, secrets, file handling, logging, dependency risk,
 configuration, CSRF, webhook integrity, excessive data exposure, mass assignment, open
 redirect, and rate limiting. Every rule ships a compliant and a violating example.
@@ -151,7 +151,7 @@ connects a rule to a relevant topic; it is not a claim that the rule covers a ca
   topic-based convention. Keep the more specific ASVS, API Top 10, and CWE mappings
   instead of forcing a single broad category.
 
-The resulting optional mapping coverage is 18 of 19 rules. An absent mapping is a
+The resulting optional Top 10:2025 coverage is 19 of 20 rules (APPSEC-PWSTORE-001, added in v0.6.0, maps to `A04:2025`). An absent mapping is a
 recorded scope decision, not a failed validation or a claim that the control is unnecessary.
 
 ## Next steps
