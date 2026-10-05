@@ -114,7 +114,7 @@
 </nav>
 
 <header class="hero wrap">
-  <span class="eyebrow">v0.4.1 · Apache-2.0 · engine-agnostic</span>
+  <span class="eyebrow">v0.5.0 · Apache-2.0 · engine-agnostic</span>
   <h1>A reviewable <span class="accent">AppSec baseline</span><br/>your pipeline can verify.</h1>
   <p class="lede">A curated pack of 19 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
@@ -150,6 +150,9 @@
     <div class="card"><div class="t">F.07</div><h3>Signed, attested releases</h3><p>Published to PyPI through Trusted Publishing (OIDC, no long-lived token). Every release tag is signed. From v0.3.1 each release carries a CycloneDX SBOM and the baseline pack, with a SLSA build-provenance attestation on every asset; from v0.4.0 the signed provenance bundle is attached too, for offline verification with <code>gh attestation verify --bundle</code>.</p></div>
     <div class="card"><div class="t">F.08</div><h3>Executable Semgrep rules</h3><p>An optional layer in <code>exports/semgrep-rules/</code> with two tested Python/Flask detections: request data reaching sqlite3 SQL (<code>APPSEC-INJECT-001</code>) and Requests URLs (<code>APPSEC-SSRF-001</code>). Positive and negative fixtures run in CI.</p></div>
     <div class="card"><div class="t">F.09</div><h3>Portable CI gate</h3><p><code>examples/validation_gate.py</code> consumes the JSON report in any CI system and passes only when the CLI exits 0 and the report says <code>ok: true</code>. Contributed by the community.</p></div>
+    <div class="card"><div class="t">F.10</div><h3>Review records</h3><p><code>appsec-rules review</code> checks a per-service record (met, not met, not applicable, excepted) against the pack: evidence for every met rule, and exceptions that the rule allows, with the required fields, unexpired and inside <code>max_days</code>. The gate decides what may stay open (ADR-0006).</p></div>
+    <div class="card"><div class="t">F.11</div><h3>Versioned report contract</h3><p>The JSON reports carry a <code>schema</code> marker and stable issue codes, described by JSON Schemas shipped in the package. <code>VERSIONING.md</code> says what may change between releases.</p></div>
+    <div class="card"><div class="t">F.12</div><h3>Property-based tests</h3><p>A Hypothesis harness feeds the loader, validator, and <code>review</code> with malformed YAML, aliases, duplicate keys, raw bytes, and deep nesting, and requires a structured result every time. It runs in its own CI job.</p></div>
   </div>
 </section>
 
@@ -172,6 +175,10 @@
 
 <span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
 <span class="c">Validation passed: 1 file, 19 rules, 0 errors, 0 warnings.</span>
+
+<span class="c"># start your own pack, and check a service's review record against the baseline</span>
+<span class="p">$</span> <span class="o">appsec-rules init rules/my-pack.yaml</span>
+<span class="p">$</span> <span class="o">appsec-rules review rules/appsec-baseline.yaml reviews/payments-api.yaml</span>
 
 <span class="p">$</span> <span class="o">appsec-rules report coverage rules</span>
 <span class="c"># reports mapping coverage and unmapped rules for each framework</span>
