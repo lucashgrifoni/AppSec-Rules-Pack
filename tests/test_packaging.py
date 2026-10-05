@@ -33,6 +33,9 @@ def test_wheel_bundles_the_schema(built: Path) -> None:
 
     names = zipfile.ZipFile(next(built.glob("*.whl"))).namelist()
     assert "appsec_rules_pack/schemas/appsec-rule.schema.json" in names
+    assert "appsec_rules_pack/schemas/review-record.schema.json" in names
+    assert "appsec_rules_pack/schemas/review-report.schema.json" in names
+    assert "appsec_rules_pack/templates/minimal-pack.yaml" in names
 
 
 def test_sdist_does_not_ship_a_test_suite_it_cannot_run(built: Path) -> None:

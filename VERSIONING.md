@@ -8,7 +8,7 @@ says so under "Breaking changes" and gives a migration step.
 | Version | Where it lives | Bumped when |
 | --- | --- | --- |
 | Package (`appsec-rules-pack`) | `src/appsec_rules_pack/__init__.py`, PyPI, git tags `vX.Y.Z` | Any release of the CLI, the schemas, or the reports |
-| Rule schema | `$id` of `appsec-rule.schema.json`, pinned to the tag that last changed it | The rule contract changes |
+| Schemas | `$id` of each file under `src/appsec_rules_pack/schemas/`, pinned to the tag that last changed it | That contract changes |
 | Baseline pack | `pack.version` in `rules/appsec-baseline.yaml` | Rule content changes: a rule, its text, or its mappings |
 
 The baseline pack version can lag the package version. v0.4.1, for example, shipped pack
@@ -23,9 +23,15 @@ These are the parts other tools can rely on:
 - the JSON reports, identified by their `schema` field: `appsec-rules-validation/v1`
   (`validate --format json`, described by
   [`validation-report.schema.json`](src/appsec_rules_pack/schemas/validation-report.schema.json)),
+  `appsec-rules-review/v1` (`review --format json`, described by
+  [`review-report.schema.json`](src/appsec_rules_pack/schemas/review-report.schema.json)),
   `appsec-rules-index/v1` (`export index`), and `appsec-rules-coverage/v1` (`report coverage --format json`);
 - the issue `code` values listed below;
-- the rule schema under `src/appsec_rules_pack/schemas/`.
+- the rule schema and the review record schema
+  ([`review-record.schema.json`](src/appsec_rules_pack/schemas/review-record.schema.json))
+  under `src/appsec_rules_pack/schemas/`;
+- the starter pack written by `init`, which always passes the strict gate. Its content
+  may change in any release.
 
 The Python modules are internal. Import them at your own risk; they can change in any
 release.
@@ -76,7 +82,9 @@ unexpected. Use them for organisation-specific metadata instead of forking the s
 
 ## Issue codes
 
-Every issue in the validation report carries one of these codes.
+Every issue in the validation report carries one of these codes. The review report uses
+the file, YAML, schema, and `sensitive-value` codes for the record, plus the review codes
+in the next section.
 
 | Code | Level | Meaning |
 | --- | --- | --- |
@@ -108,3 +116,28 @@ Every issue in the validation report carries one of these codes.
 | `deprecation-status-mismatch` | warning | A `deprecation` block on a rule that is not deprecated |
 | `examples-missing` | warning | An enabled rule has no examples (`--require-examples`) |
 | `example-key-material` | warning | A rule example contains what looks like real key material |
+
+### Review codes
+
+`appsec-rules review` checks a review record against a pack (see
+[ADR-0006](docs/adr/0006-review-records.md)). None of these codes depend on whether a rule
+is open: a record can be valid and still have every rule `not-met`.
+
+| Code | Level | Meaning |
+| --- | --- | --- |
+| `review-pack-invalid` | error | The rules pack does not load or does not validate, so the record cannot be checked |
+| `review-pack-mismatch` | error | `review.pack` is not the `pack.id` of the rules pack |
+| `review-pack-version-mismatch` | warning | `review.pack_version` is not the pack's current version |
+| `review-unknown-rule` | error | A result names a rule the pack does not have |
+| `review-duplicate-result` | error | A rule has more than one result |
+| `review-rule-not-enabled` | warning | A result is for a rule that is disabled, draft, or deprecated |
+| `review-missing-result` | warning | An enabled rule has no result; it is reported as `unreviewed` |
+| `review-evidence-missing` | error | A `met` result cites no evidence |
+| `review-exception-unexpected` | error | A result has an `exception` block but is not `excepted` |
+| `review-exception-missing` | error | An `excepted` result has no `exception` block |
+| `review-date-invalid` | error | A date has the right shape but is not a real day, such as 2026-02-30 |
+| `exception-not-allowed` | error | The pack sets `exceptions.allowed: false` for that rule |
+| `exception-field-missing` | error | The exception lacks a field listed in the rule's `required_fields` |
+| `exception-expired` | error | `expires_at` is on or before the `--as-of` date (today by default) |
+| `exception-window-exceeded` | error | The exception runs longer than the rule's `max_days`, counted from `granted_at` or the review date |
+| `exception-dates-invalid` | error | The exception expires on or before the day it was granted |

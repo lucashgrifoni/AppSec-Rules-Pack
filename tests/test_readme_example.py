@@ -42,21 +42,22 @@ def example_pack() -> dict:
     return payload
 
 
-def test_readme_example_pack_validates_cleanly(example_pack: dict) -> None:
-    result = validate_rules_payload(example_pack)
-
-    assert result.ok, [f"{issue.level} {issue.path}: {issue.message}" for issue in result.issues]
-    assert result.rule_count == 1
-    assert result.warning_count == 0
-
-
-def test_readme_example_pack_survives_require_examples(example_pack: dict) -> None:
-    """`--require-examples` is what CI runs, so the documented pack must not trip it.
-
-    The minimal pack ships no `examples` block, so this documents the expected outcome:
-    a warning, not an error, and only under the opt-in flag.
-    """
+def test_readme_example_passes_the_strict_gate(example_pack: dict) -> None:
+    """CI runs `--require-examples --fail-on-warnings`, so the documented pack must pass it."""
 
     result = validate_rules_payload(example_pack, require_examples=True)
 
-    assert not any(issue.level == "error" for issue in result.issues)
+    assert result.issues == (), [f"{i.level} {i.path}: {i.message}" for i in result.issues]
+    assert result.rule_count == 1
+
+
+def test_readme_example_is_the_init_template_and_the_examples_file() -> None:
+    """One starter pack, three places: `appsec-rules init`, examples/, and the README."""
+
+    text = README.read_text(encoding="utf-8")
+    match = EXAMPLE_PATTERN.search(text)
+    assert match is not None
+    template = Path("src/appsec_rules_pack/templates/minimal-pack.yaml").read_text(encoding="utf-8")
+
+    assert match.group("body") + "\n" == template
+    assert Path("examples/minimal-pack.yaml").read_text(encoding="utf-8") == template

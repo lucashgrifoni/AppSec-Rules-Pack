@@ -3,7 +3,8 @@ name: Policy Gate (reference)
 # Reference policy gate (see ADR-0004): a SEPARATE workflow consumes the validator's
 # JSON output to decide block/warn. Enforcement is never embedded in the validator
 # itself — the validator only reports; this workflow makes the gate decision. It runs
-# the pack's own CLI against the baseline pack as a worked example.
+# the pack's own CLI against the baseline pack, and `review` against the worked review
+# record in examples/review/ (ADR-0006), as worked examples.
 
 on:
   workflow_dispatch:
@@ -11,6 +12,7 @@ on:
     paths:
       - "rules/**"
       - "src/**"
+      - "examples/review/**"
       - ".github/workflows/policy-gate.yml"
 
 # Least privilege: this gate only needs to read the repository.
@@ -57,6 +59,14 @@ jobs:
       - name: Produce coverage report (JSON)
         run: python -m appsec_rules_pack report coverage rules --format json > coverage.json
 
+      - name: Check the worked review record (JSON)
+        # --as-of pins the date so the example's exception does not expire in CI. A real
+        # gate omits it, so an expired exception fails the record.
+        run: >
+          python -m appsec_rules_pack review rules/appsec-baseline.yaml
+          examples/review/payments-api-review.yaml
+          --as-of 2026-10-05 --fail-on-warnings --format json > review.json
+
       - name: Gate on the JSON output
         run: |
           python - <<'PY'
@@ -72,10 +82,25 @@ jobs:
           for framework, stats in coverage["frameworks"].items():
               print(f"coverage {framework}: {stats['covered']}/{stats['total']}")
 
-          # Policy decision (reference): block on any validation error; treat warnings
-          # as advisory. Tune this threshold per your own risk appetite.
+          review = json.load(open("review.json"))
+          open_blocking = review["summary"]["open_by_enforcement"].get("blocking", 0)
+          open_critical = review["summary"]["open_by_severity"].get("critical", 0)
+          print(
+              f"review {review['review']['subject']}: ok={review['summary']['ok']} "
+              f"open blocking={open_blocking} critical={open_critical}"
+          )
+
+          # Policy decision (reference): block on any validation error, on an invalid
+          # review record, and on any open blocking or critical rule; other open rules
+          # and warnings are advisory. Tune these thresholds per your own risk appetite.
           if errors:
               print("::error::policy gate: validation errors present")
+              sys.exit(1)
+          if not review["summary"]["ok"]:
+              print("::error::policy gate: the review record is invalid")
+              sys.exit(1)
+          if open_blocking or open_critical:
+              print("::error::policy gate: open blocking or critical rules")
               sys.exit(1)
           print("policy gate: PASS")
           PY

@@ -1,0 +1,112 @@
+# Review of a fictional service, payments-api, against the baseline pack.
+# The evidence entries point into that service's repository; they are illustrations.
+# Check it with:
+#   appsec-rules review rules/appsec-baseline.yaml examples/review/payments-api-review.yaml
+review:
+  pack: appsec-baseline
+  pack_version: 0.4.0
+  subject: payments-api (JSON API behind the public gateway)
+  reviewer: appsec-team
+  date: 2026-10-01
+  scope: Release 3.2 of payments-api; the admin console is reviewed separately.
+
+results:
+  - rule: APPSEC-AUTHZ-001
+    status: met
+    evidence:
+      - src/payments/repository.py filters every query by tenant_id from the session.
+      - tests/test_authz.py::test_other_tenant_payment_returns_404
+
+  - rule: APPSEC-INPUT-001
+    status: met
+    evidence:
+      - Request bodies are parsed by pydantic models in src/payments/schemas.py.
+      - tests/test_input.py covers oversize amounts and unknown currency codes.
+
+  - rule: APPSEC-INJECT-001
+    status: met
+    evidence:
+      - All queries go through SQLAlchemy Core with bound parameters; no raw SQL strings.
+      - Semgrep python.sqlalchemy rules run in CI with no open findings.
+
+  - rule: APPSEC-SSRF-001
+    status: met
+    evidence:
+      - Outbound calls go only to the card processor, whose host is fixed in config.
+
+  - rule: APPSEC-AUTHN-001
+    status: met
+    evidence:
+      - Authentication is delegated to the gateway; the service verifies the signed JWT.
+      - tests/test_auth.py rejects expired, unsigned, and wrong-audience tokens.
+
+  - rule: APPSEC-SECRETS-001
+    status: met
+    evidence:
+      - Processor credentials come from the secrets manager at start-up.
+      - Gitleaks runs on every pull request with no findings.
+
+  - rule: APPSEC-FILE-001
+    status: not-applicable
+    notes: The service accepts no uploads and reads no paths derived from input.
+
+  - rule: APPSEC-LOG-001
+    status: not-met
+    notes: Refund failures log the full processor response, which includes the card holder name.
+
+  - rule: APPSEC-DEP-001
+    status: met
+    evidence:
+      - Dependabot and pip-audit run weekly; the lock file has no known-vulnerable pins.
+
+  - rule: APPSEC-CONFIG-001
+    status: met
+    evidence:
+      - Debug mode is off in the production image; the settings test asserts it.
+
+  - rule: APPSEC-SESSION-001
+    status: not-applicable
+    notes: The service is stateless; sessions live in the gateway.
+
+  - rule: APPSEC-XSS-001
+    status: not-applicable
+    notes: The service returns JSON only and renders no HTML.
+
+  - rule: APPSEC-CSRF-001
+    status: not-applicable
+    notes: Clients authenticate with bearer tokens, not cookies.
+
+  - rule: APPSEC-ENUM-001
+    status: met
+    evidence:
+      - Unknown and foreign payment ids both return the same 404 body.
+
+  - rule: APPSEC-MSGAUTH-001
+    status: met
+    evidence:
+      - Processor webhooks are verified with HMAC and a five-minute timestamp window.
+      - tests/test_webhooks.py rejects bad signatures and replayed events.
+
+  - rule: APPSEC-DATAEXPO-001
+    status: met
+    evidence:
+      - Responses are built from explicit response models; card numbers are masked.
+
+  - rule: APPSEC-MASSASSIGN-001
+    status: met
+    evidence:
+      - Update endpoints accept only the fields declared in their request models.
+
+  - rule: APPSEC-REDIRECT-001
+    status: not-applicable
+    notes: The service issues no redirects.
+
+  - rule: APPSEC-RATELIMIT-001
+    status: excepted
+    notes: Per-client limits are planned for release 3.3.
+    exception:
+      owner: payments-team
+      justification: The gateway applies a global request limit; per-client quotas need a new store.
+      granted_at: 2026-10-01
+      expires_at: 2026-12-15
+      compensating_control: Gateway limit of 50 requests per second and an alert on 429 spikes.
