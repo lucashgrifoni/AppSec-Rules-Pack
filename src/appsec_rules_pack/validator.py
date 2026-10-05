@@ -24,6 +24,7 @@ MAX_EXCEPTION_DAYS = 90
 # Highest rules-pack schema version this validator understands (pack.schema_version).
 SUPPORTED_SCHEMA_VERSION = (0, 5)
 REQUIRED_EXCEPTION_FIELDS = ("owner", "justification", "expires_at")
+RULE_SCHEMA = "appsec-rule.schema.json"
 
 # Expected identifier formats for framework mappings. References:
 #   OWASP API Security Top 10 2023 -> API1:2023 .. API10:2023
@@ -225,9 +226,22 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
 def validate_rules_payload(payload: Any, *, require_examples: bool = False) -> ValidationResult:
     """Validate an in-memory rules pack payload."""
 
+    issues = _schema_issues(payload, RULE_SCHEMA)
+
+    if isinstance(payload, dict):
+        issues.extend(_semantic_issues(payload, require_examples=require_examples))
+
+    return ValidationResult(
+        issues=tuple(_with_rule_ids(issues, payload)),
+        rule_count=_rule_count(payload),
+    )
+
+
+def _schema_issues(payload: Any, schema_name: str) -> list[ValidationIssue]:
+    """Check a payload against one of the packaged schemas."""
+
+    validator = jsonschema.Draft202012Validator(_load_schema(schema_name))
     issues: list[ValidationIssue] = []
-    schema = _load_schema()
-    validator = jsonschema.Draft202012Validator(schema)
 
     # jsonschema reports one error per missing required property, but the rendered
     # message names every missing field at that location. Three missing fields therefore
@@ -248,14 +262,7 @@ def validate_rules_payload(payload: Any, *, require_examples: bool = False) -> V
                 code=_SCHEMA_ISSUE_CODES.get(str(error.validator), "schema-invalid"),
             )
         )
-
-    if isinstance(payload, dict):
-        issues.extend(_semantic_issues(payload, require_examples=require_examples))
-
-    return ValidationResult(
-        issues=tuple(_with_rule_ids(issues, payload)),
-        rule_count=_rule_count(payload),
-    )
+    return issues
 
 
 _SCHEMA_ISSUE_CODES = {
@@ -292,9 +299,9 @@ def _with_rule_ids(issues: list[ValidationIssue], payload: Any) -> list[Validati
     return attributed
 
 
-@lru_cache(maxsize=1)
-def _load_schema() -> dict[str, Any]:
-    schema_file = resources.files("appsec_rules_pack").joinpath("schemas/appsec-rule.schema.json")
+@lru_cache(maxsize=4)
+def _load_schema(name: str) -> dict[str, Any]:
+    schema_file = resources.files("appsec_rules_pack").joinpath(f"schemas/{name}")
     with schema_file.open("r", encoding="utf-8") as handle:
         schema = yaml.safe_load(handle)
 

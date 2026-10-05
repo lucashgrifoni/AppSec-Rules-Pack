@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `appsec-rules review <pack> <record>` checks a review record, the per-rule outcome of
+  reviewing one service against a pack, against the pack's policy: the record names the
+  pack, every rule exists and appears once, `met` cites evidence, and each exception is
+  allowed, has the fields the rule requires, has not expired, and fits in `max_days`.
+  Enabled rules with no result show as `unreviewed`. `--format json` emits
+  `appsec-rules-review/v1` with open rules counted by enforcement and severity; the exit
+  code reflects only whether the record is valid ([ADR-0006](docs/adr/0006-review-records.md)).
+  `--as-of` pins the date exceptions are checked against.
+- `review-record.schema.json` and `review-report.schema.json`, shipped in the package.
+- `appsec-rules init <file>` writes a starter pack that passes the strict gate; the same
+  pack is `examples/minimal-pack.yaml` and the README example (#30).
+- A worked review in `examples/review/`, a field reference with guidance on adapting the
+  baseline (`docs/rule-fields.md`), and a downstream GitHub Actions template that verifies
+  the pinned baseline's provenance, validates packs, checks review records, and gates on
+  open rules, with a PowerShell version.
+- The reference policy gate also checks the worked review record and blocks on open
+  blocking or critical rules.
+
+### Changed
+
+- The README starter pack now includes `examples`, so it passes
+  `--require-examples --fail-on-warnings`; it previously produced a warning. Its ASVS
+  mapping moved from `V14.4` (ASVS 4.0 numbering) to `V16.5.1`.
+
 ### Contract
 
 - The `validate --format json` report now carries `"schema": "appsec-rules-validation/v1"`,

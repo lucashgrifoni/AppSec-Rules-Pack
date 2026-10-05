@@ -10,6 +10,8 @@ as a starting point for secure code review or CI policy gates.
 - Generic AppSec baseline rules only.
 - YAML rule pack authored against a JSON Schema contract.
 - Python 3.12+ CLI validator using Typer.
+- Review records: the per-rule outcome of reviewing one subject against a pack, checked
+  against the pack's exception policy (ADR-0006).
 - Unit tests for structural and semantic validation.
 - Documentation for setup, usage, and contribution.
 
@@ -63,6 +65,18 @@ The validator performs two layers of checks:
 
 Results are available as human-readable text or as structured JSON (`--format json`)
 for CI consumption.
+
+## Review Records
+
+`appsec-rules review <pack> <record>` checks a record (`review-record.schema.json`)
+against a valid pack. It reports an error when the record names another pack, names an
+unknown rule or one rule twice, marks a rule `met` without evidence, or holds an exception
+the rule forbids, that lacks a field the rule requires, that has expired as of the run
+date (`--as-of`, today by default), or that runs longer than `max_days` from `granted_at`
+or the review date. Enabled rules with no result are `unreviewed` (warning). The JSON
+report (`appsec-rules-review/v1`) counts open rules (`not-met` or `unreviewed`) by
+enforcement and severity. The command does not read the reviewed code, and its exit code
+does not depend on open rules: the gate decides.
 
 ## Security And Governance Lens
 

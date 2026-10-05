@@ -67,7 +67,7 @@ version = { attr = "appsec_rules_pack.__version__" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-appsec_rules_pack = ["schemas/*.json"]
+appsec_rules_pack = ["schemas/*.json", "templates/*.yaml"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

@@ -11,7 +11,8 @@ A versioned AppSec rules pack and the validator that keeps it honest. Each rule 
 what to review, what evidence proves it, how to fix it, and how long an exception may
 last, with mappings to OWASP ASVS 5.0, the OWASP API Security Top 10, OWASP Top 10:2025,
 CWE, and NIST SSDF. The `appsec-rules` CLI validates packs against a JSON Schema contract
-and semantic checks, so a pack can serve as a CI quality gate and as review evidence.
+and semantic checks, and checks review records, the per-service outcome of a review,
+against the pack's own exception policy. A CI gate reads both reports.
 
 ![Recorded CLI demo: successful baseline validation followed by a missing-title error](https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/main/docs/assets/cli-demo.svg)
 
@@ -26,6 +27,7 @@ checkout with `python docs/assets/record-cli-demo.py`.
 - [Verify a release](#verify-a-release)
 - [CLI reference](#cli-reference)
 - [Writing a rules pack](#writing-a-rules-pack)
+- [Recording a review](#recording-a-review)
 - [Use it in CI](#use-it-in-ci)
 - [Optional executable Semgrep rules](#optional-executable-semgrep-rules)
 - [Project layout](#project-layout)
@@ -40,6 +42,7 @@ checkout with `python docs/assets/record-cli-demo.py`.
 | Ship a generic baseline of 19 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
 | Validate packs: schema, duplicate IDs, exception windows and policy, mapping formats, rule lifecycle, sensitive values | Embed enforcement: CI consumes the JSON report and decides ([ADR-0004](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0004-ci-gate-consumes-json.md)) |
 | Derive a rule index, a Semgrep metadata scaffold, a SARIF rule catalog, and a mapping coverage report | Turn the derived scaffold into detections: its patterns are placeholders ([ADR-0001](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0001-engine-agnostic-validator.md)) |
+| Check a review record against the pack: every rule accounted for, evidence for `met`, exceptions allowed, complete, unexpired, and inside the window | Confirm the evidence is true, or decide what may stay open: the record is self-declared and the gate decides ([ADR-0006](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0006-review-records.md)) |
 
 The baseline covers authentication, authorization, input validation, injection and XSS,
 SSRF, secrets, file handling, logging, dependency risk, configuration, session hardening,
@@ -117,7 +120,9 @@ release design.
 
 | Command | Purpose |
 | --- | --- |
+| `appsec-rules init <file>` | Write a starter pack that passes the strict gate |
 | `appsec-rules validate <file-or-dir>` | Validate one pack or every `.yaml`/`.yml` pack in a directory |
+| `appsec-rules review <pack> <record>` | Check a review record against a pack; `--as-of`, `--fail-on-warnings`, `--format json` |
 | `appsec-rules export index <pack> [-o file]` | Derive a machine-readable rule index (JSON) |
 | `appsec-rules export semgrep <pack> [-o file]` | Derive a Semgrep scaffold with rule metadata and placeholder patterns |
 | `appsec-rules export sarif <pack> [-o file]` | Derive a SARIF 2.1.0 rule catalog with an empty `results` array |
@@ -147,8 +152,10 @@ The export and coverage commands only derive metadata; they do not validate firs
 
 ## Writing a rules pack
 
-A pack is a `pack` block plus one or more `rules`. This minimal pack is complete and valid:
-copy it, validate it, and grow it. Every field shown is required. The full contract is
+A pack is a `pack` block plus one or more `rules`. This minimal pack is complete and passes
+the strict gate. `appsec-rules init my-pack.yaml` writes it for you; then validate it and
+grow it. Every field shown is required except `schema_version` and `examples`, which the
+strict gate (`--require-examples`) expects anyway. The full contract is
 [`appsec-rule.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
 19 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
 
@@ -159,12 +166,13 @@ pack:
   id: my-pack
   name: My Rules Pack
   version: 0.1.0
+  schema_version: "0.5"
   mode: advisory
   owner: appsec
   description: A minimal rules pack to start from.
 
 rules:
-  - id: APPSEC-EXAMPLE-001
+  - id: MYPACK-ERRORS-001
     title: Require controlled error handling
     description: Verify that invalid user input returns controlled errors without stack traces.
     severity: medium
@@ -175,9 +183,7 @@ rules:
       - api
     mappings:
       owasp_asvs:
-        - V14.4
-      owasp_api_top_10_2023:
-        - API8:2023
+        - V16.5.1
       cwe:
         - CWE-209
       nist_ssdf:
@@ -204,12 +210,28 @@ rules:
         - owner
         - justification
         - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          except ValueError:
+              log.exception("order parse failed")
+              return {"error": "invalid order"}, 400
+        explanation: The client gets a fixed message; the detail stays in server logs.
+      violating:
+        language: python
+        snippet: |
+          except ValueError as error:
+              return {"error": repr(error)}, 500
+        explanation: The raw exception reaches the client and can expose internal details.
 ```
 
 Rules files must be UTF-8 YAML without aliases or duplicate keys, and no larger than
 10 MiB; the validator rejects anything else before checking the schema.
 
-Shapes that are easy to get wrong: `evidence` and `match` are objects, not lists;
+[`docs/rule-fields.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md) lists every field, its limits and allowed
+values, and how to adapt the baseline: keep it as published next to your own pack, or
+fork it. Shapes that are easy to get wrong: `evidence` and `match` are objects, not lists;
 `remediation` needs `guidance`; `required_fields` accepts only `owner`, `justification`,
 `expires_at`, `compensating_control`, and `validation_plan`.
 
@@ -229,10 +251,62 @@ only judges whether the pack itself is well formed.
 [`CONTRIBUTING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CONTRIBUTING.md) describes the severity model and the topic-based
 mapping convention.
 
+## Recording a review
+
+A pack states a policy. A review record states what one review found against it: for one
+subject (a service, a repository, a release), each rule is `met`, `not-met`,
+`not-applicable`, or `excepted`.
+
+<!-- readme-example:review-record (checked by tests/test_review.py) -->
+
+```yaml
+review:
+  pack: appsec-baseline
+  pack_version: 0.4.0
+  subject: payments-api
+  reviewer: appsec-team
+  date: 2026-10-01
+
+results:
+  - rule: APPSEC-AUTHZ-001
+    status: met
+    evidence:
+      - tests/test_authz.py::test_other_tenant_payment_returns_404
+  - rule: APPSEC-LOG-001
+    status: not-met
+    notes: Refund failures log the card holder name.
+  - rule: APPSEC-RATELIMIT-001
+    status: excepted
+    exception:
+      owner: payments-team
+      justification: Per-client quotas need a new store; planned for 3.3.
+      expires_at: 2026-12-15
+      compensating_control: Gateway limit and an alert on 429 spikes.
+```
+
+```bash
+appsec-rules review appsec-baseline.yaml payments-api-review.yaml --format json
+```
+
+`review` checks the record against the pack: the record names the right pack, each rule
+exists and appears once, `met` cites evidence, and each exception is allowed by the rule,
+has the fields the rule requires, has not expired, and fits in the rule's `max_days`.
+Enabled rules with no result are reported as `unreviewed`.
+
+The exit code says whether the record is valid, nothing more. A valid record can still
+have open rules. The JSON report (`"schema": "appsec-rules-review/v1"`, described by
+[`review-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-report.schema.json))
+lists every rule with its severity, enforcement, and status, and counts open rules by
+both, so the gate can apply your policy. The record format is
+[`review-record.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-record.schema.json).
+[`examples/review/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/review/README.md) has a complete record against the
+baseline.
+
 ## Use it in CI
 
 - [`examples/README.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/README.md) has a GitHub Actions job that installs a pinned
-  release and runs the strict JSON gate.
+  release, downloads and verifies the baseline, validates your packs, checks your review
+  records, and gates on open rules, plus a PowerShell version.
 - [`examples/validation_gate.py`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/validation_gate.py) is a stdlib-only gate for any
   other CI system. It passes only when the CLI exits `0` and the report says `ok: true`.
 - [`.github/workflows/policy-gate.yml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/.github/workflows/policy-gate.yml) is this
@@ -267,12 +341,12 @@ metadata scaffold.
 .github/            CI, security, policy-gate, Scorecard, Pages, and release workflows
 docs/adr/           Architecture decision records
 docs/assets/        CLI demo and social preview
-examples/           CI integration examples
+examples/           Starter pack, worked review, and CI integration examples
 exports/            Derived artifacts and the optional executable Semgrep rules
 rules/              The baseline rules pack
 site/               Source of the project landing page
 src/appsec_rules_pack/
-                    Validator, CLI, exporters, and the JSON Schema
+                    Validator, review checker, CLI, exporters, schemas, starter pack
 tests/              Test suite and pass, fail, and warning fixtures
 ```
 
@@ -285,6 +359,7 @@ tests/              Test suite and pass, fail, and warning fixtures
 | [`STATUS.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/STATUS.md) | Current state, dated verification results, risks and limits |
 | [`ROADMAP.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/ROADMAP.md) | What shipped and what comes next |
 | [`TECHNICAL_SPEC.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/TECHNICAL_SPEC.md) | Rule contract and validation design |
+| [`docs/rule-fields.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md) | Every pack and rule field, and how to adapt the baseline |
 | [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md) | Architecture decisions |
 
 ## Contributing, security, and license

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/review-report.schema.json",
+  "$comment": "Contract of `appsec-rules review --format json`, format marker appsec-rules-review/v1. Fields may be added within v1; removing or renaming one, or changing an issue code, requires v2. See ADR-0006 and VERSIONING.md.",
+  "title": "AppSec Rules Pack review report",
+  "type": "object",
+  "required": ["schema", "pack", "review", "as_of", "summary", "results", "issues"],
+  "properties": {
+    "schema": {
+      "const": "appsec-rules-review/v1"
+    },
+    "pack": {
+      "type": "object",
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"type": ["string", "null"]},
+        "version": {"type": ["string", "null"]}
+      }
+    },
+    "review": {
+      "type": ["object", "null"],
+      "description": "The review block of the record as read, or null when the record could not be read."
+    },
+    "as_of": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "The date exceptions were checked against."
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "rules",
+        "met",
+        "not_met",
+        "not_applicable",
+        "excepted",
+        "unreviewed",
+        "open_by_enforcement",
+        "open_by_severity",
+        "errors",
+        "warnings",
+        "ok"
+      ],
+      "properties": {
+        "rules": {"type": "integer", "minimum": 0},
+        "met": {"type": "integer", "minimum": 0},
+        "not_met": {"type": "integer", "minimum": 0},
+        "not_applicable": {"type": "integer", "minimum": 0},
+        "excepted": {"type": "integer", "minimum": 0},
+        "unreviewed": {"type": "integer", "minimum": 0},
+        "open_by_enforcement": {
+          "$ref": "#/$defs/counts",
+          "description": "Rules that are not-met or unreviewed, counted by enforcement."
+        },
+        "open_by_severity": {
+          "$ref": "#/$defs/counts",
+          "description": "Rules that are not-met or unreviewed, counted by severity."
+        },
+        "errors": {"type": "integer", "minimum": 0},
+        "warnings": {"type": "integer", "minimum": 0},
+        "ok": {
+          "type": "boolean",
+          "description": "Whether the record is valid against the pack: false when errors exist, or warnings exist and --fail-on-warnings was set. It says nothing about how many rules are open; the gate decides that. The exit code agrees with it."
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "title", "severity", "enforcement", "status", "evidence", "exception"],
+        "properties": {
+          "rule_id": {"type": "string"},
+          "title": {"type": "string"},
+          "severity": {"type": "string"},
+          "enforcement": {"type": "string"},
+          "status": {
+            "enum": ["met", "not-met", "not-applicable", "excepted", "unreviewed"]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "notes": {"type": "string"},
+          "exception": {"type": ["object", "null"]}
+        }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "code", "rule_id", "path", "message"],
+        "properties": {
+          "level": {"enum": ["error", "warning"]},
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "rule_id": {"type": ["string", "null"]},
+          "path": {"type": "string"},
+          "message": {"type": "string"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "counts": {
+      "type": "object",
+      "additionalProperties": {"type": "integer", "minimum": 0}
+    }
+  }
+}

@@ -1,7 +1,9 @@
 """Typer command-line interface for AppSec rules pack validation."""
 
+import datetime as dt
 import json
 from enum import StrEnum
+from importlib import resources
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -12,6 +14,7 @@ from appsec_rules_pack import __version__
 from appsec_rules_pack.exporter import build_index
 from appsec_rules_pack.loader import load_yaml_file
 from appsec_rules_pack.reporter import build_coverage
+from appsec_rules_pack.review import ReviewResult, review_files
 from appsec_rules_pack.sarif_export import build_sarif
 from appsec_rules_pack.semgrep_scaffold import (
     PATTERN_PLACEHOLDER,
@@ -73,9 +76,10 @@ FormatOpt = Annotated[
     ),
 ]
 RULE_FILE_SUFFIXES = frozenset((".yaml", ".yml"))
-# Format marker of the `validate --format json` report; see
-# schemas/validation-report.schema.json. Additive changes keep v1.
+# Format markers of the JSON reports; see schemas/validation-report.schema.json and
+# schemas/review-report.schema.json. Additive changes keep v1.
 VALIDATION_REPORT_SCHEMA = "appsec-rules-validation/v1"
+REVIEW_REPORT_SCHEMA = "appsec-rules-review/v1"
 
 SEMGREP_HEADER = (
     "# Reference Semgrep scaffold derived from the AppSec Rules Pack (derivation only).\n"
@@ -507,3 +511,150 @@ def report_coverage(
         typer.echo(f"Wrote coverage report to {output}.")
         return
     typer.echo(document, nl=False)
+
+
+ReviewInputArg = Annotated[
+    Path,
+    typer.Argument(exists=True, file_okay=True, dir_okay=False),
+]
+AsOfOpt = Annotated[
+    str | None,
+    typer.Option(
+        "--as-of",
+        metavar="YYYY-MM-DD",
+        help="Check exception expiry as of this date instead of today (UTC).",
+    ),
+]
+
+
+def _parse_as_of(value: str | None) -> dt.date:
+    if value is None:
+        return dt.datetime.now(dt.UTC).date()
+    try:
+        return dt.date.fromisoformat(value)
+    except ValueError as error:
+        raise typer.BadParameter(
+            "expected a date in YYYY-MM-DD format", param_hint="--as-of"
+        ) from error
+
+
+def _review_report(result: ReviewResult, passed: bool) -> dict:
+    counts = result.status_counts()
+    results = []
+    for outcome in result.outcomes:
+        entry: dict[str, Any] = {
+            "rule_id": outcome.rule_id,
+            "title": outcome.title,
+            "severity": outcome.severity,
+            "enforcement": outcome.enforcement,
+            "status": outcome.status,
+            "evidence": list(outcome.evidence),
+            "exception": outcome.exception,
+        }
+        if outcome.notes is not None:
+            entry["notes"] = outcome.notes
+        results.append(entry)
+    return {
+        "schema": REVIEW_REPORT_SCHEMA,
+        "pack": {"id": result.pack_id, "version": result.pack_version},
+        "review": result.review,
+        "as_of": result.as_of.isoformat(),
+        "summary": {
+            "rules": len(result.outcomes),
+            "met": counts["met"],
+            "not_met": counts["not-met"],
+            "not_applicable": counts["not-applicable"],
+            "excepted": counts["excepted"],
+            "unreviewed": counts["unreviewed"],
+            "open_by_enforcement": result.open_counts("enforcement"),
+            "open_by_severity": result.open_counts("severity"),
+            "errors": result.error_count,
+            "warnings": result.warning_count,
+            "ok": passed,
+        },
+        "results": results,
+        "issues": [
+            {
+                "level": issue.level,
+                "code": issue.code,
+                "rule_id": issue.rule_id,
+                "path": _issue_path_str(issue),
+                "message": issue.message,
+            }
+            for issue in result.issues
+        ],
+    }
+
+
+@app.command()
+def review(
+    pack: ReviewInputArg,
+    record: ReviewInputArg,
+    as_of: AsOfOpt = None,
+    fail_on_warnings: FailOnWarningsOpt = False,
+    output_format: FormatOpt = OutputFormat.text,
+) -> None:
+    """Check a review record against the rules pack it was made with.
+
+    The record says, rule by rule, whether a reviewed subject met each rule, with
+    evidence and exceptions. This checks the record against the pack's policy; it does
+    not inspect the subject. Exit 1 means the record is invalid. Open rules never change
+    the exit code: the gate decides what to do with them (ADR-0006).
+    """
+
+    result = review_files(pack, record, as_of=_parse_as_of(as_of))
+    passed = result.ok and not (fail_on_warnings and result.warning_count)
+
+    if output_format is OutputFormat.json:
+        typer.echo(json.dumps(_review_report(result, passed), indent=2))
+        if not passed:
+            raise typer.Exit(code=1)
+        return
+
+    for outcome in result.outcomes:
+        typer.echo(
+            f"{outcome.rule_id:<24} {outcome.severity:<9} {outcome.enforcement:<9} {outcome.status}"
+        )
+    for issue in result.issues:
+        rule = f" [{issue.rule_id}]" if issue.rule_id else ""
+        typer.echo(f"{_format_issue(issue)}{rule}")
+
+    counts = result.status_counts()
+    open_count = counts["not-met"] + counts["unreviewed"]
+    verdict = "passed" if passed else "failed"
+    typer.echo(
+        f"Review {verdict}: {_plural(len(result.outcomes), 'rule', 'rules')}; "
+        f"{counts['met']} met, {counts['not-met']} not met, "
+        f"{counts['not-applicable']} not applicable, {counts['excepted']} excepted, "
+        f"{counts['unreviewed']} unreviewed; {open_count} open; "
+        f"{_plural(result.error_count, 'error', 'errors')}, "
+        f"{_plural(result.warning_count, 'warning', 'warnings')}."
+    )
+    if not passed:
+        raise typer.Exit(code=1)
+
+
+InitPathArg = Annotated[
+    Path,
+    typer.Argument(dir_okay=False, help="Where to write the new pack."),
+]
+ForceOpt = Annotated[
+    bool,
+    typer.Option("--force", help="Overwrite the file if it already exists."),
+]
+
+
+@app.command()
+def init(path: InitPathArg, force: ForceOpt = False) -> None:
+    """Write a minimal rules pack that passes the strict gate, to start from."""
+
+    if path.exists() and not force:
+        typer.echo(f"Init failed: {path} already exists; pass --force to overwrite.", err=True)
+        raise typer.Exit(code=1)
+
+    template = resources.files("appsec_rules_pack").joinpath("templates/minimal-pack.yaml")
+    _write_document(path, template.read_text(encoding="utf-8"))
+    typer.echo(
+        f"Wrote a starter pack to {path}. Next: appsec-rules validate {path} "
+        "--require-examples --fail-on-warnings"
+    )

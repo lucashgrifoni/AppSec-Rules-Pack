@@ -233,10 +233,10 @@ def test_malformed_mapping_id_warns(field: str, bad_value: str) -> None:
 
 
 def test_schema_is_loaded_once_and_cached() -> None:
-    from appsec_rules_pack.validator import _load_schema
+    from appsec_rules_pack.validator import RULE_SCHEMA, _load_schema
 
-    first = _load_schema()
-    second = _load_schema()
+    first = _load_schema(RULE_SCHEMA)
+    second = _load_schema(RULE_SCHEMA)
 
     assert first is second  # cached, not re-read from disk
     assert first["title"] == "AppSec Rules Pack"

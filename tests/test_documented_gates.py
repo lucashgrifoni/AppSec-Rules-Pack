@@ -21,7 +21,7 @@ COMMANDS = re.findall(
 
 
 def test_documented_validation_commands_use_strict_json_gate() -> None:
-    assert len(COMMANDS) == 2
+    assert len(COMMANDS) == 3
     for command in COMMANDS:
         args = shlex.split(command)
         assert args[:2] == ["validate", "rules"]
@@ -30,7 +30,7 @@ def test_documented_validation_commands_use_strict_json_gate() -> None:
         assert args[args.index("--format") + 1] == "json"
 
 
-@pytest.mark.parametrize("command", COMMANDS, ids=["workflow", "local"])
+@pytest.mark.parametrize("command", COMMANDS, ids=["workflow", "local", "powershell"])
 @pytest.mark.parametrize("case", ["valid", "missing_examples", "warning"])
 def test_documented_gate_accepts_and_rejects_real_packs(
     tmp_path: Path, command: str, case: str
