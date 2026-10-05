@@ -6,15 +6,18 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
-**Released:** `appsec-rules-pack` **0.4.1**, published to PyPI via Trusted Publishing
-(OIDC, no long-lived credential). The release workflow publishes the wheel, the sdist, a
-CycloneDX SBOM, `appsec-baseline.yaml`, and the signed provenance bundle
-(`appsec-rules-pack-<tag>.intoto.jsonl`) as GitHub Release assets. Its SLSA
-build-provenance step covers the first four. Provenance is verified through GitHub
-Artifact Attestations; downloading a release asset alone does not verify it.
+**Released:** `appsec-rules-pack` **0.5.0**, published to PyPI via Trusted Publishing
+(OIDC, no long-lived credential). The release workflow checks that the tag is on `main`
+and matches the package version, builds with hash-pinned tools in a job that cannot
+publish, and publishes the wheel, the sdist, a CycloneDX SBOM, `appsec-baseline.yaml`, and
+the signed provenance bundle (`appsec-rules-pack-<tag>.intoto.jsonl`) as GitHub Release
+assets. Its SLSA build-provenance step covers the first four. Provenance is verified
+through GitHub Artifact Attestations; downloading a release asset alone does not verify it.
 
-**What ships:** a JSON Schema rule contract, a Python 3.12+ validator with a Typer CLI, and
-derivation-only export and reporting commands. The distribution contains the validator and
+**What ships:** a JSON Schema rule contract, a Python 3.12+ validator with a Typer CLI,
+derivation-only export and reporting commands, `review` for per-service review records
+([ADR-0006](docs/adr/0006-review-records.md)), `init` for a starter pack, and versioned JSON
+reports described in [`VERSIONING.md`](VERSIONING.md). The distribution contains the validator and
 the schema — not the rules; the baseline pack is attached to each release and lives in
 [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml).
 
@@ -43,17 +46,18 @@ the `Branch-Protection` note under Risks and limits.
 
 ## Verified checks
 
-Measured 2026-10-04 on Windows 11 with Python 3.12.10 at `6b2b479`, after the
-pending pull requests were merged.
+Measured 2026-10-05 on Windows 11 with Python 3.12.10 on the v0.5.0 release branch
+(blocks A to E of the v0.5.0 plan, plus the version bump).
 
 | Check | Result |
 | --- | --- |
 | `ruff check .` | Clean |
-| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 173 passed; 97.22% coverage (gate 95%) |
+| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 314 passed; 98.54% coverage (gate 95%) |
 | `validate rules --require-examples --fail-on-warnings` | 1 file, 19 rules, 0 errors, 0 warnings |
 | `report coverage rules/appsec-baseline.yaml` | ASVS, API Top 10, CWE, SSDF: 19/19; optional Top 10:2025: 18/19 |
 | `exports/` regeneration | All three exports regenerated; byte-comparison drift tests pass |
-| `python -m build` | Wheel and source distribution built successfully |
+| `python -m build` | `appsec_rules_pack-0.5.0` wheel and source distribution built |
+| Property harness, `HYPOTHESIS_PROFILE=ci` | 9 properties pass; the harness alone covers 96% of `loader.py` and 85% of `validator.py` |
 | CLI exit codes | Baseline: 0; missing-title fixture: 1; output recorded in `docs/assets/cli-demo.svg` |
 | Repository visibility | Public on 2026-10-04 |
 | Remote CI and security | On `6b2b479`, [CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233), [Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236), and [Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285) passed on 2026-10-04, including CodeQL and all fourteen required jobs |
@@ -107,15 +111,15 @@ characteristics, not a per-machine benchmark. The CLI adds Python start-up time 
     and removing the admin bypass would leave nobody able to merge. The residual risk is
     that a mistaken or compromised maintainer action has no second pair of eyes. Revisit if
     the project gains a second maintainer.
-  - `Pinned-Dependencies` previously scored 7/10, with eleven instances. It is narrower than
-    it looks: every GitHub Action is already pinned to an immutable commit SHA. What is
-    unpinned is `pip install` inside `run:` steps. Pinning those by hash means a
-    `--require-hashes` requirements file covering the full transitive set, which is a real
-    change of dependency strategy -- today the loose ranges are what let CI notice upstream
-    breakage early, and there is deliberately no lockfile. It would, as a side effect, give
-    `SCA - Trivy` a manifest to scan. Open decision, not an oversight.
-  - `Fuzzing` is a true absence. The validator parses untrusted YAML, so a fuzzing harness
-    over the loader and schema path is a reasonable future addition rather than a fix.
+  - `Pinned-Dependencies` previously scored 7/10. Every GitHub Action is pinned to a commit
+    SHA. Since v0.5.0 the release build installs its tools from a hash-locked requirements
+    file, and the job holding the publishing credential installs nothing
+    ([ADR-0007](docs/adr/0007-dependency-locking.md)). The test, lint, and security jobs keep
+    version ranges on purpose, so CI sees the versions users install; Scorecard will keep
+    flagging those, and that is an accepted position.
+  - `Fuzzing`: since v0.5.0 a property-based harness (Hypothesis, `tests/property/`) covers
+    the loader, validator, JSON report, and `review`, and runs in its own CI job. It found
+    two crashes before the release.
 - The prior workflow review found two required checks with no applicable files.
   `SCA - Trivy` finds no dependency manifest it can parse (the project uses a setuptools
   `pyproject.toml` with no lockfile), and `IaC and Pipeline - Trivy` finds no supported configuration file (there is

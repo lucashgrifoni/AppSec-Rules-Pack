@@ -12,7 +12,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Add capabilities only when each one has tests and validation evidence.
 - Treat scanner-specific execution engines as a deliberate, separate boundary.
 
-## Now — Delivered through v0.4.1
+## Now — Delivered through v0.5.0
 
 - JSON Schema rule contract and a baseline pack of 19 rules spanning access control,
   injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
@@ -33,7 +33,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - All `owasp_asvs` mappings migrated to OWASP ASVS 5.0.0 (assigned by topic and verified
   against the 5.0.0 chapter/section structure and the official v5.0.0-to-v4.0.3 mapping
   under `5.0/mappings/`). Mappings remain evidence aids, not a claim.
-- Tagged releases through `v0.4.1` published; see `STATUS.md` for current repository visibility.
+- Tagged releases through `v0.5.0` published; see `STATUS.md` for current repository visibility.
 - The default branch is protected by a ruleset (2026-06-03); renamed from `master` to `main`
   on 2026-10-05.
 - Tagged `v0.2.0` published to PyPI as `appsec-rules-pack` via OIDC Trusted Publishing
@@ -50,6 +50,12 @@ statement of intent, not a delivery commitment, and is kept consistent with
   forms, and the signed provenance bundle attached to each Release.
 - Tagged `v0.4.1` (2026-10-05): the rewritten README on the PyPI project page and the
   move of the default branch to `main`. No functional change.
+- Tagged `v0.5.0` (2026-10-05): `appsec-rules review` checks per-service review records
+  against a pack's exception policy (ADR-0006); a versioned JSON report with stable issue
+  codes and `VERSIONING.md`; custom rule-id prefixes and `x-` extension keys;
+  `appsec-rules init`; a restricted YAML loader; a property-based harness; and a release
+  pipeline that builds with hash-pinned tools away from the publishing credential
+  (ADR-0007).
 - Optional `owasp_top_10_2025` mapping field (additive, backward-compatible) populated on
   the rules where a 2025 category maps cleanly.
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
