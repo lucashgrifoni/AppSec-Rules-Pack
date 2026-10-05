@@ -43,7 +43,7 @@ dependencies = [
 Homepage = "https://github.com/lucashgrifoni/AppSec-Rules-Pack"
 Repository = "https://github.com/lucashgrifoni/AppSec-Rules-Pack"
 Issues = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/issues"
-Changelog = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

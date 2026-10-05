@@ -35,7 +35,7 @@ metadata. The Semgrep output is a clearly-labelled non-runnable scaffold and the
 output is a rule catalog with no results; the validator never executes rules or scans code
 ([ADR-0001](docs/adr/0001-engine-agnostic-validator.md)).
 
-**Repository posture:** public, verified on 2026-10-04. The `master-protection` ruleset
+**Repository posture:** public, verified on 2026-10-04. The `main-protection` ruleset
 requires one code-owner approval, approval of the latest push, an up-to-date branch, and
 fourteen status checks ([ruleset](https://github.com/lucashgrifoni/AppSec-Rules-Pack/rules/17222248)).
 The owner keeps an administrator bypass because this is a single-maintainer project; see
@@ -102,7 +102,7 @@ characteristics, not a per-machine benchmark. The CLI adds Python start-up time 
   positions rather than defects, and are recorded here so they are owned rather than merely
   open:
   - `Branch-Protection` previously scored 8/10. It objected that administrators can bypass
-    the `master-protection` ruleset, and that only one approving review is required. Both
+    the `main-protection` ruleset, and that only one approving review is required. Both
     are deliberate: this is a single-maintainer project, so a second reviewer does not exist
     and removing the admin bypass would leave nobody able to merge. The residual risk is
     that a mistaken or compromised maintainer action has no second pair of eyes. Revisit if

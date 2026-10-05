@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -99,7 +99,7 @@ jobs:
         run: python -m appsec_rules_pack validate rules --require-examples --fail-on-warnings
 
   # Separate job on purpose: the `validate` job above is the required status check in the
-  # `master-protection` ruleset, and adding a matrix to it would rename the check and
+  # `main-protection` ruleset, and adding a matrix to it would rename the check and
   # silently break branch protection. This job guards platform portability instead.
   cross-platform:
     name: Cross-platform tests (${{ matrix.os }})
