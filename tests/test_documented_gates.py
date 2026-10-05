@@ -82,15 +82,21 @@ GATE_SCRIPT = textwrap.dedent(
     ],
 )
 def test_template_gate_stops_on_critical_high_or_blocking(
-    tmp_path: Path, open_by_severity: dict, open_by_enforcement: dict, expected: int
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    open_by_severity: dict,
+    open_by_enforcement: dict,
+    expected: int,
 ) -> None:
     """The README tells users to gate on critical or high; the template must do the same."""
     reports = tmp_path / "reports"
     reports.mkdir()
     summary = {"open_by_severity": open_by_severity, "open_by_enforcement": open_by_enforcement}
     (reports / "svc.json").write_text(json.dumps({"summary": summary}), encoding="utf-8")
-    (tmp_path / "gate.py").write_text(GATE_SCRIPT, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    result = run_python(["gate.py"], cwd=tmp_path)
+    # In-process: a child started outside the repository would not find the coverage config.
+    with pytest.raises(SystemExit) as stopped:
+        exec(compile(GATE_SCRIPT, "gate.py", "exec"), {"__name__": "__main__"})
 
-    assert result.returncode == expected, result.stdout + result.stderr
+    assert stopped.value.code == expected
