@@ -20,6 +20,11 @@ the signed provenance bundle (`appsec-rules-pack-<tag>.intoto.jsonl`) as GitHub 
 assets. Its SLSA build-provenance step covers the first four. Provenance is verified
 through GitHub Artifact Attestations; downloading a release asset alone does not verify it.
 
+**OpenSSF Best Practices:** passing since 2026-10-05 ([project 15240](https://www.bestpractices.dev/projects/15240)), with
+55 criteria Met and 12 not applicable. The answers and their evidence were checked against
+the repository on that date; the 12 N/A cover cryptography the software does not use,
+memory-unsafe code it does not contain, and the absence of any reported vulnerability or CVE fix.
+
 **What ships:** a JSON Schema rule contract, a Python 3.12+ validator with a Typer CLI,
 derivation-only export and reporting commands, `review` for per-service review records
 ([ADR-0006](docs/adr/0006-review-records.md)), `init` for a starter pack, and versioned JSON
