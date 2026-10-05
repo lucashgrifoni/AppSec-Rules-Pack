@@ -235,6 +235,8 @@ jobs:
             check.trivy.dev:443
             get.trivy.dev:443
             mirror.gcr.io:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
             release-assets.githubusercontent.com:443
 
       - name: Checkout
@@ -283,6 +285,8 @@ jobs:
             check.trivy.dev:443
             get.trivy.dev:443
             mirror.gcr.io:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
             release-assets.githubusercontent.com:443
 
       - name: Checkout
