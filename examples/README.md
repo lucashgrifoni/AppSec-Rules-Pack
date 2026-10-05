@@ -33,7 +33,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install AppSec Rules Pack
-        run: python -m pip install "appsec-rules-pack==0.4.0"
+        run: python -m pip install "appsec-rules-pack==0.4.1"
 
       - name: Validate rules
         run: appsec-rules validate rules --require-examples --fail-on-warnings --format json
@@ -61,7 +61,7 @@ output, or a CLI that cannot be started, fails the gate. Successfully starting t
 process is not treated as a passing pack.
 
 ```bash
-python -m pip install "appsec-rules-pack==0.4.0"   # pin a reviewed release
+python -m pip install "appsec-rules-pack==0.4.1"   # pin a reviewed release
 python examples/validation_gate.py rules --require-examples --fail-on-warnings
 ```
 
