@@ -294,6 +294,10 @@ results:
 appsec-rules review appsec-baseline.yaml payments-api-review.yaml --format json
 ```
 
+This record covers three rules, so every other baseline rule comes back `unreviewed` with a
+`review-missing-result` warning, and the command still exits 0. In CI, add
+`--fail-on-warnings` so a record with gaps fails the job.
+
 `review` checks the record against the pack: the record names the right pack, each rule
 exists and appears once, `met` cites evidence, and each exception is allowed by the rule,
 has the fields the rule requires, has not expired, and fits in the rule's `max_days`.
@@ -305,8 +309,8 @@ or observation so another reviewer can locate the defect. It does not change the
 The exit code says whether the record is valid, nothing more. A valid record can still
 have open rules. The JSON report (`"schema": "appsec-rules-review/v1"`, described by
 [`review-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-report.schema.json))
-lists every rule with its severity, enforcement, and status, and counts open rules by
-both, so the gate can apply your policy. The record format is
+lists every rule with its severity, enforcement, and status, and counts open rules
+(`not-met` or `unreviewed`) by both, so the gate can apply your policy. The record format is
 [`review-record.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-record.schema.json).
 [`examples/review/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/review/README.md) has a complete record against the
 baseline.
@@ -317,10 +321,17 @@ Gate on `summary.open_by_severity` instead, with the severity threshold your tea
 requires. For example, reject a report when its `critical` or `high` count is non-zero,
 after checking that the command exited 0 and `summary.ok` is true. The worked review
 has one open `medium` rule. To gate by enforcement, fork the pack and raise selected
-rules to `blocking`; [the field reference](docs/rule-fields.md#rules) explains the field
-and [adapting the baseline](docs/rule-fields.md#adapting-the-baseline) explains the fork.
+rules to `blocking`; [the field reference](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md#rules) explains the field
+and [adapting the baseline](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md#adapting-the-baseline) explains the fork.
 Count maps omit zero entries; in Python, read a missing severity with
 `summary["open_by_severity"].get("high", 0)`.
+
+When you upgrade the baseline, review your records in the same change. A new enabled
+rule has no result in an existing record, so it shows as `unreviewed` with a
+`review-missing-result` warning, and a record that declares the old `pack_version` also
+gets `review-pack-version-mismatch`. With `--fail-on-warnings`, both fail the CI job until
+the record gets a result for each new rule and the new `pack_version`. The changelog lists
+added rules under each release.
 
 ## Use it in CI
 
@@ -383,7 +394,7 @@ tests/              Test suite and pass, fail, and warning fixtures
 | [`ROADMAP.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/ROADMAP.md) | What shipped and what comes next |
 | [`TECHNICAL_SPEC.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/TECHNICAL_SPEC.md) | Rule contract and validation design |
 | [`docs/rule-fields.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/rule-fields.md) | Every pack and rule field, and how to adapt the baseline |
-| [`docs/v1-readiness.md`](docs/v1-readiness.md) | Proposed 1.0 contract freeze, migration policy, and pending acceptance criteria |
+| [`docs/v1-readiness.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/v1-readiness.md) | Proposed 1.0 contract freeze, migration policy, and pending acceptance criteria |
 | [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md) | Architecture decisions |
 
 ## Contributing, security, and license
