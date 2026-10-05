@@ -3,6 +3,7 @@
 [![CI](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/ci.yml)
 [![Security CI/CD](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml/badge.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/workflows/security-ci-cd.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lucashgrifoni/AppSec-Rules-Pack/badge)](https://scorecard.dev/viewer/?uri=github.com/lucashgrifoni/AppSec-Rules-Pack)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15240/badge)](https://www.bestpractices.dev/projects/15240)
 [![PyPI](https://img.shields.io/pypi/v/appsec-rules-pack.svg)](https://pypi.org/project/appsec-rules-pack/)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/pyproject.toml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/LICENSE)
