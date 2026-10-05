@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="AppSec Rules Pack" />
 <meta property="og:url" content="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
-<meta property="og:title" content="AppSec Rules Pack: a reviewable AppSec baseline your pipeline can verify" />
+<meta property="og:title" content="AppSec Rules Pack: a baseline for documented security reviews" />
 <meta property="og:description" content="20 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, CWE, and NIST SSDF. It validates and exports rules. It is not a scanner." />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="AppSec Rules Pack: a reviewable AppSec baseline your pipeline can verify" />
+<meta name="twitter:title" content="AppSec Rules Pack: a baseline for documented security reviews" />
 <meta name="twitter:description" content="20 rules, a JSON Schema contract, and a Python validator. Engine-agnostic: it validates and exports, it does not scan." />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0e14'/%3E%3Cpath d='M16 5l9 3.6v6.2c0 5.4-3.7 9.9-9 11.4-5.3-1.5-9-6-9-11.4V8.6L16 5z' fill='none' stroke='%2364ffda' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M11.5 16.2l3.1 3.1 6-6.2' fill='none' stroke='%2364ffda' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
@@ -115,11 +115,11 @@
 
 <header class="hero wrap">
   <span class="eyebrow">v0.5.0 · Apache-2.0 · engine-agnostic</span>
-  <h1>A reviewable <span class="accent">AppSec baseline</span><br/>your pipeline can verify.</h1>
+  <h1>An <span class="accent">AppSec rules pack</span><br/>for documented reviews.</h1>
   <p class="lede">A curated pack of 20 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
   CWE, and NIST SSDF. Every rule ships a compliant and a violating example.</p>
-  <p class="note"><b>Honest scope:</b> the validator <b>validates and exports</b> rules for review and CI evidence.
+  <p class="note"><b>Scope:</b> the validator <b>validates and exports</b> rules for review and CI evidence.
   It is <b>not a scanner</b>: it does not execute rules or scan source code (ADR-0001). It derives a rule index,
   a labelled non-runnable Semgrep scaffold, and a SARIF rule catalog. A separate, optional layer adds two tested
   Semgrep rules for Python/Flask; the other 18 rules have no executable detection.</p>
@@ -133,21 +133,21 @@
     <div class="stat"><div class="n">20</div><div class="l">baseline rules</div></div>
     <div class="stat"><div class="n">5</div><div class="l">framework maps</div></div>
     <div class="stat"><div class="n">3</div><div class="l">export formats</div></div>
-    <div class="stat"><div class="n">0</div><div class="l">errors / warnings</div></div>
+    <div class="stat"><div class="n">15</div><div class="l">rule categories</div></div>
   </div>
 </header>
 
 <section id="what" class="wrap">
   <div class="kicker">// what it is</div>
-  <h2>A contract, a validator, and honest exports.</h2>
+  <h2>Rule contracts, pack validation, and exports.</h2>
   <div class="grid3">
     <div class="card"><div class="t">F.01</div><h3>JSON Schema contract</h3><p>Each rule has a stable ID, severity, category, targets, framework mappings, required evidence, review guidance, exceptions, and examples, validated against <code>appsec-rule.schema.json</code>.</p></div>
     <div class="card"><div class="t">F.02</div><h3>Python validator (CLI)</h3><p>Schema + semantic checks: duplicate IDs, exception-policy contradictions, malformed mapping IDs, sensitive-value detection, rule lifecycle, and <code>--require-examples</code>. Text or JSON output for CI.</p></div>
     <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025 (optional), CWE, and NIST SSDF. Evidence aids, not a conformance claim.</p></div>
     <div class="card"><div class="t">F.04</div><h3>Derivation-only exports</h3><p><code>export index</code> (JSON rule index), <code>export semgrep</code> (a <em>non-runnable</em> scaffold with placeholder patterns), and <code>export sarif</code> (a rule catalog with empty results). All drift-tested.</p></div>
     <div class="card"><div class="t">F.05</div><h3>Coverage report</h3><p><code>report coverage</code> shows framework-mapping coverage per rule and in aggregate, in text or JSON, so gaps are visible instead of guessed.</p></div>
-    <div class="card"><div class="t">F.06</div><h3>Hardened CI/CD</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>main</code>.</p></div>
-    <div class="card"><div class="t">F.07</div><h3>Signed, attested releases</h3><p>Published to PyPI through Trusted Publishing (OIDC, no long-lived token). Every release tag is signed. From v0.3.1 each release carries a CycloneDX SBOM and the baseline pack, with a SLSA build-provenance attestation on every asset; from v0.4.0 the signed provenance bundle is attached too, for offline verification with <code>gh attestation verify --bundle</code>.</p></div>
+    <div class="card"><div class="t">F.06</div><h3>Repository CI checks</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>main</code>.</p></div>
+    <div class="card"><div class="t">F.07</div><h3>Release artifacts and provenance</h3><p>The release workflow uses PyPI Trusted Publishing (OIDC), builds a CycloneDX SBOM, and attaches the baseline pack and build-provenance attestations. A signed provenance bundle supports offline artifact verification with <code>gh attestation verify --bundle</code>. These artifacts describe the package and its build.</p></div>
     <div class="card"><div class="t">F.08</div><h3>Executable Semgrep rules</h3><p>An optional layer in <code>exports/semgrep-rules/</code> with two tested Python/Flask detections: request data reaching sqlite3 SQL (<code>APPSEC-INJECT-001</code>) and Requests URLs (<code>APPSEC-SSRF-001</code>). Positive and negative fixtures run in CI.</p></div>
     <div class="card"><div class="t">F.09</div><h3>Portable CI gate</h3><p><code>examples/validation_gate.py</code> consumes the JSON report in any CI system and passes only when the CLI exits 0 and the report says <code>ok: true</code>. Contributed by the community.</p></div>
     <div class="card"><div class="t">F.10</div><h3>Review records</h3><p><code>appsec-rules review</code> checks a per-service record (met, not met, not applicable, excepted) against the pack: evidence for every met rule, and exceptions that the rule allows, with the required fields, unexpired and inside <code>max_days</code>. The gate decides what may stay open (ADR-0006).</p></div>
@@ -160,7 +160,7 @@
   <div class="two">
     <div>
       <div class="kicker">// use it</div>
-      <h2>Validate in seconds.</h2>
+      <h2>Validate packs and review records.</h2>
       <p class="lede" style="font-size:16px">Install from PyPI (published via Trusted Publishing / OIDC),
       then validate the pack and derive the exports. The validator is advisory by default and never executes rules.</p>
     </div>
@@ -195,7 +195,7 @@
 
 <section id="coverage" class="wrap">
   <div class="kicker">// coverage</div>
-  <h2>Fifteen rule categories, evidence-backed.</h2>
+  <h2>Rule categories and framework mappings.</h2>
   <div class="chips">
     <div class="chip"><span>›</span> authentication</div>
     <div class="chip"><span>›</span> authorization (IDOR/BOLA)</div>
