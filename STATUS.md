@@ -6,13 +6,13 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
-**Prepared on `feat/v0.6.0`:** package and pack version 0.6.0, with 20 baseline
-rules, source-backed mapping rationale, review-gate documentation, report
-compatibility fixtures, and SBOM identity/inventory checks. Independent review,
-merge, tagging, and publication remain pending. The new 1.0 readiness proposal
-also leaves external feedback and its release decision with the owner.
+**Released:** `appsec-rules-pack` **0.6.0**, with 20 baseline rules (pack version 0.6.0),
+source-backed mapping rationale, review-gate documentation, report compatibility
+fixtures, and SBOM identity and inventory checks. The 1.0 readiness proposal
+([`docs/v1-readiness.md`](docs/v1-readiness.md)) leaves external feedback and the 1.0
+release decision with the owner.
 
-**Released:** `appsec-rules-pack` **0.5.0**, published to PyPI via Trusted Publishing
+Release `0.6.0` was published to PyPI via Trusted Publishing
 (OIDC, no long-lived credential). The release workflow checks that the tag is on `main`
 and matches the package version, builds with hash-pinned tools in a job that cannot
 publish, and publishes the wheel, the sdist, a CycloneDX SBOM, `appsec-baseline.yaml`, and
@@ -27,7 +27,7 @@ reports described in [`VERSIONING.md`](VERSIONING.md). The distribution contains
 the schema — not the rules; the baseline pack is attached to each release and lives in
 [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml).
 
-**The preparation branch's baseline pack:** 20 generic rules spanning access control,
+**The baseline pack:** 20 generic rules spanning access control,
 password storage, injection and XSS, SSRF,
 authentication, session hardening, secrets, file handling, logging, dependency risk,
 configuration, CSRF, webhook integrity, excessive data exposure, mass assignment, open
@@ -56,7 +56,8 @@ the `Branch-Protection` note under Risks and limits.
 Measured 2026-10-05 on `feat/v0.6.0`, using Windows 11 build 26300, Python
 3.12.10 (64-bit), and the project virtual environment. The release-tool
 reproduction uses the existing hash lock and a separate inventory environment.
-These are local preparation checks; they do not establish a published release.
+These local checks ran on the release branch before the tag; the published artifacts
+were verified separately, as described in the v0.6.0 release notes.
 
 | Check | Result |
 | --- | --- |
@@ -75,13 +76,12 @@ These are local preparation checks; they do not establish a published release.
 | Installed-wheel CLI | Version 0.6.0; strict baseline validation passed |
 | Repository visibility | Public on 2026-10-05 |
 
-Historical remote evidence remains separate: on `6b2b479`,
-[CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233),
-[Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236),
-[Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285),
-and [Scorecard 37212550305](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550305)
-passed on 2026-10-04. Those runs do not prove this preparation head. Its PR checks
-and manual release-workflow run must be checked independently before merge.
+Remote evidence for the v0.6.0 changes (pull request #49, head `dd74e08`):
+[CI 37337344267](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37337344267)
+and [Security CI/CD 37337344302](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37337344302)
+passed with all 23 checks, including the 14 required ones, and a manual
+[release-workflow run 37335966457](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37335966457)
+passed `verify` and `build` on that head, with publication skipped by design.
 
 Release history and prior end-user installation checks are documented in
 [`CHANGELOG.md`](CHANGELOG.md). See the README's release-verification instructions for

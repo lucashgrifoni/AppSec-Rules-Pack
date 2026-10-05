@@ -56,10 +56,6 @@ optional OWASP API Top 10 2023 and OWASP Top 10:2025 fields on 19 of 20 each.
 
 ## Quick start
 
-The commands below target v0.6.0 after its release. This branch prepares that
-version; its tag and publication remain pending. Until then, use the source
-installation below and the baseline in this checkout.
-
 ```bash
 pip install "appsec-rules-pack==0.6.0"
 curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.6.0/appsec-baseline.yaml
@@ -75,7 +71,7 @@ pip install "appsec-rules-pack==0.6.0"
 ```
 
 This installs the `appsec-rules` console script and requires Python 3.12 or newer. Pin a
-reviewed version, such as `appsec-rules-pack==0.6.0` after publication, when the CLI runs
+reviewed version, such as `appsec-rules-pack==0.6.0`, when the CLI runs
 as a quality gate.
 
 The distribution contains the validator, the CLI, and the JSON Schema. It does not contain

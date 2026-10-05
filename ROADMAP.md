@@ -12,7 +12,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Add capabilities only when each one has tests and validation evidence.
 - Treat scanner-specific execution engines as a deliberate, separate boundary.
 
-## Now — Delivered through v0.5.0
+## Now — Delivered through v0.6.0
 
 - JSON Schema rule contract and a released baseline pack of 19 rules spanning access control,
   injection/XSS, SSRF, authentication, session hardening, secrets, file handling, logging,
@@ -61,7 +61,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
   (reason, replaced_by, since), with validator consistency checks.
 
-## Prepared v0.6.0, pending review and release
+## Delivered in v0.6.0 (2026-10-05)
 
 - Baseline version 0.6.0 with 20 rules, including password storage, CORS guidance,
   and a prohibition on secret fallback values.

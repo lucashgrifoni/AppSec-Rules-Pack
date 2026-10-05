@@ -7,9 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v0.6.0 - 2026-10-05
 
-This entry describes the preparation branch. Tagging and publication are pending
-independent review and owner authorization.
-
 ### Added
 
 - `APPSEC-PWSTORE-001`: password-storage guidance, with examples and framework
