@@ -38,6 +38,12 @@ Each rule contains:
 - remediation guidance: `remediation`;
 - exception process: `exceptions`.
 
+Optional parts: `pack.schema_version` declares the schema version a pack targets;
+`examples` and `deprecation` on a rule; the `owasp_top_10_2025` and
+`owasp_api_top_10_2023` mappings; and `x-` prefixed extension keys on the pack, on rules,
+and in `mappings`. Rule ids follow `PREFIX-AREA-NNN`. `VERSIONING.md` defines what may
+change between releases.
+
 ## Validation Design
 
 The validator performs two layers of checks:

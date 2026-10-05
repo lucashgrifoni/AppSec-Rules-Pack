@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/validation-report.schema.json",
+  "$comment": "Contract of `appsec-rules validate --format json`, format marker appsec-rules-validation/v1. Fields may be added within v1; removing or renaming one, or changing an issue code, requires v2. See VERSIONING.md.",
+  "title": "AppSec Rules Pack validation report",
+  "type": "object",
+  "required": ["schema", "summary", "files"],
+  "properties": {
+    "schema": {
+      "const": "appsec-rules-validation/v1"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["files", "rules", "errors", "warnings", "ok"],
+      "properties": {
+        "files": {"type": "integer", "minimum": 0},
+        "rules": {"type": "integer", "minimum": 0},
+        "errors": {"type": "integer", "minimum": 0},
+        "warnings": {"type": "integer", "minimum": 0},
+        "ok": {
+          "type": "boolean",
+          "description": "The gate verdict. false when errors exist, or warnings exist and --fail-on-warnings was set. The exit code agrees with it."
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "rules", "errors", "warnings", "issues"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path relative to the validated directory, with forward slashes."
+          },
+          "rules": {"type": "integer", "minimum": 0},
+          "errors": {"type": "integer", "minimum": 0},
+          "warnings": {"type": "integer", "minimum": 0},
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["level", "code", "rule_id", "path", "message"],
+              "properties": {
+                "level": {"enum": ["error", "warning"]},
+                "code": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+                  "description": "Stable identifier of the kind of issue."
+                },
+                "rule_id": {
+                  "type": ["string", "null"],
+                  "description": "Id of the rule the issue belongs to, or null."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Dotted location inside the pack, or <root>."
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Human-readable text. It may be reworded between releases; match on code instead."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "type": "string",
+      "description": "Present only when no rule files were found; summary.ok is then false."
+    }
+  }
+}

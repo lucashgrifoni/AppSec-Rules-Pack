@@ -29,7 +29,7 @@ Consequences worth knowing before you add a mapping:
 
 - Prefer **one** category per framework. Reach for a second only when the rule genuinely
   covers two distinct subjects, not to capture every CWE's official home.
-- `mappings.owasp_top_10_2025` is **optional**. Leave it out when no category matches the
+- `mappings.owasp_top_10_2025` and `mappings.owasp_api_top_10_2023` are **optional**. Leave a mapping out when no category matches the
   rule's topic without stretching. An absent mapping is honest; a stretched one is not.
 - Mappings are evidence aids for review. They are not a claim of conformance to ASVS,
   the API Top 10, the Top 10, or NIST SSDF.
