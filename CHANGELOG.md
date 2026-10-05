@@ -27,6 +27,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The reference policy gate also checks the worked review record and blocks on open
   blocking or critical rules.
 
+### Tests
+
+- Property-based harness for the loader, validator, CLI JSON report, and `review`
+  (`tests/property/`, Hypothesis), with `dev`, `ci`, and `long` budgets and its own CI
+  job (#32). It found that a YAML key such as `0` or `true` crashed `validate` once the
+  `x-` extension keys were added earlier in this cycle; fixed before release, with
+  regression tests.
+- Mutation-driven tests: every semantic check is now tested with the flagged rule after
+  the items it skips, the `max_days` boundaries, exact YAML error locations, and the
+  exporters' enabled-only filter. 21 targeted mutants of the validator and exporters, and
+  8 of `review`, are killed.
+
 ### Changed
 
 - The README starter pack now includes `examples`, so it passes
@@ -68,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
+- An unquoted date that is not a real day, such as `2026-02-30`, made `validate`, the
+  exports, and `review` exit with a Python traceback. It is now a `yaml-invalid` error
+  with its line and column. The bug was present since the first release; the property
+  harness found it.
 - `required_fields` containing a non-string item, a non-scalar `severity` in the SARIF and
   Semgrep exports, and values JSON cannot represent (such as an unquoted YAML date) no
   longer crash with a traceback.

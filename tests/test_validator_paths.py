@@ -42,8 +42,11 @@ def test_validate_rules_file_reports_malformed_yaml(tmp_path: Path) -> None:
 
     assert not result.ok
     assert result.rule_count == 0
-    assert any("could not parse YAML file" in issue.message for issue in result.issues)
-    assert any("line" in issue.message for issue in result.issues)
+    [issue] = result.issues
+    assert issue.code == "yaml-invalid"
+    assert issue.message == (
+        "could not parse YAML file at line 2, column 1: expected ',' or ']', but got '<stream end>'"
+    )
 
 
 def test_non_dict_payload_is_rejected_without_crash() -> None:
@@ -70,9 +73,7 @@ def test_empty_payload_reports_missing_required_fields() -> None:
 )
 def test_sensitive_value_patterns_are_detected(secret: str) -> None:
     payload = _baseline_payload()
-    payload["rules"][0]["description"] = (
-        f"Verify object authorization on the server side. {secret}"
-    )
+    payload["rules"][0]["description"] = f"Verify object authorization on the server side. {secret}"
 
     result = validate_rules_payload(payload)
 
@@ -203,8 +204,7 @@ def test_allowed_exception_zero_day_window_warns() -> None:
 
     assert result.ok
     assert any(
-        issue.level == "warning" and "zero-day window" in issue.message
-        for issue in result.issues
+        issue.level == "warning" and "zero-day window" in issue.message for issue in result.issues
     )
 
 

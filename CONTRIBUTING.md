@@ -81,6 +81,24 @@ their own behavioral fixtures; a passing catalog validator does not test a scann
 Documentation commands that act as quality gates should have executable examples
 that demonstrate both acceptance and rejection.
 
+### Property-based tests
+
+`tests/property/` uses Hypothesis to feed the loader, the validator, the CLI JSON report,
+and `review` with almost-valid packs, YAML token soup, aliases, duplicate keys, raw bytes,
+and deep nesting. Every result must carry documented issue codes and no exception may
+escape. The normal test run includes it with the small `dev` budget. CI runs it again
+with a fixed, derandomized budget and reports the harness's own coverage:
+
+```powershell
+$env:HYPOTHESIS_PROFILE = "ci"      # bash: HYPOTHESIS_PROFILE=ci
+python -m pytest tests/property -p no:cacheprovider --cov=appsec_rules_pack --cov-report=term-missing --cov-fail-under=0
+```
+
+Use `HYPOTHESIS_PROFILE=long` for a deeper local search before a release. When the harness
+finds a failure, turn the minimized example it prints into a deterministic regression
+test (see `tests/test_non_string_keys.py`) before fixing the code, and keep it as an
+`@example` on the property if it is cheap.
+
 ## Required Checks
 
 ```powershell

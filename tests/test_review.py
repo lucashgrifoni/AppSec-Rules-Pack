@@ -424,3 +424,44 @@ def test_text_output_names_the_rule_of_each_issue(record: dict, tmp_path: Path) 
     assert "ERROR results.3: a met rule must cite" in result.stdout
     assert "[APPSEC-SSRF-001]" in result.stdout
     assert "Review failed:" in result.stdout
+
+
+# --- a bad entry must not end the checks (mutation testing found these) ----------------
+
+
+def test_unknown_rule_first_does_not_stop_the_later_results(baseline: dict, record: dict) -> None:
+    record["results"].insert(0, {"rule": "APPSEC-NOPE-001", "status": "met", "evidence": ["x"]})
+
+    result = review_payloads(baseline, record, as_of=AS_OF)
+
+    assert _codes(result) == ["review-unknown-rule"]
+    assert len(result.outcomes) == 19
+
+
+def test_duplicate_early_does_not_stop_the_later_results(baseline: dict, record: dict) -> None:
+    record["results"].insert(1, {"rule": "APPSEC-AUTHZ-001", "status": "not-met"})
+
+    result = review_payloads(baseline, record, as_of=AS_OF)
+
+    assert _codes(result) == ["review-duplicate-result"]
+    assert len(result.outcomes) == 19
+
+
+def test_exception_granted_and_expiring_the_same_day(baseline: dict, record: dict) -> None:
+    exception = _entry(record, "APPSEC-RATELIMIT-001")["exception"]
+    exception["granted_at"] = exception["expires_at"]
+
+    assert _codes(review_payloads(baseline, record, as_of=AS_OF)) == ["exception-dates-invalid"]
+
+
+def test_rules_that_are_not_enabled_are_not_expected_in_the_record(
+    baseline: dict, record: dict
+) -> None:
+    pack = copy.deepcopy(baseline)
+    pack["rules"][2]["status"] = "draft"
+    record["results"] = [r for r in record["results"] if r["rule"] != pack["rules"][2]["id"]]
+
+    result = review_payloads(pack, record, as_of=AS_OF)
+
+    assert result.issues == ()
+    assert len(result.outcomes) == 18

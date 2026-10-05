@@ -91,7 +91,7 @@ in the next section.
 | `file-unreadable` | error | The file could not be read |
 | `file-not-utf8` | error | The file is not valid UTF-8 |
 | `file-too-large` | error | The file is larger than 10 MiB |
-| `yaml-invalid` | error | The YAML does not parse, uses an alias, or repeats a key |
+| `yaml-invalid` | error | The YAML does not parse, uses an alias, repeats a key, or has an unquoted date that is not a real day |
 | `yaml-too-deep` | error | The YAML nests deeper than the parser supports |
 | `schema-missing-field` | error | A required field is missing |
 | `schema-unexpected-field` | error | A field is not part of the schema |
@@ -135,7 +135,7 @@ is open: a record can be valid and still have every rule `not-met`.
 | `review-evidence-missing` | error | A `met` result cites no evidence |
 | `review-exception-unexpected` | error | A result has an `exception` block but is not `excepted` |
 | `review-exception-missing` | error | An `excepted` result has no `exception` block |
-| `review-date-invalid` | error | A date has the right shape but is not a real day, such as 2026-02-30 |
+| `review-date-invalid` | error | A quoted date has the right shape but is not a real day, such as "2026-02-30" (unquoted, it is `yaml-invalid`) |
 | `exception-not-allowed` | error | The pack sets `exceptions.allowed: false` for that rule |
 | `exception-field-missing` | error | The exception lacks a field listed in the rule's `required_fields` |
 | `exception-expired` | error | `expires_at` is on or before the `--as-of` date (today by default) |

@@ -242,6 +242,10 @@ def _schema_issues(payload: Any, schema_name: str) -> list[ValidationIssue]:
 
     validator = jsonschema.Draft202012Validator(_load_schema(schema_name))
     issues: list[ValidationIssue] = []
+    # YAML allows keys such as 0, true, or null, and jsonschema applies patternProperties
+    # regexes to every key, so a non-string key raised TypeError. Checking a copy with
+    # string keys reports it as an unexpected field instead.
+    payload = _with_string_keys(payload)
 
     # jsonschema reports one error per missing required property, but the rendered
     # message names every missing field at that location. Three missing fields therefore
@@ -263,6 +267,14 @@ def _schema_issues(payload: Any, schema_name: str) -> list[ValidationIssue]:
             )
         )
     return issues
+
+
+def _with_string_keys(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(key): _with_string_keys(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_with_string_keys(item) for item in value]
+    return value
 
 
 _SCHEMA_ISSUE_CODES = {
