@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>AppSec Rules Pack — engine-agnostic security baseline</title>
-<meta name="description" content="An engine-agnostic AppSec baseline rules pack: a JSON Schema rule contract, a Python validator, and OWASP ASVS 5.0 / API Top 10 / Top 10:2025 / CWE / NIST SSDF mappings. It validates and exports rules — it does not execute or scan code." />
+<title>AppSec Rules Pack | engine-agnostic security baseline</title>
+<meta name="description" content="An engine-agnostic AppSec baseline rules pack: a JSON Schema rule contract, a Python validator, and OWASP ASVS 5.0 / API Top 10 / Top 10:2025 / CWE / NIST SSDF mappings. It validates and exports rules. It does not execute or scan code." />
 <link rel="canonical" href="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
 
 <!-- Link previews (LinkedIn, Slack, X). LinkedIn caches the first fetch aggressively. -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="AppSec Rules Pack" />
 <meta property="og:url" content="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
-<meta property="og:title" content="AppSec Rules Pack — a reviewable AppSec baseline your pipeline can verify" />
-<meta property="og:description" content="19 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, CWE, and NIST SSDF. It validates and exports rules — it is not a scanner." />
+<meta property="og:title" content="AppSec Rules Pack: a reviewable AppSec baseline your pipeline can verify" />
+<meta property="og:description" content="19 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, CWE, and NIST SSDF. It validates and exports rules. It is not a scanner." />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="AppSec Rules Pack — a reviewable AppSec baseline your pipeline can verify" />
+<meta name="twitter:title" content="AppSec Rules Pack: a reviewable AppSec baseline your pipeline can verify" />
 <meta name="twitter:description" content="19 rules, a JSON Schema contract, and a Python validator. Engine-agnostic: it validates and exports, it does not scan." />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0e14'/%3E%3Cpath d='M16 5l9 3.6v6.2c0 5.4-3.7 9.9-9 11.4-5.3-1.5-9-6-9-11.4V8.6L16 5z' fill='none' stroke='%2364ffda' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M11.5 16.2l3.1 3.1 6-6.2' fill='none' stroke='%2364ffda' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
@@ -119,9 +119,10 @@
   <p class="lede">A curated pack of 19 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
   CWE, and NIST SSDF. Every rule ships a compliant and a violating example.</p>
-  <p class="note"><b>Honest scope:</b> this <b>validates and exports</b> rules for review and CI evidence —
-  it is <b>not a scanner</b>. It does not execute rules or scan source code (see ADR-0001). It produces a
-  rule index, a clearly-labelled non-runnable Semgrep scaffold, and a SARIF rule catalog for downstream tools.</p>
+  <p class="note"><b>Honest scope:</b> the validator <b>validates and exports</b> rules for review and CI evidence.
+  It is <b>not a scanner</b>: it does not execute rules or scan source code (ADR-0001). It derives a rule index,
+  a labelled non-runnable Semgrep scaffold, and a SARIF rule catalog. A separate, optional layer adds two tested
+  Semgrep rules for Python/Flask; the other 17 rules have no executable detection.</p>
   <div class="ctas">
     <a class="btn btn-primary" href="https://github.com/lucashgrifoni/AppSec-Rules-Pack" target="_blank" rel="noopener">Get the pack →</a>
     <a class="btn btn-ghost" href="https://pypi.org/project/appsec-rules-pack/" target="_blank" rel="noopener">Install from PyPI</a>
@@ -140,13 +141,15 @@
   <div class="kicker">// what it is</div>
   <h2>A contract, a validator, and honest exports.</h2>
   <div class="grid3">
-    <div class="card"><div class="t">F.01</div><h3>JSON Schema contract</h3><p>Each rule has a stable ID, severity, category, targets, framework mappings, required evidence, review guidance, exceptions, and examples — validated against <code>appsec-rule.schema.json</code>.</p></div>
+    <div class="card"><div class="t">F.01</div><h3>JSON Schema contract</h3><p>Each rule has a stable ID, severity, category, targets, framework mappings, required evidence, review guidance, exceptions, and examples, validated against <code>appsec-rule.schema.json</code>.</p></div>
     <div class="card"><div class="t">F.02</div><h3>Python validator (CLI)</h3><p>Schema + semantic checks: duplicate IDs, exception-policy contradictions, malformed mapping IDs, sensitive-value detection, rule lifecycle, and <code>--require-examples</code>. Text or JSON output for CI.</p></div>
-    <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025 (optional), CWE, and NIST SSDF — evidence aids, not a conformance claim.</p></div>
-    <div class="card"><div class="t">F.04</div><h3>Derivation-only exports</h3><p><code>export index</code> (JSON rule index), <code>export semgrep</code> (a <em>non-runnable</em> scaffold — patterns must be added), and <code>export sarif</code> (a rule catalog with empty results). All drift-tested.</p></div>
-    <div class="card"><div class="t">F.05</div><h3>Coverage report</h3><p><code>report coverage</code> shows framework-mapping coverage per rule and in aggregate, in text or JSON — so gaps are visible, not guessed.</p></div>
-    <div class="card"><div class="t">F.06</div><h3>Hardened CI/CD</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>master</code>.</p></div>
-    <div class="card"><div class="t">F.07</div><h3>Signed, attested releases</h3><p>Published to PyPI through Trusted Publishing (OIDC, no long-lived token). Every release is a signed tag and carries a CycloneDX SBOM, a SLSA build-provenance attestation, and the baseline pack itself as a downloadable asset.</p></div>
+    <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025 (optional), CWE, and NIST SSDF. Evidence aids, not a conformance claim.</p></div>
+    <div class="card"><div class="t">F.04</div><h3>Derivation-only exports</h3><p><code>export index</code> (JSON rule index), <code>export semgrep</code> (a <em>non-runnable</em> scaffold with placeholder patterns), and <code>export sarif</code> (a rule catalog with empty results). All drift-tested.</p></div>
+    <div class="card"><div class="t">F.05</div><h3>Coverage report</h3><p><code>report coverage</code> shows framework-mapping coverage per rule and in aggregate, in text or JSON, so gaps are visible instead of guessed.</p></div>
+    <div class="card"><div class="t">F.06</div><h3>Hardened CI/CD</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>main</code>.</p></div>
+    <div class="card"><div class="t">F.07</div><h3>Signed, attested releases</h3><p>Published to PyPI through Trusted Publishing (OIDC, no long-lived token). Every release is a signed tag and carries a CycloneDX SBOM, a SLSA build-provenance attestation, and the baseline pack itself as a downloadable asset. From v0.4.0 the signed provenance bundle is attached too, for offline verification with <code>gh attestation verify --bundle</code>.</p></div>
+    <div class="card"><div class="t">F.08</div><h3>Executable Semgrep rules</h3><p>An optional layer in <code>exports/semgrep-rules/</code> with two tested Python/Flask detections: request data reaching sqlite3 SQL (<code>APPSEC-INJECT-001</code>) and Requests URLs (<code>APPSEC-SSRF-001</code>). Positive and negative fixtures run in CI.</p></div>
+    <div class="card"><div class="t">F.09</div><h3>Portable CI gate</h3><p><code>examples/validation_gate.py</code> consumes the JSON report in any CI system and passes only when the CLI exits 0 and the report says <code>ok: true</code>. Contributed by the community.</p></div>
   </div>
 </section>
 
@@ -163,7 +166,7 @@
 <div class="body"><span class="c"># install the validator from PyPI</span>
 <span class="p">$</span> <span class="o">pip install appsec-rules-pack</span>
 
-<span class="c"># the distribution ships the validator, not the rules — grab the pack</span>
+<span class="c"># the distribution ships the validator, not the rules: grab the pack</span>
 <span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
 <span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/latest/download/appsec-baseline.yaml</span>
 
@@ -174,7 +177,10 @@
 <span class="c"># reports mapping coverage and unmapped rules for each framework</span>
 
 <span class="p">$</span> <span class="o">appsec-rules export index rules/appsec-baseline.yaml -o exports/index.json</span>
-<span class="c"># derivation only — no rule execution, no scanning</span>
+<span class="c"># derivation only: no rule execution, no scanning</span>
+
+<span class="c"># verify the pack came from the release workflow</span>
+<span class="p">$</span> <span class="o">gh attestation verify rules/appsec-baseline.yaml --repo lucashgrifoni/AppSec-Rules-Pack</span>
 </div>
     </div>
   </div>
