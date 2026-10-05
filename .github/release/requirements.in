@@ -3,5 +3,5 @@
 #     --python-version 3.12 -o .github/release/requirements.txt
 build==1.6.1
 setuptools==84.0.0
-wheel==0.45.1
+wheel==0.48.0
 cyclonedx-bom==7.3.0
