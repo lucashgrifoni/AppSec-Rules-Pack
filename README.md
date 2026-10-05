@@ -132,9 +132,14 @@ release design.
 | `--require-examples` | Warn when an enabled rule has no compliant/violating example |
 | `--format json` | Emit a JSON report for CI |
 
-The JSON report has a `summary` object (`files`, `rules`, `errors`, `warnings`, `ok`) and a
-`files` array of per-file issues (`level`, `path`, `message`). Validation exits `0` on a
-passing pack, `1` on a failing one, and `2` on a usage error such as a missing path.
+The JSON report is identified by `"schema": "appsec-rules-validation/v1"` and described by
+[`validation-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/validation-report.schema.json).
+It has a `summary` object (`files`, `rules`, `errors`, `warnings`, `ok`) and a `files` array
+of per-file issues. Each issue has a `level`, a stable `code`, the `rule_id` it belongs to
+(or `null`), a `path` inside the pack, and a `message`. Match on `code`, not on the message
+text, which may be reworded. Validation exits `0` on a passing pack, `1` on a failing one,
+and `2` on a usage error such as a missing path. [`VERSIONING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/VERSIONING.md) lists
+the codes and what counts as a breaking change.
 
 The export and coverage commands only derive metadata; they do not validate first. Run
 `validate --require-examples --fail-on-warnings` as the gate. From a source checkout,
@@ -208,10 +213,19 @@ Shapes that are easy to get wrong: `evidence` and `match` are objects, not lists
 `remediation` needs `guidance`; `required_fields` accepts only `owner`, `justification`,
 `expires_at`, `compensating_control`, and `validation_plan`.
 
+Rule ids follow `PREFIX-AREA-NNN`, so an organisation can use its own prefix (`ACME-AUTH-001`)
+next to the baseline's `APPSEC-` rules. The `owasp_top_10_2025` and `owasp_api_top_10_2023`
+mappings are optional; ASVS, CWE, and NIST SSDF are required. Keys starting with `x-` are
+allowed on the pack, on each rule, and inside `mappings` for your own metadata. A pack may
+declare the schema it targets with `pack.schema_version: "0.5"`.
+
 Rules are advisory by default. Each one carries a stable ID and severity, a target surface
 and category, framework mappings, expected evidence and review signals, match guidance,
 remediation and validation steps, exception requirements, a lifecycle status
 (`deprecated` rules carry a `deprecation` block), and a compliant and a violating example.
+`pack.mode` and each rule's `enforcement` (`advisory`, `audit`, `blocking`) are policy
+metadata for whoever consumes the pack. They never change the exit code of `validate`, which
+only judges whether the pack itself is well formed.
 [`CONTRIBUTING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CONTRIBUTING.md) describes the severity model and the topic-based
 mapping convention.
 
@@ -267,6 +281,7 @@ tests/              Test suite and pass, fail, and warning fixtures
 | Document | Contents |
 | --- | --- |
 | [`CHANGELOG.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CHANGELOG.md) | Changes per release |
+| [`VERSIONING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/VERSIONING.md) | Version numbers, compatibility rules, public surface, issue codes |
 | [`STATUS.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/STATUS.md) | Current state, dated verification results, risks and limits |
 | [`ROADMAP.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/ROADMAP.md) | What shipped and what comes next |
 | [`TECHNICAL_SPEC.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/TECHNICAL_SPEC.md) | Rule contract and validation design |

@@ -15,8 +15,9 @@ from appsec_rules_pack.loader import load_yaml_file
 
 COVERAGE_SCHEMA = "appsec-rules-coverage/v1"
 
-# Mapping frameworks reported. owasp_top_10_2025 is optional in the schema, so its
-# coverage is the informative one; the rest are required and should read 100%.
+# Mapping frameworks reported. owasp_top_10_2025 and owasp_api_top_10_2023 are optional
+# in the schema, so their coverage is the informative one; ASVS, CWE, and NIST SSDF are
+# required and should read 100%.
 _FRAMEWORKS = (
     "owasp_asvs",
     "owasp_api_top_10_2023",

@@ -1,0 +1,1219 @@
+pack:
+  id: appsec-baseline
+  name: AppSec Baseline Rules Pack
+  version: 0.4.0
+  mode: advisory
+  owner: appsec
+  description: Generic application security baseline rules for review and CI evidence.
+
+# Framework mapping basis:
+#   owasp_asvs identifiers reference OWASP ASVS 5.0.0
+#   (https://github.com/OWASP/ASVS/tree/v5.0.0). Mappings are evidence aids for
+#   review, not a claim of ASVS conformance.
+rules:
+  - id: APPSEC-AUTHZ-001
+    title: Enforce server-side object authorization
+    description: Verify that every object access is authorized on the server side and does not rely on client-provided identifiers alone.
+    severity: high
+    category: authorization
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V8.2
+      owasp_api_top_10_2023:
+        - API1:2023
+        - API5:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-639
+      nist_ssdf:
+        - PW.8
+    evidence:
+      required:
+        - Object-level authorization check tied to the authenticated principal.
+        - Tenant or ownership scope applied before returning or mutating records.
+      signals:
+        - Negative tests for cross-object or cross-tenant access.
+        - Review of service or repository filters for authorization predicates.
+    match:
+      type: review
+      includes:
+        - API handlers, services, repositories, jobs, or admin actions that read or mutate user-scoped objects.
+      excludes:
+        - Static public assets and unauthenticated health checks with no object access.
+    remediation:
+      guidance: Enforce authorization decisions using trusted server-side context and deny access when ownership or tenant scope cannot be proven.
+      validation:
+        - Add tests where a user attempts to access an object owned by another user or tenant.
+        - Confirm denial is logged without exposing sensitive object details.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          record = repo.get(record_id)
+          if record.owner_id != request.user.id:
+              raise Forbidden()
+          return record
+        explanation: Ownership is checked against the authenticated user before the record is returned.
+      violating:
+        language: python
+        snippet: |
+          # Trusts a client-supplied id with no ownership check.
+          return repo.get(request.args["record_id"])
+        explanation: Any user can read another user's record by changing record_id (IDOR / broken object-level authorization).
+
+  - id: APPSEC-INPUT-001
+    title: Validate untrusted input at boundaries
+    description: Require typed validation, length limits, and allowlisted formats for externally supplied input before business logic or storage.
+    severity: high
+    category: input-validation
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V2.2
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
+      cwe:
+        - CWE-20
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Schema or typed parser for request, message, file metadata, or form input.
+        - Explicit limits for size, length, range, or accepted enum values.
+      signals:
+        - Tests for missing, malformed, overlong, and unexpected fields.
+        - Rejection behavior that avoids stack traces or internal error details.
+    match:
+      type: review
+      includes:
+        - HTTP requests, webhook payloads, CLI inputs, uploaded metadata, queue messages, and user-controlled configuration.
+      excludes:
+        - Internal constants and trusted compile-time configuration.
+    remediation:
+      guidance: Validate input at the first trusted boundary using typed schemas and reject invalid data before it reaches downstream sinks.
+      validation:
+        - Add boundary tests for invalid input classes.
+        - Confirm invalid input returns a controlled error response.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          class CreateUser(BaseModel):
+              email: EmailStr
+              age: int = Field(ge=0, le=130)
+
+          data = CreateUser.model_validate(request.json)
+        explanation: A typed schema enforces format and bounds before the value reaches business logic.
+      violating:
+        language: python
+        snippet: |
+          # No format, length, or range checks on untrusted input.
+          email = request.json["email"]
+          age = int(request.json["age"])
+        explanation: Unvalidated input flows straight into business logic and storage.
+
+  - id: APPSEC-INJECT-001
+    title: Prevent injection into interpreters and queries
+    description: Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or log formats without effective sanitization.
+    severity: critical
+    category: injection
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - ci
+    mappings:
+      owasp_asvs:
+        - V1.2
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
+      cwe:
+        - CWE-89
+        - CWE-78
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Parameterized query, safe API call, shell-free execution, or allowlisted command arguments.
+        - Clear source-to-sink review for any interpreter boundary.
+      signals:
+        - Tests that malicious metacharacters are treated as data.
+        - Absence of string-built queries or commands from untrusted values.
+    match:
+      type: review
+      includes:
+        - Database calls, shell execution, templating, dynamic filters, logging templates, and parser expressions.
+      excludes:
+        - Static queries and commands with no untrusted input.
+    remediation:
+      guidance: Replace string concatenation with parameterized APIs, structured command invocation, typed builders, or strict allowlists.
+      validation:
+        - Add tests using representative injection payloads.
+        - Confirm the payload is stored, queried, or rendered as inert data.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          db.execute(
+              "SELECT * FROM users WHERE id = %s",
+              (user_id,),
+          )
+        explanation: The parameterized query binds user_id as data, so it cannot alter the SQL.
+      violating:
+        language: python
+        snippet: |
+          db.execute(
+              f"SELECT * FROM users WHERE id = {user_id}"
+          )
+        explanation: Interpolating user_id into the query string enables SQL injection.
+
+  - id: APPSEC-SSRF-001
+    title: Restrict user-influenced outbound requests
+    description: Guard server-side HTTP, DNS, or metadata fetches influenced by untrusted input with allowlists and private-network protections.
+    severity: high
+    category: ssrf
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V1.3
+      owasp_api_top_10_2023:
+        - API7:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-918
+      nist_ssdf:
+        - PW.8
+    evidence:
+      required:
+        - Destination allowlist or trusted resolver policy for outbound calls.
+        - Blocking of loopback, link-local, private ranges, and cloud metadata endpoints.
+      signals:
+        - Tests for redirects, DNS rebinding-style changes, and private address ranges.
+        - Logs or metrics for blocked outbound destinations without leaking sensitive URLs.
+    match:
+      type: review
+      includes:
+        - URL fetchers, webhook callbacks, image importers, metadata importers, SSO metadata retrieval, and proxy endpoints.
+      excludes:
+        - Fixed outbound destinations owned by configuration and not influenced by users.
+    remediation:
+      guidance: Resolve and validate destinations before connecting, block unsafe network ranges, and keep redirects within the same policy.
+      validation:
+        - Add deny tests for loopback, link-local, private ranges, and unexpected redirects.
+        - Confirm allowed destinations still work through explicit allowlist entries.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          host = urlparse(url).hostname
+          if host not in ALLOWED_HOSTS:
+              raise Forbidden()
+          requests.get(url, allow_redirects=False)
+        explanation: The destination is allowlisted and redirects are disabled before the request is made.
+      violating:
+        language: python
+        snippet: |
+          # Fetches any user-supplied URL, including internal and metadata hosts.
+          requests.get(request.args["url"])
+        explanation: The user controls the destination, enabling SSRF to internal services or cloud metadata.
+
+  - id: APPSEC-AUTHN-001
+    title: Enforce strong authentication and session integrity
+    description: Verify credentials, multi-factor where required, and session tokens are validated server-side and rotated on privilege change to prevent spoofing or fixation.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V6.3
+        - V7.2
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-287
+        - CWE-384
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Server-side credential and session validation tied to the authenticated principal.
+        - Session rotation on login and privilege change, with secure cookie or token handling.
+      signals:
+        - Tests for invalid credentials, expired sessions, and reused or fixated tokens.
+        - Review of authentication flows for missing server-side checks.
+    match:
+      type: review
+      includes:
+        - Login handlers, token issuance, session middleware, password reset, and privilege transitions.
+      excludes:
+        - Unauthenticated public endpoints with no session or credential handling.
+    remediation:
+      guidance: Validate credentials and sessions server-side, rotate identifiers on privilege change, and rely on a vetted authentication library rather than custom token logic.
+      validation:
+        - Add tests for expired, tampered, and reused session tokens.
+        - Confirm authentication failures are logged without exposing credential material.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          session = sessions.validate(request.cookies["sid"])
+          if not session:
+              raise Unauthorized()
+          session = sessions.rotate(session)  # rotate on privilege change
+        explanation: The session is validated server-side and rotated when privilege changes.
+      violating:
+        language: python
+        snippet: |
+          # Trusts a client-provided identity with no session validation.
+          user_id = request.cookies["user_id"]
+        explanation: Identity is taken from an unvalidated cookie, allowing spoofing and session fixation.
+
+  - id: APPSEC-SECRETS-001
+    title: Keep secrets out of code, logs, and rules
+    description: Detect and prevent credentials, tokens, private keys, session identifiers, and sensitive values from being committed or logged.
+    severity: high
+    category: secrets
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - frontend
+      - ci
+      - general
+    mappings:
+      owasp_asvs:
+        - V13.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A02:2025
+      cwe:
+        - CWE-798
+        - CWE-532
+      nist_ssdf:
+        - PW.4
+    evidence:
+      required:
+        - Secrets are loaded from approved environment or secret-manager boundaries.
+        - Logs redact tokens, credentials, session identifiers, and sensitive personal data.
+      signals:
+        - Secret scanning in repository and CI.
+        - Tests or review evidence for log redaction paths.
+    match:
+      type: review
+      includes:
+        - Source code, tests, configs, rules, logs, CI workflows, examples, and documentation.
+      excludes:
+        - Public sample values clearly marked as inert examples.
+    remediation:
+      guidance: Remove sensitive values from code and history, rotate exposed credentials, and replace logs with redacted structured fields.
+      validation:
+        - Run secret scanning against the repository.
+        - Add tests for redaction of sensitive fields.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          api_key = os.environ["PAYMENTS_API_KEY"]
+          logger.info("payments client configured")  # no secret in logs
+        explanation: The secret is read from the environment at runtime and never written to logs.
+      violating:
+        language: python
+        snippet: |
+          API_KEY = "REPLACE_ME"  # hard-coded and committed to source
+          logger.info("using api key %s", API_KEY)  # also leaked to logs
+        explanation: A credential is embedded in source control and written to logs.
+
+  - id: APPSEC-FILE-001
+    title: Harden file upload and file path handling
+    description: Validate file type, size, storage location, and path handling before accepting or processing user-controlled files.
+    severity: high
+    category: file-handling
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V5.2
+        - V5.3
+      owasp_api_top_10_2023:
+        - API4:2023
+        - API8:2023
+      cwe:
+        - CWE-22
+        - CWE-434
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Server-side file size and type validation.
+        - Storage path isolation that prevents traversal and execution.
+      signals:
+        - Tests for path traversal, unexpected extensions, oversized files, and malformed content.
+        - Review of storage permissions and generated filenames.
+    match:
+      type: review
+      includes:
+        - Upload handlers, importers, export endpoints, file processors, archive extraction, and generated download paths.
+      excludes:
+        - Build-time static assets with trusted source control provenance.
+    remediation:
+      guidance: Store uploads outside executable paths, generate server-side filenames, validate content and size, and deny path traversal.
+      validation:
+        - Add tests for traversal sequences and invalid content types.
+        - Confirm uploaded files cannot be executed or retrieved without authorization.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          if upload.content_type not in ALLOWED_TYPES or upload.size > MAX_SIZE:
+              raise BadRequest()
+          name = f"{uuid4()}{safe_ext(upload.filename)}"
+          path = (UPLOAD_DIR / name).resolve()
+          if UPLOAD_DIR not in path.parents:
+              raise BadRequest()
+        explanation: Type, size, and the resolved storage path are validated before the file is written.
+      violating:
+        language: python
+        snippet: |
+          # Writes a user-named file directly under a served directory.
+          dest = os.path.join("uploads", request.files["f"].filename)
+          open(dest, "wb").write(request.files["f"].read())
+        explanation: An attacker-controlled filename enables path traversal and overwriting other files.
+
+  - id: APPSEC-LOG-001
+    title: Log security events without leaking sensitive data
+    description: Record authentication, authorization, and integrity-relevant events with enough context for detection while redacting credentials, tokens, and personal data.
+    severity: medium
+    category: logging
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - api
+      - ci
+    mappings:
+      owasp_asvs:
+        - V16.2
+        - V16.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A09:2025
+      cwe:
+        - CWE-778
+        - CWE-532
+      nist_ssdf:
+        - RV.1
+    evidence:
+      required:
+        - Security-relevant events are logged with actor, action, and outcome.
+        - Logs redact secrets, session identifiers, and sensitive personal data.
+      signals:
+        - Tests confirming redaction of sensitive fields in log output.
+        - Review of log sinks for retention and access controls.
+    match:
+      type: review
+      includes:
+        - Authentication, authorization, configuration change, and error-handling log paths.
+      excludes:
+        - High-volume debug traces explicitly disabled in production builds.
+    remediation:
+      guidance: Emit structured security events with stable fields, redact sensitive values at the logging boundary, and route logs to a monitored sink.
+      validation:
+        - Add tests asserting sensitive fields are redacted before logging.
+        - Confirm security events reach the monitored log destination.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          logger.info(
+              "login",
+              extra={"user_id": user.id, "outcome": "success"},
+          )
+        explanation: A security event is logged with stable structured fields and no secrets.
+      violating:
+        language: python
+        snippet: |
+          logger.info("login %s with password %s", user.email, raw_password)
+        explanation: Credentials and personal data are written directly into log output.
+
+  - id: APPSEC-DEP-001
+    title: Manage known-vulnerable and unmaintained dependencies
+    description: Track direct and transitive dependencies, remediate known-vulnerable versions, and avoid unmaintained components that increase supply-chain risk.
+    severity: high
+    category: dependency-risk
+    status: enabled
+    enforcement: advisory
+    targets:
+      - dependencies
+      - ci
+      - backend
+    mappings:
+      owasp_asvs:
+        - V15.2
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A03:2025
+      cwe:
+        - CWE-1104
+        - CWE-1395
+      nist_ssdf:
+        - PW.4
+    evidence:
+      required:
+        - Dependency inventory or lockfile under version control.
+        - Software composition analysis with a remediation or exception path for known-vulnerable versions.
+      signals:
+        - SCA results triaged for reachability and fix availability.
+        - Review of unmaintained or unpinned dependencies.
+    match:
+      type: review
+      includes:
+        - Manifests, lockfiles, base images, and build-time dependency resolution.
+      excludes:
+        - Vendored test fixtures with no runtime exposure.
+    remediation:
+      guidance: Pin dependencies, upgrade or replace known-vulnerable versions, and document a justified exception with compensating controls when an upgrade is blocked.
+      validation:
+        - Run software composition analysis and confirm no unresolved high or critical findings without an exception.
+        - Confirm the dependency manifest and lockfile are consistent.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: toml
+        snippet: |
+          # Pinned to an exact, maintained version and scanned by SCA in CI.
+          requests = "==2.32.3"
+        explanation: An exact pin keeps the resolved version reviewable and triaged for known CVEs.
+      violating:
+        language: toml
+        snippet: |
+          # Unbounded range can resolve to an unknown, possibly vulnerable release.
+          requests = "*"
+        explanation: A floating version can silently pull in a known-vulnerable or unmaintained release.
+
+  - id: APPSEC-CONFIG-001
+    title: Apply secure defaults and remove risky configuration
+    description: Ship hardened default configuration, disable unused features and verbose errors, and keep environment-specific settings outside the application artifact.
+    severity: medium
+    category: configuration
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - api
+      - iac
+    mappings:
+      owasp_asvs:
+        - V13.4
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A02:2025
+      cwe:
+        - CWE-16
+        - CWE-1188
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Secure default configuration with unused features and debug endpoints disabled.
+        - Environment-specific configuration supplied at deploy time, not embedded in the artifact.
+      signals:
+        - Review of default settings, error verbosity, and exposed management interfaces.
+        - Tests or checks confirming hardened defaults in built artifacts.
+    match:
+      type: configuration
+      includes:
+        - Application settings, framework defaults, server and container configuration, and feature flags.
+      excludes:
+        - Local development overrides clearly scoped to non-production use.
+    remediation:
+      guidance: Set secure defaults, disable verbose errors and unused endpoints, and inject environment configuration at deploy time through trusted boundaries.
+      validation:
+        - Confirm production builds disable debug and verbose error output.
+        - Confirm configuration secrets are sourced from approved boundaries, not the artifact.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: yaml
+        snippet: |
+          debug: false
+          expose_admin: false
+          errors:
+            verbose: false
+        explanation: Production defaults disable debug mode, admin surfaces, and verbose error output.
+      violating:
+        language: yaml
+        snippet: |
+          debug: true          # verbose stack traces in production
+          expose_admin: true   # management endpoints reachable
+        explanation: Debug output and admin endpoints are exposed in a production configuration.
+
+  - id: APPSEC-SESSION-001
+    title: Harden session cookies and session lifecycle
+    description: Set secure session cookie attributes, rotate identifiers on privilege change, and invalidate sessions on logout to prevent hijacking and fixation.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V7.4
+        - V3.3
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-614
+        - CWE-384
+        - CWE-613
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Session cookies set HttpOnly, Secure, and an explicit SameSite policy.
+        - Session identifiers rotate on privilege change and are invalidated server-side on logout.
+      signals:
+        - Tests for missing cookie flags, session fixation, and reuse after logout.
+        - Review of session idle timeout, expiry, and revocation handling.
+    match:
+      type: review
+      includes:
+        - Session middleware, cookie configuration, login and logout handlers, and privilege transitions.
+      excludes:
+        - Stateless tokens with no server-side session and no cookie-based identity.
+    remediation:
+      guidance: Configure HttpOnly, Secure, and SameSite cookie attributes, rotate session identifiers on privilege change, and invalidate sessions server-side on logout with a bounded idle timeout.
+      validation:
+        - Add tests asserting session cookies carry HttpOnly, Secure, and SameSite.
+        - Confirm a session is unusable after logout and after its idle timeout.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: javascript
+        snippet: |
+          res.cookie("sid", id, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "lax",
+            maxAge: 900000,
+          });
+        explanation: The session cookie sets HttpOnly, Secure, SameSite, and a bounded lifetime.
+      violating:
+        language: javascript
+        snippet: |
+          // No HttpOnly/Secure/SameSite and no expiry: exposed to theft and fixation.
+          res.cookie("sid", id);
+        explanation: A session cookie without security attributes is readable by scripts and never expires.
+
+  - id: APPSEC-XSS-001
+    title: Encode output to prevent cross-site scripting
+    description: Encode or escape untrusted data for its output context so user-controlled values render as inert text rather than executable markup or script.
+    severity: high
+    category: injection
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V1.2
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A05:2025
+      cwe:
+        - CWE-79
+        - CWE-80
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Context-aware output encoding for HTML, attribute, JavaScript, and URL sinks.
+        - Templates escape by default and only bypass escaping for vetted, sanitized values.
+      signals:
+        - Tests that script payloads render as inert text in the response.
+        - Review of raw/unescaped template directives and innerHTML-style sinks.
+    match:
+      type: review
+      includes:
+        - Server-side templates, client-side rendering, response builders, and any sink that emits user-controlled data into markup.
+      excludes:
+        - Static markup with no user-controlled values.
+    remediation:
+      guidance: Render untrusted data through context-aware output encoding, keep template auto-escaping on, and sanitize any value that must be emitted as markup.
+      validation:
+        - Add tests injecting script payloads and confirm they are escaped in the output.
+        - Confirm raw/unescaped rendering paths are removed or routed through a sanitizer.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: text
+        snippet: |
+          <!-- EJS auto-escapes with <%= %> -->
+          <h1><%= product.name %></h1>
+        explanation: The escaped output directive renders the product name as inert text.
+      violating:
+        language: text
+        snippet: |
+          <!-- EJS <%- %> emits raw, unescaped HTML -->
+          <h1><%- product.name %></h1>
+        explanation: Raw output of a user-controlled product name allows stored or reflected XSS.
+
+  - id: APPSEC-CSRF-001
+    title: Protect state-changing requests against CSRF
+    description: Require anti-forgery tokens or origin validation and a SameSite cookie policy so cookie-authenticated, state-changing requests cannot be forged from another site.
+    severity: high
+    category: csrf
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V3.5
+        - V3.3
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-352
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Anti-forgery token or origin/referer validation on state-changing, cookie-authenticated requests.
+        - Session cookies set an explicit SameSite policy appropriate to their purpose.
+      signals:
+        - Tests that a forged cross-site POST without a valid token is rejected.
+        - Review of state-changing endpoints that rely only on ambient cookie authentication.
+    match:
+      type: review
+      includes:
+        - Cookie-authenticated POST/PUT/PATCH/DELETE handlers, form submissions, and account or money-moving actions.
+      excludes:
+        - Stateless token-authenticated APIs with no cookie-based ambient authority.
+    remediation:
+      guidance: Require a per-session anti-forgery token or validated origin on state-changing requests, set SameSite on session cookies, and avoid relying on ambient cookie authority alone.
+      validation:
+        - Add a test that a cross-site request without a valid anti-forgery token is rejected.
+        - Confirm session cookies carry an explicit SameSite attribute.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          token = request.headers.get("X-CSRF-Token")
+          if not csrf.valid(session, token):
+              raise Forbidden()
+          transfer_funds(session.user_id, request.json)
+        explanation: The state-changing action requires a valid per-session anti-forgery token before it runs.
+      violating:
+        language: python
+        snippet: |
+          # State change relies only on the session cookie; any site can forge it.
+          transfer_funds(session.user_id, request.json)
+        explanation: With no anti-forgery token or origin check, an attacker page can submit the request using the victim's cookie.
+
+  - id: APPSEC-ENUM-001
+    title: Avoid user and account enumeration
+    description: Return uniform responses and timing for authentication, registration, and password-reset flows so attackers cannot discover whether an account exists.
+    severity: medium
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V6.3
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-204
+        - CWE-203
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Uniform success/failure messages for login, registration, and password reset regardless of account existence.
+        - Comparable response timing for existing and non-existing accounts.
+      signals:
+        - Tests comparing responses and timing for known and unknown identifiers.
+        - Review of error messages that reveal whether a username or email is registered.
+    match:
+      type: review
+      includes:
+        - Login, registration, password reset, account lookup, and email/username availability endpoints.
+      excludes:
+        - Admin-only interfaces where account existence is intentionally visible to authorized staff.
+    remediation:
+      guidance: Use generic messages such as "if the account exists, an email was sent", normalize response timing, and rate-limit identifier probing.
+      validation:
+        - Add tests asserting identical responses for existing and non-existing accounts.
+        - Confirm no endpoint discloses account existence through status, body, or timing.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          send_reset_email_if_exists(email)
+          return Response("If the account exists, a reset link was sent.", status=200)
+        explanation: The response is identical whether or not the account exists.
+      violating:
+        language: python
+        snippet: |
+          if not user_exists(email):
+              return Response("No account with that email", status=404)
+          send_reset_email(email)
+        explanation: The distinct 404 lets an attacker enumerate which emails are registered.
+
+  - id: APPSEC-MSGAUTH-001
+    title: Verify authenticity of inbound webhooks and signed messages
+    description: Verify a cryptographic signature or MAC on inbound webhooks and signed messages before processing, and reject unsigned, mismatched, or replayed payloads.
+    severity: high
+    category: integrity
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V11.4
+        - V11.6
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A08:2025
+      cwe:
+        - CWE-345
+        - CWE-347
+      nist_ssdf:
+        - PW.9
+    evidence:
+      required:
+        - Signature or MAC verification using a constant-time comparison before any webhook side effect.
+        - Replay protection via timestamp or nonce within an accepted window.
+      signals:
+        - Tests that unsigned, tampered, and replayed payloads are rejected.
+        - Review of webhook handlers that act before verifying authenticity.
+    match:
+      type: review
+      includes:
+        - Webhook receivers, callback endpoints, and consumers of signed events or messages.
+      excludes:
+        - Internal events on a trusted bus with authenticity already enforced at the transport boundary.
+    remediation:
+      guidance: Verify the provider signature with the shared secret using a constant-time check, bind a timestamp or nonce to reject replays, and process the payload only after verification succeeds.
+      validation:
+        - Add tests for missing, invalid, and replayed signatures.
+        - Confirm the handler performs no side effect before verification passes.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          expected = hmac.new(secret, body, hashlib.sha256).hexdigest()
+          if not hmac.compare_digest(expected, request.headers["X-Signature"]):
+              raise Forbidden()
+          handle(body)
+        explanation: The payload is processed only after a constant-time signature check passes.
+      violating:
+        language: python
+        snippet: |
+          # Trusts the webhook body without verifying any signature.
+          handle(request.body)
+        explanation: An attacker who can reach the endpoint can forge events because authenticity is never verified.
+
+  - id: APPSEC-DATAEXPO-001
+    title: Return only the minimum required data
+    description: Shape responses to the fields the consumer needs and mask or omit sensitive values, so APIs do not over-expose data by serializing whole internal objects.
+    severity: medium
+    category: data-exposure
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V14.2
+      owasp_api_top_10_2023:
+        - API3:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-213
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Explicit response schema or serializer that allowlists returned fields.
+        - Sensitive fields masked, truncated, or omitted unless explicitly required.
+      signals:
+        - Tests asserting responses exclude internal or sensitive fields.
+        - Review of endpoints that serialize entire ORM models to the client.
+    match:
+      type: review
+      includes:
+        - API responses, serializers, DTO mapping, and list or detail endpoints returning user or business objects.
+      excludes:
+        - Internal service responses behind a trust boundary with no external exposure.
+    remediation:
+      guidance: Define explicit output schemas that allowlist fields, mask sensitive values, and never serialize internal model objects directly to external consumers.
+      validation:
+        - Add tests asserting sensitive and internal fields are absent from responses.
+        - Confirm responses are built from an explicit field allowlist.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          return {"id": user.id, "name": user.name}  # explicit field allowlist
+        explanation: Only the fields the client needs are returned; internal and sensitive fields stay server-side.
+      violating:
+        language: python
+        snippet: |
+          # Serializes the whole model, including password_hash and internal flags.
+          return user.__dict__
+        explanation: Dumping the entire object exposes sensitive and internal fields to the client.
+
+  - id: APPSEC-MASSASSIGN-001
+    title: Allowlist fields bound from request input
+    description: Bind only an explicit allowlist of fields from request payloads to internal objects so clients cannot set privileged or internal attributes via mass assignment.
+    severity: high
+    category: input-validation
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V2.2
+      owasp_api_top_10_2023:
+        - API3:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-915
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Explicit allowlist of bindable fields for create and update operations.
+        - Privileged or internal attributes (role, is_admin, balance, owner_id) are not client-settable.
+      signals:
+        - Tests that sending an unexpected privileged field does not change it.
+        - Review of handlers that bind whole request bodies to models.
+    match:
+      type: review
+      includes:
+        - Create and update handlers, ORM model binding, deserialization into entities, and admin object editing.
+      excludes:
+        - Internal jobs binding trusted, server-generated data with no external input.
+    remediation:
+      guidance: Bind requests through an explicit field allowlist or typed input model, and set privileged attributes only from trusted server-side context.
+      validation:
+        - Add a test sending a privileged field (for example, is_admin) and confirm it is ignored.
+        - Confirm create/update paths bind only allowlisted fields.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          data = {k: body[k] for k in ("name", "email") if k in body}
+          user.update(data)  # role/is_admin cannot be set by the client
+        explanation: Only allowlisted fields are bound; privileged attributes are never taken from the request.
+      violating:
+        language: python
+        snippet: |
+          # Binds every field in the body, including is_admin.
+          user.update(**request.json)
+        explanation: A client can escalate privileges by sending is_admin=true in the request body.
+
+  - id: APPSEC-REDIRECT-001
+    title: Validate redirect destinations against an allowlist
+    description: Restrict user-influenced redirects to an allowlist of trusted destinations so the application cannot be used to send users to attacker-controlled sites.
+    severity: medium
+    category: open-redirect
+    status: enabled
+    enforcement: advisory
+    targets:
+      - frontend
+      - backend
+      - api
+    mappings:
+      owasp_asvs:
+        - V3.7
+      owasp_api_top_10_2023:
+        - API8:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-601
+      nist_ssdf:
+        - PW.7
+    evidence:
+      required:
+        - Redirect targets validated against an allowlist of trusted hosts or relative paths.
+        - External or absolute-URL redirects rejected or routed through an interstitial.
+      signals:
+        - Tests that a redirect to an external host is rejected.
+        - Review of login, logout, and "next"/"returnUrl" parameters used as redirect targets.
+    match:
+      type: review
+      includes:
+        - Redirect helpers, post-login/logout navigation, and any endpoint using a user-supplied URL or path to redirect.
+      excludes:
+        - Fixed, configuration-owned redirects not influenced by user input.
+    remediation:
+      guidance: Accept only relative paths or allowlisted hosts for redirects, reject untrusted absolute URLs, and avoid reflecting raw user-supplied URLs into redirects.
+      validation:
+        - Add a test that a redirect to an external host is rejected.
+        - Confirm only allowlisted destinations are honored.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          target = request.args.get("next", "/")
+          if not target.startswith("/") or target.startswith("//"):
+              target = "/"
+          return redirect(target)
+        explanation: Only same-site relative paths are honored; external or protocol-relative URLs fall back to a safe default.
+      violating:
+        language: python
+        snippet: |
+          # Redirects to any user-supplied URL, including external phishing sites.
+          return redirect(request.args["next"])
+        explanation: An attacker can craft a link that sends the user to an attacker-controlled domain.
+
+  - id: APPSEC-RATELIMIT-001
+    title: Apply rate limiting and resource quotas
+    description: Enforce rate limits and resource quotas on expensive, authentication, and abuse-prone endpoints so the application resists brute force, scraping, and resource exhaustion.
+    severity: medium
+    category: rate-limiting
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V2.4
+      owasp_api_top_10_2023:
+        - API4:2023
+      owasp_top_10_2025:
+        - A10:2025
+      cwe:
+        - CWE-770
+        - CWE-307
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Rate limits or quotas on authentication, search, export, and other expensive or abuse-prone operations.
+        - A defined response (throttling or backoff) when limits are exceeded.
+      signals:
+        - Tests that repeated requests beyond the limit are throttled.
+        - Review of unbounded loops, pagination, and request-driven resource allocation.
+    match:
+      type: review
+      includes:
+        - Login and OTP endpoints, search, export, file processing, and other resource-intensive or automatable operations.
+      excludes:
+        - Internal health checks and trusted batch jobs with their own scheduling controls.
+    remediation:
+      guidance: Apply per-identity and per-IP rate limits and resource quotas, throttle or reject excess requests, and add backoff or lockout on repeated authentication failures.
+      validation:
+        - Add a test that requests beyond the configured limit are throttled or rejected.
+        - Confirm authentication endpoints apply backoff or lockout on repeated failures.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          @limiter.limit("5/minute")
+          def login():
+              ...
+        explanation: The login endpoint is rate limited, resisting brute-force and credential-stuffing attacks.
+      violating:
+        language: python
+        snippet: |
+          # No rate limit: unlimited login attempts enable brute force.
+          def login():
+              ...
+        explanation: Without throttling, an attacker can try unlimited credentials against the endpoint.

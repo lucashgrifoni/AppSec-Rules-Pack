@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import lru_cache
 from importlib import resources
 from pathlib import Path
@@ -21,6 +21,8 @@ IssuePath = tuple[str | int, ...]
 StringItem = tuple[IssuePath, str]
 
 MAX_EXCEPTION_DAYS = 90
+# Highest rules-pack schema version this validator understands (pack.schema_version).
+SUPPORTED_SCHEMA_VERSION = (0, 5)
 REQUIRED_EXCEPTION_FIELDS = ("owner", "justification", "expires_at")
 
 # Expected identifier formats for framework mappings. References:
@@ -70,11 +72,18 @@ SECRET_PATTERNS = (
 
 @dataclass(frozen=True)
 class ValidationIssue:
-    """A structural or semantic validation issue."""
+    """A structural or semantic validation issue.
+
+    ``code`` is a stable, machine-readable identifier for the kind of issue; messages
+    may be reworded between releases, codes may not (see VERSIONING.md). ``rule_id`` is
+    the id of the rule the issue belongs to, when there is one.
+    """
 
     level: IssueLevel
     message: str
     path: IssuePath = ()
+    code: str = "invalid"
+    rule_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -150,6 +159,8 @@ def validate_rules_files(
                                 f"{first_path.name} at rules.{first_index}"
                             ),
                             path=("rules", rule_index, "id"),
+                            code="duplicate-rule-id",
+                            rule_id=rule_id,
                         )
                     )
             else:
@@ -174,6 +185,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ValidationIssue(
                 level="error",
                 message=f"could not read YAML file: {exc}",
+                code="file-unreadable",
             ),
         )
     except UnicodeDecodeError as exc:
@@ -181,6 +193,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ValidationIssue(
                 level="error",
                 message=f"could not decode YAML file as UTF-8: {exc.reason}",
+                code="file-not-utf8",
             ),
         )
     except RecursionError:
@@ -188,6 +201,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ValidationIssue(
                 level="error",
                 message="could not parse YAML file: nesting depth exceeds the supported limit",
+                code="yaml-too-deep",
             ),
         )
     except RulesFileTooLargeError as exc:
@@ -195,6 +209,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ValidationIssue(
                 level="error",
                 message=f"could not read YAML file: {exc.problem}",
+                code="file-too-large",
             ),
         )
     except yaml.YAMLError as exc:
@@ -202,6 +217,7 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ValidationIssue(
                 level="error",
                 message=_yaml_error_message(exc),
+                code="yaml-invalid",
             ),
         )
 
@@ -224,15 +240,56 @@ def validate_rules_payload(payload: Any, *, require_examples: bool = False) -> V
         if (message, path) in seen_schema_issues:
             continue
         seen_schema_issues.add((message, path))
-        issues.append(ValidationIssue(level="error", message=message, path=path))
+        issues.append(
+            ValidationIssue(
+                level="error",
+                message=message,
+                path=path,
+                code=_SCHEMA_ISSUE_CODES.get(str(error.validator), "schema-invalid"),
+            )
+        )
 
     if isinstance(payload, dict):
         issues.extend(_semantic_issues(payload, require_examples=require_examples))
 
     return ValidationResult(
-        issues=tuple(issues),
+        issues=tuple(_with_rule_ids(issues, payload)),
         rule_count=_rule_count(payload),
     )
+
+
+_SCHEMA_ISSUE_CODES = {
+    "required": "schema-missing-field",
+    "additionalProperties": "schema-unexpected-field",
+    "enum": "schema-enum",
+    "type": "schema-type",
+    "pattern": "schema-pattern",
+    "minLength": "schema-length",
+    "maxLength": "schema-length",
+    "minItems": "schema-min-items",
+    "uniqueItems": "schema-unique-items",
+    "minimum": "schema-range",
+    "maximum": "schema-range",
+}
+
+
+def _with_rule_ids(issues: list[ValidationIssue], payload: Any) -> list[ValidationIssue]:
+    """Attach the owning rule's id to every issue located under ``rules.<n>``."""
+
+    rule_ids = dict((index, rule_id) for rule_id, index in _iter_rule_ids(payload))
+    attributed: list[ValidationIssue] = []
+    for issue in issues:
+        path = issue.path
+        if (
+            issue.rule_id is None
+            and len(path) >= 2
+            and path[0] == "rules"
+            and isinstance(path[1], int)
+            and path[1] in rule_ids
+        ):
+            issue = replace(issue, rule_id=rule_ids[path[1]])
+        attributed.append(issue)
+    return attributed
 
 
 @lru_cache(maxsize=1)
@@ -276,8 +333,14 @@ def _schema_issue_message(error: jsonschema.ValidationError) -> str:
 
     if error.validator == "additionalProperties" and isinstance(error.instance, dict):
         allowed_fields = set(error.schema.get("properties", {}))
+        allowed_patterns = [
+            re.compile(pattern) for pattern in error.schema.get("patternProperties", {})
+        ]
         unexpected_fields = sorted(
-            _display_value(str(field)) for field in error.instance if field not in allowed_fields
+            _display_value(str(field))
+            for field in error.instance
+            if field not in allowed_fields
+            and not any(pattern.search(str(field)) for pattern in allowed_patterns)
         )
         return _format_unexpected_fields(unexpected_fields)
 
@@ -357,8 +420,35 @@ def _semantic_issues(payload: dict[str, Any], *, require_examples: bool) -> list
         if require_examples:
             issues.extend(_missing_examples_issues(rules))
 
+    issues.extend(_schema_version_issues(payload))
     issues.extend(_sensitive_value_issues(payload))
     return issues
+
+
+def _schema_version_issues(payload: dict[str, Any]) -> list[ValidationIssue]:
+    """Refuse a pack that targets a newer schema than this validator understands."""
+
+    pack = payload.get("pack")
+    declared = pack.get("schema_version") if isinstance(pack, dict) else None
+    if not isinstance(declared, str):
+        return []
+    parts = declared.split(".")
+    if len(parts) != 2 or not all(part.isdigit() for part in parts):
+        return []  # the schema pattern reports the malformed value
+    if (int(parts[0]), int(parts[1])) <= SUPPORTED_SCHEMA_VERSION:
+        return []
+    supported = ".".join(str(part) for part in SUPPORTED_SCHEMA_VERSION)
+    return [
+        ValidationIssue(
+            level="error",
+            message=(
+                f"pack targets schema version {declared}; this validator supports up to "
+                f"{supported}. Upgrade appsec-rules-pack."
+            ),
+            path=("pack", "schema_version"),
+            code="schema-version-unsupported",
+        )
+    ]
 
 
 def _iter_rule_ids(payload: Any) -> list[tuple[str, int]]:
@@ -396,6 +486,7 @@ def _duplicate_id_issues(rules: list[Any]) -> list[ValidationIssue]:
                     level="error",
                     message=f"duplicate rule id {rule_id!r}; first seen at rules.{seen[rule_id]}",
                     path=("rules", index, "id"),
+                    code="duplicate-rule-id",
                 )
             )
         else:
@@ -423,6 +514,7 @@ def _exception_issues(rules: list[Any]) -> list[ValidationIssue]:
                         f"default review limit is {MAX_EXCEPTION_DAYS} days"
                     ),
                     path=("rules", index, "exceptions", "max_days"),
+                    code="exception-window-too-long",
                 )
             )
 
@@ -460,6 +552,7 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
                             f"max_days of {max_days}"
                         ),
                         path=("rules", index, "exceptions", "max_days"),
+                        code="exception-disallowed-window",
                     )
                 )
             if field_set:
@@ -468,6 +561,7 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
                         level="error",
                         message="exception is not allowed but declares required_fields",
                         path=("rules", index, "exceptions", "required_fields"),
+                        code="exception-disallowed-fields",
                     )
                 )
         elif allowed is True:
@@ -478,6 +572,7 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
                         level="warning",
                         message=("allowed exception should require: " + ", ".join(missing)),
                         path=("rules", index, "exceptions", "required_fields"),
+                        code="exception-missing-fields",
                     )
                 )
             if isinstance(max_days, int) and max_days == 0:
@@ -486,6 +581,7 @@ def _exception_consistency_issues(rules: list[Any]) -> list[ValidationIssue]:
                         level="warning",
                         message="allowed exception has a zero-day window",
                         path=("rules", index, "exceptions", "max_days"),
+                        code="exception-zero-window",
                     )
                 )
 
@@ -515,6 +611,7 @@ def _mapping_format_issues(rules: list[Any]) -> list[ValidationIssue]:
                             level="warning",
                             message=f"mapping id {_display_value(value)} is malformed; {hint}",
                             path=("rules", index, "mappings", field, value_index),
+                            code="mapping-id-malformed",
                         )
                     )
 
@@ -537,6 +634,7 @@ def _deprecation_issues(rules: list[Any]) -> list[ValidationIssue]:
                     level="warning",
                     message="deprecated rule should document a deprecation reason",
                     path=("rules", index, "deprecation"),
+                    code="deprecation-missing",
                 )
             )
         elif has_block and status != "deprecated":
@@ -545,6 +643,7 @@ def _deprecation_issues(rules: list[Any]) -> list[ValidationIssue]:
                     level="warning",
                     message="deprecation metadata present but status is not 'deprecated'",
                     path=("rules", index, "status"),
+                    code="deprecation-status-mismatch",
                 )
             )
 
@@ -571,6 +670,7 @@ def _missing_examples_issues(rules: list[Any]) -> list[ValidationIssue]:
                     level="warning",
                     message="enabled rule should include compliant and violating examples",
                     path=("rules", index, "examples"),
+                    code="examples-missing",
                 )
             )
 
@@ -594,6 +694,7 @@ def _sensitive_value_issues(payload: Any) -> list[ValidationIssue]:
                             "use an obvious placeholder instead"
                         ),
                         path=path,
+                        code="example-key-material",
                     )
                 )
             continue
@@ -603,6 +704,7 @@ def _sensitive_value_issues(payload: Any) -> list[ValidationIssue]:
                     level="error",
                     message="possible sensitive value detected; remove secrets from rule content",
                     path=path,
+                    code="sensitive-value",
                 )
             )
 

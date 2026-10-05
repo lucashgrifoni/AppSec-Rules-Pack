@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Contract
+
+- The `validate --format json` report now carries `"schema": "appsec-rules-validation/v1"`,
+  and each issue a stable `code` and the `rule_id` it belongs to. `summary.ok` is present
+  even when no rule files are found, and paths use forward slashes on every platform. The
+  report is described by `schemas/validation-report.schema.json`, shipped in the package.
+- New `VERSIONING.md`: how the package, schema, and pack versions relate, what counts as a
+  breaking change, the public surface, the deprecation policy, and the list of issue codes.
+- Rule schema (now `$id` v0.5.0), all changes backward compatible:
+  - rule ids accept any uppercase prefix (`PREFIX-AREA-NNN`), not only `APPSEC-`;
+  - `owasp_api_top_10_2023` is optional, like `owasp_top_10_2025`;
+  - keys starting with `x-` are allowed on the pack, on rules, and in `mappings`;
+  - a pack may declare `pack.schema_version`; the validator refuses a pack that targets a
+    newer schema than it supports.
+- The released v0.2.0 and v0.4.0 baselines are kept as fixtures and must keep validating.
+
 ### Security
 
 - Rules files are parsed with a restricted loader. YAML aliases are rejected: a 460-byte

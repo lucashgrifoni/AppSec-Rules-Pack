@@ -73,6 +73,9 @@ FormatOpt = Annotated[
     ),
 ]
 RULE_FILE_SUFFIXES = frozenset((".yaml", ".yml"))
+# Format marker of the `validate --format json` report; see
+# schemas/validation-report.schema.json. Additive changes keep v1.
+VALIDATION_REPORT_SCHEMA = "appsec-rules-validation/v1"
 
 SEMGREP_HEADER = (
     "# Reference Semgrep scaffold derived from the AppSec Rules Pack (derivation only).\n"
@@ -95,7 +98,7 @@ IndexFormatOpt = Annotated[
 ]
 IndexOutputOpt = Annotated[
     Path | None,
-    typer.Option("--output", "-o", help="Write the index to this file instead of stdout."),
+    typer.Option("--output", "-o", help="Write the result to this file instead of stdout."),
 ]
 
 
@@ -108,12 +111,13 @@ def _format_issue(issue: ValidationIssue) -> str:
 
 
 def _display_path(base_path: Path, file_path: Path) -> str:
+    # Forward slashes on every platform, so a report reads the same on Windows and Linux.
     if base_path.is_file():
         return file_path.name
     try:
-        return str(file_path.relative_to(base_path))
+        return file_path.relative_to(base_path).as_posix()
     except ValueError:
-        return str(file_path)
+        return file_path.as_posix()
 
 
 def _format_file_issue(base_path: Path, file_path: Path, issue: ValidationIssue) -> str:
@@ -269,6 +273,8 @@ def _build_report(
             "issues": [
                 {
                     "level": issue.level,
+                    "code": issue.code,
+                    "rule_id": issue.rule_id,
                     "path": _issue_path_str(issue),
                     "message": issue.message,
                 }
@@ -278,6 +284,7 @@ def _build_report(
         for rule_file, result in file_results
     ]
     return {
+        "schema": VALIDATION_REPORT_SCHEMA,
         "summary": {
             "files": len(file_results),
             "rules": rule_count,
@@ -303,9 +310,16 @@ def validate(
             typer.echo(
                 json.dumps(
                     {
-                        "summary": {"files": 0, "rules": 0, "errors": 1, "warnings": 0},
+                        "schema": VALIDATION_REPORT_SCHEMA,
+                        "summary": {
+                            "files": 0,
+                            "rules": 0,
+                            "errors": 1,
+                            "warnings": 0,
+                            "ok": False,
+                        },
                         "files": [],
-                        "error": f"no YAML rule files found in {rules_path}",
+                        "error": f"no YAML rule files found in {rules_path.as_posix()}",
                     },
                     indent=2,
                 )
