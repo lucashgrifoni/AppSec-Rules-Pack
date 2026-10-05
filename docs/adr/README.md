@@ -12,6 +12,7 @@ They are referenced from the source, the README, and the technical spec.
 | [0005](0005-executable-semgrep-subset.md) | Hand-maintained executable Semgrep references run only in an external engine | Accepted |
 | [0006](0006-review-records.md) | Record reviews against a pack and check the record against the pack's policy, not the code | Accepted |
 | [0007](0007-dependency-locking.md) | Lock the release toolchain with hashes; keep version ranges for tests and users | Accepted |
+| [0008](0008-ssdf-topic-mappings.md) | Map SSDF topics consistently at practice level | Proposed |
 
 ADR-0001 and ADR-0004 together define the project's central boundary: this is a rule
 contract and a deterministic validator, not a scanner.
