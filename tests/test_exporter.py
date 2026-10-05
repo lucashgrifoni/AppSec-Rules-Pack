@@ -38,7 +38,7 @@ def test_build_index_derives_pack_and_rule_summaries() -> None:
     assert pack["pack"] == {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.3.0",
+        "version": "0.4.0",
     }
     assert len(pack["rules"]) == 19
 
