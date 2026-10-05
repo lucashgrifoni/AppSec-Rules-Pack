@@ -297,6 +297,9 @@ exists and appears once, `met` cites evidence, and each exception is allowed by 
 has the fields the rule requires, has not expired, and fits in the rule's `max_days`.
 Enabled rules with no result are reported as `unreviewed`.
 
+For `not-met`, `evidence` is optional. Use it to point to the failing code, test,
+or observation so another reviewer can locate the defect. It does not change the status.
+
 The exit code says whether the record is valid, nothing more. A valid record can still
 have open rules. The JSON report (`"schema": "appsec-rules-review/v1"`, described by
 [`review-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-report.schema.json))
@@ -305,6 +308,17 @@ both, so the gate can apply your policy. The record format is
 [`review-record.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/review-record.schema.json).
 [`examples/review/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/review/README.md) has a complete record against the
 baseline.
+
+All 20 baseline rules have `enforcement: advisory`. A gate that checks only
+`summary.open_by_enforcement.blocking` would allow every open baseline rule.
+Gate on `summary.open_by_severity` instead, with the severity threshold your team
+requires. For example, reject a report when its `critical` or `high` count is non-zero,
+after checking that the command exited 0 and `summary.ok` is true. The worked review
+has one open `medium` rule. To gate by enforcement, fork the pack and raise selected
+rules to `blocking`; [the field reference](docs/rule-fields.md#rules) explains the field
+and [adapting the baseline](docs/rule-fields.md#adapting-the-baseline) explains the fork.
+Count maps omit zero entries; in Python, read a missing severity with
+`summary["open_by_severity"].get("high", 0)`.
 
 ## Use it in CI
 

@@ -8,12 +8,16 @@ a rule can have:
 | --- | --- | --- |
 | `met` | 12, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
 | `not-applicable` | 6, such as `APPSEC-XSS-001` (the service renders no HTML) | Nothing; `notes` says why |
-| `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | Nothing; `notes` says what is wrong |
+| `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | Optional `evidence` locates the defect; `notes` describes it |
 | `excepted` | `APPSEC-RATELIMIT-001` | An `exception` that the pack allows, with the fields the pack requires, inside its window |
 
 The evidence entries point into the fictional service's repository. In a real record they
 are whatever lets a second reviewer check the claim: a test, a file, a scanner run, a
 ticket.
+
+For `not-met`, `evidence` is optional and points to where the rule fails. The
+`APPSEC-LOG-001` entry points to the refund error path that logs the processor response.
+An evidence reference does not make the result `met`.
 
 ## Check it
 
@@ -37,6 +41,17 @@ passed: `APPSEC-LOG-001` is still open. Deciding what may stay open is the gate'
 with the JSON report (`--format json`). The report counts open rules by enforcement and by
 severity; [`examples/README.md`](../README.md#github-actions-template) has a gate that
 reads it.
+
+All 20 baseline rules are `advisory`, so
+`summary.open_by_enforcement.blocking` is zero even when baseline rules are open.
+Use `summary.open_by_severity` for a severity gate, after checking the command's
+exit code and `summary.ok`. This record has `medium: 1`; `critical`, `high`, and
+`low` are zero. A policy that rejects open medium rules rejects this service while
+the record still passes validation. Alternatively, fork the baseline and raise
+selected rules' `enforcement` to `blocking`, following
+[`docs/rule-fields.md`](../../docs/rule-fields.md#adapting-the-baseline).
+The count maps omit zero entries. Treat missing keys as zero, for example with
+`summary["open_by_severity"].get("medium", 0)` in Python.
 
 `--as-of` pins the date that exceptions are checked against, so this example keeps
 passing. Without it, `review` uses today's date, and the exception, which expires on

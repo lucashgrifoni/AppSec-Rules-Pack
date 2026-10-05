@@ -52,6 +52,8 @@ results:
 
   - rule: APPSEC-LOG-001
     status: not-met
+    evidence:
+      - src/payments/refunds.py::handle_refund_failure logs the full processor response.
     notes: Refund failures log the full processor response, which includes the card holder name.
 
   - rule: APPSEC-DEP-001
