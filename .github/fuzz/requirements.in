@@ -1,0 +1,5 @@
+# Tools the `fuzz` CI job installs. Locked with hashes in requirements.txt:
+#   uv pip compile .github/fuzz/requirements.in --generate-hashes \
+#     --python-version 3.12 --python-platform x86_64-manylinux_2_28 \
+#     -o .github/fuzz/requirements.txt
+atheris==3.1.0

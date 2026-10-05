@@ -185,6 +185,48 @@ jobs:
           python -m pytest tests/property -p no:cacheprovider
           --cov=appsec_rules_pack --cov-report=term-missing --cov-fail-under=0
 
+  # Coverage-guided fuzzing (Atheris/libFuzzer) of the loader and validator. It
+  # complements the property harness: libFuzzer mutates raw bytes guided by coverage.
+  # Atheris comes from a hash-locked requirements file (ADR-0007), and the run is
+  # bounded so the job stays predictable.
+  fuzz:
+    name: Fuzzing (Atheris)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            api.github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install the project and the hash-locked fuzzer
+        run: |
+          python -m pip install -e .
+          python -m pip install --require-hashes --only-binary :all: -r .github/fuzz/requirements.txt
+
+      - name: Fuzz the loader and validator for two minutes
+        run: |
+          mkdir -p "${RUNNER_TEMP}/corpus"
+          cp rules/*.yaml tests/fixtures/*/*.yaml "${RUNNER_TEMP}/corpus/"
+          python fuzz/fuzz_validate.py -max_total_time=120 -print_final_stats=1 \
+            "${RUNNER_TEMP}/corpus"
+
   # The floors in pyproject.toml are what a downstream resolver may pick. This job
   # installs exactly those versions and runs the suite, so a floor that breaks the CLI
   # fails here first: typer 0.12.x once made every command exit 0 without validating,

@@ -94,7 +94,13 @@ $env:HYPOTHESIS_PROFILE = "ci"      # bash: HYPOTHESIS_PROFILE=ci
 python -m pytest tests/property -p no:cacheprovider --cov=appsec_rules_pack --cov-report=term-missing --cov-fail-under=0
 ```
 
-Use `HYPOTHESIS_PROFILE=long` for a deeper local search before a release. When the harness
+Use `HYPOTHESIS_PROFILE=long` for a deeper local search before a release.
+
+`fuzz/fuzz_validate.py` adds coverage-guided fuzzing with Atheris (libFuzzer), which
+mutates raw bytes instead of generating structured input. It runs for two minutes in the
+`Fuzzing (Atheris)` CI job. Atheris has no Windows build; run it on Linux, macOS, or in a
+container, as the file's docstring shows. Treat a crash it reports like a property
+failure: reduce it to a regression test first, then fix the code. When the harness
 finds a failure, turn the minimized example it prints into a deterministic regression
 test (see `tests/test_non_string_keys.py`) before fixing the code, and keep it as an
 `@example` on the property if it is cheap.
