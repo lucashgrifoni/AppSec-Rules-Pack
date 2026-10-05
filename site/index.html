@@ -114,7 +114,7 @@
 </nav>
 
 <header class="hero wrap">
-  <span class="eyebrow">v0.5.0 · Apache-2.0 · engine-agnostic</span>
+  <span class="eyebrow">v0.6.0 · Apache-2.0 · engine-agnostic</span>
   <h1>An <span class="accent">AppSec rules pack</span><br/>for documented reviews.</h1>
   <p class="lede">A curated pack of 20 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
@@ -163,15 +163,17 @@
       <h2>Validate packs and review records.</h2>
       <p class="lede" style="font-size:16px">Install from PyPI (published via Trusted Publishing / OIDC),
       then validate the pack and derive the exports. The validator is advisory by default and never executes rules.</p>
+      <p class="note">The commands below target v0.6.0 after publication. This branch prepares that version;
+      use the README's source installation while its release is pending.</p>
     </div>
     <div class="term">
       <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
 <div class="body"><span class="c"># install the validator from PyPI</span>
-<span class="p">$</span> <span class="o">pip install appsec-rules-pack</span>
+<span class="p">$</span> <span class="o">pip install "appsec-rules-pack==0.6.0"</span>
 
 <span class="c"># the distribution ships the validator, not the rules: grab the pack</span>
 <span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
-<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/latest/download/appsec-baseline.yaml</span>
+<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.6.0/appsec-baseline.yaml</span>
 
 <span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
 <span class="c">Validation passed: 1 file, 20 rules, 0 errors, 0 warnings.</span>

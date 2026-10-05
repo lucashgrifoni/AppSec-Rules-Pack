@@ -6,6 +6,12 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
+**Prepared on `feat/v0.6.0`:** package and pack version 0.6.0, with 20 baseline
+rules, source-backed mapping rationale, review-gate documentation, report
+compatibility fixtures, and SBOM identity/inventory checks. Independent review,
+merge, tagging, and publication remain pending. The new 1.0 readiness proposal
+also leaves external feedback and its release decision with the owner.
+
 **Released:** `appsec-rules-pack` **0.5.0**, published to PyPI via Trusted Publishing
 (OIDC, no long-lived credential). The release workflow checks that the tag is on `main`
 and matches the package version, builds with hash-pinned tools in a job that cannot
@@ -21,7 +27,8 @@ reports described in [`VERSIONING.md`](VERSIONING.md). The distribution contains
 the schema — not the rules; the baseline pack is attached to each release and lives in
 [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml).
 
-**The baseline pack:** 20 generic rules spanning access control, password storage, injection and XSS, SSRF,
+**The preparation branch's baseline pack:** 20 generic rules spanning access control,
+password storage, injection and XSS, SSRF,
 authentication, session hardening, secrets, file handling, logging, dependency risk,
 configuration, CSRF, webhook integrity, excessive data exposure, mass assignment, open
 redirect, and rate limiting. Every rule ships a compliant and a violating example.
@@ -38,7 +45,7 @@ metadata. The Semgrep output is a clearly-labelled non-runnable scaffold and the
 output is a rule catalog with no results; the validator never executes rules or scans code
 ([ADR-0001](docs/adr/0001-engine-agnostic-validator.md)).
 
-**Repository posture:** public, verified on 2026-10-04. The `main-protection` ruleset
+**Repository posture:** public, verified on 2026-10-05. The `main-protection` ruleset
 requires one code-owner approval, approval of the latest push, an up-to-date branch, and
 fourteen status checks ([ruleset](https://github.com/lucashgrifoni/AppSec-Rules-Pack/rules/17222248)).
 The owner keeps an administrator bypass because this is a single-maintainer project; see
@@ -46,22 +53,35 @@ the `Branch-Protection` note under Risks and limits.
 
 ## Verified checks
 
-Measured 2026-10-05 on Windows 11 with Python 3.12.10 on the v0.5.0 release branch
-(blocks A to E of the v0.5.0 plan, plus the version bump).
+Measured 2026-10-05 on `feat/v0.6.0`, using Windows 11 build 26300, Python
+3.12.10 (64-bit), and the project virtual environment. The release-tool
+reproduction uses the existing hash lock and a separate inventory environment.
+These are local preparation checks; they do not establish a published release.
 
 | Check | Result |
 | --- | --- |
 | `ruff check .` | Clean |
-| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 314 passed; 98.54% coverage (gate 95%) |
-| `validate rules --require-examples --fail-on-warnings` | 1 file, 19 rules, 0 errors, 0 warnings |
-| `report coverage rules/appsec-baseline.yaml` | ASVS, API Top 10, CWE, SSDF: 19/19; optional Top 10:2025: 18/19 |
+| `ruff format --check` on new or changed Python files | 14 files already formatted |
+| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 367 passed; 98.61% branch-aware coverage (gate 95%) |
+| `validate rules --require-examples --fail-on-warnings` | 1 file, 20 rules, 0 errors, 0 warnings |
+| `report coverage rules/appsec-baseline.yaml` | ASVS, CWE, SSDF: 20/20; API Top 10 and Top 10:2025: 19/20 each |
 | `exports/` regeneration | All three exports regenerated; byte-comparison drift tests pass |
-| `python -m build` | `appsec_rules_pack-0.5.0` wheel and source distribution built |
-| Property harness, `HYPOTHESIS_PROFILE=ci` | 9 properties pass; the harness alone covers 96% of `loader.py` and 85% of `validator.py` |
-| CLI exit codes | Baseline: 0; missing-title fixture: 1; output recorded in `docs/assets/cli-demo.svg` |
-| Repository visibility | Public on 2026-10-04 |
-| Remote CI and security | On `6b2b479`, [CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233), [Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236), and [Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285) passed on 2026-10-04, including CodeQL and all fourteen required jobs |
-| Remote Scorecard | [Run 37212550305](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550305) passed on `6b2b479` on 2026-10-04 |
+| `python -m build` | `appsec_rules_pack-0.6.0` wheel and source distribution built |
+| `twine check dist/*` | All four local distributions passed, including the new 0.6.0 wheel and sdist |
+| Property harness, `HYPOTHESIS_PROFILE=ci` | 9 properties passed |
+| `actionlint .github/workflows/publish-pypi.yml` | Clean |
+| Hash-locked `build --no-isolation` | 0.6.0 wheel and sdist built |
+| SBOM construction and gate | Root `appsec-rules-pack` / `0.6.0` / `pkg:pypi/appsec-rules-pack@0.6.0`; 16 runtime components on Windows; no pip, setuptools, or wheel; component inventory and dependency graph preserved |
+| Installed-wheel CLI | Version 0.6.0; strict baseline validation passed |
+| Repository visibility | Public on 2026-10-05 |
+
+Historical remote evidence remains separate: on `6b2b479`,
+[CI 37212550233](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550233),
+[Security CI/CD 37212550236](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550236),
+[Executable Semgrep rules 37212550285](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550285),
+and [Scorecard 37212550305](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37212550305)
+passed on 2026-10-04. Those runs do not prove this preparation head. Its PR checks
+and manual release-workflow run must be checked independently before merge.
 
 Release history and prior end-user installation checks are documented in
 [`CHANGELOG.md`](CHANGELOG.md). See the README's release-verification instructions for

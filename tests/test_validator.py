@@ -23,9 +23,7 @@ PASS_FIXTURES_DIR = Path("tests/fixtures/pass")
 FAIL_FIXTURES_DIR = Path("tests/fixtures/fail")
 CROSS_FILE_DUP_DIR = Path("tests/fixtures/cross-file-dup")
 WARN_FIXTURE_PATH = Path("tests/fixtures/warn/exception-window-warning.yaml")
-EXCEPTION_WINDOW_WARNING = (
-    "exception window is 120 days; default review limit is 90 days"
-)
+EXCEPTION_WINDOW_WARNING = "exception window is 120 days; default review limit is 90 days"
 NEGATIVE_FIXTURE_CASES = (
     (
         Path("tests/fixtures/fail/additional-property.yaml"),
@@ -218,13 +216,13 @@ def test_cli_validate_directory_reports_file_and_clear_error() -> None:
         "value must be one of: critical, high, medium, low"
     ) in result.output
     assert (
-        "invalid-type.yaml: ERROR rules.0.exceptions.max_days: "
-        "invalid type; expected integer"
+        "invalid-type.yaml: ERROR rules.0.exceptions.max_days: invalid type; expected integer"
     ) in result.output
     assert "missing-required-field.yaml: ERROR rules.0: missing required field 'title'" in (
         result.output
     )
     assert "Validation failed: 5 files, 6 rules, 5 errors, 0 warnings." in result.output
+
 
 def test_missing_required_fields_are_reported_once_not_once_per_field() -> None:
     """A location missing N required fields must produce one issue, not N identical ones.

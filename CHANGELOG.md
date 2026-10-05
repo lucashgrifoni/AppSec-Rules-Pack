@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.6.0 - 2026-10-05
+
+This entry describes the preparation branch. Tagging and publication are pending
+independent review and owner authorization.
+
+### Added
+
+- `APPSEC-PWSTORE-001`: password-storage guidance, with examples and framework
+  mappings. The baseline now contains 20 rules. Its pack version is 0.6.0 because
+  this release adds a rule, in addition to changing existing content.
+- A mapping-rationale table for every baseline rule, an offline ASVS 5.0.0 ID
+  snapshot from the official release tag, and tests checking mapped IDs.
+- Proposed ADR-0008 records the practice-level SSDF mapping convention.
+- A 1.0 readiness proposal covering the contract freeze, migration policy,
+  acceptance criteria, and owner-pending external feedback. Saved JSON v1 report
+  fixtures and compatibility tests treat existing fields and types as a floor.
+- Landing-page tests compare rule, framework, export, category, and version
+  figures with repository data.
+
+### Changed
+
+- `APPSEC-CONFIG-001` includes CORS guidance and ASVS V3.4 / CWE-942.
+- `APPSEC-SECRETS-001` prohibits default or fallback secret values.
+- Baseline SSDF mappings follow the subject of each rule at practice granularity.
+  Multiple mappings are justified only for distinct subjects; intentional
+  omissions remain recorded in `docs/mapping-rationale.md`.
+- Review documentation explains the advisory baseline, severity-based gates,
+  and optional evidence locating a `not-met` result. The worked logging result
+  now identifies the failing code location.
+- Landing-page copy describes pack validation and documented reviews; its
+  fourth statistic reports rule categories.
+
+### Fixes
+
+- Corrected SSDF mappings that described executable testing or default
+  configuration rather than the rule's design or coding subject.
+- Removed API5:2023 from the object-authorization rule, whose scope is API1:2023.
+- Removed the landing page's unmeasured validation-time claim.
+
+### Release pipeline
+
+- The hash-locked CycloneDX tool uses a temporary project manifest resolved
+  from the installed wheel's version. Its existing model library supplies and
+  validates the root purl through the public API.
+- The SBOM inventory environment contains the wheel and runtime dependencies,
+  with no pip, setuptools, or wheel components. A pre-upload gate rejects an
+  incorrect root name, version, purl, or installer component, with regression
+  tests and construction notes in `docs/release-sbom.md`.
+- No new runtime or development dependency and no CLI, JSON, schema, issue-code,
+  or exit-code contract change.
+
 ## v0.5.0 - 2026-10-05
 
 ### Added

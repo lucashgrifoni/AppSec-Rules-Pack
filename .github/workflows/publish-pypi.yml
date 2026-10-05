@@ -221,7 +221,7 @@ jobs:
           #
           # The baseline pack rides along as a Release asset. The distribution ships the
           # validator and the schema but no rules, so this is how a consumer gets a
-          # version-pinned copy of the 19 baseline rules without cloning the repository.
+          # version-pinned copy of the baseline rules without cloning the repository.
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" \
               sbom.cdx.json dist/*.whl dist/*.tar.gz rules/appsec-baseline.yaml \
