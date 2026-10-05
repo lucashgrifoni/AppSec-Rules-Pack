@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- The default branch is now `main`. GitHub redirects links and clones that still use
+  `master`; update local clones with `git branch -m master main` and
+  `git branch -u origin/main main`.
+- The landing page source moved to `site/` and deploys through the new `Pages` workflow;
+  the separate `gh-pages` branch is gone.
+- Rewrote the README around a quick start, a scope table, and a CLI reference. Links are
+  absolute so they also work on the PyPI project page.
+
 ## v0.4.0 - 2026-10-05
 
 - Each GitHub Release now carries the signed build-provenance bundle as

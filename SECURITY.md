@@ -3,7 +3,7 @@
 ## Supported Versions
 
 `appsec-rules-pack` is published on PyPI. Security fixes target the current `0.3.x`
-release line and `master`.
+release line and `main`.
 
 | Version | Supported |
 | ------- | --------- |

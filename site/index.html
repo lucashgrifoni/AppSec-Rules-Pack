@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AppSec Rules Pack — engine-agnostic security baseline</title>
+<meta name="description" content="An engine-agnostic AppSec baseline rules pack: a JSON Schema rule contract, a Python validator, and OWASP ASVS 5.0 / API Top 10 / Top 10:2025 / CWE / NIST SSDF mappings. It validates and exports rules — it does not execute or scan code." />
+<link rel="canonical" href="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
+
+<!-- Link previews (LinkedIn, Slack, X). LinkedIn caches the first fetch aggressively. -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="AppSec Rules Pack" />
+<meta property="og:url" content="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
+<meta property="og:title" content="AppSec Rules Pack — a reviewable AppSec baseline your pipeline can verify" />
+<meta property="og:description" content="19 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, CWE, and NIST SSDF. It validates and exports rules — it is not a scanner." />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="AppSec Rules Pack — a reviewable AppSec baseline your pipeline can verify" />
+<meta name="twitter:description" content="19 rules, a JSON Schema contract, and a Python validator. Engine-agnostic: it validates and exports, it does not scan." />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0e14'/%3E%3Cpath d='M16 5l9 3.6v6.2c0 5.4-3.7 9.9-9 11.4-5.3-1.5-9-6-9-11.4V8.6L16 5z' fill='none' stroke='%2364ffda' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M11.5 16.2l3.1 3.1 6-6.2' fill='none' stroke='%2364ffda' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy-3:#070a28; --navy-2:#0a0e3a; --paper:#d5d8dd;
+    --mint:#08b98b; --mint-soft:rgba(8,185,139,.14);
+    --slate:#7c8394; --line:rgba(213,216,221,.14); --line-2:rgba(213,216,221,.24);
+    --sans:"Space Grotesk",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--navy-3);color:var(--paper);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  body{background:
+    radial-gradient(1100px 540px at 82% -10%, rgba(8,185,139,.16), transparent 60%),
+    linear-gradient(180deg, var(--navy-3) 0%, var(--navy-2) 45%, var(--navy-3) 100%);
+    overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  code,.mono{font-family:var(--mono)}
+
+  nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:16px 28px;background:rgba(7,10,40,.6);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav .logo{display:flex;align-items:center;gap:10px;font-weight:600}
+  nav .mark{width:20px;height:20px;border-radius:6px;background:conic-gradient(from 220deg,var(--mint),#0e6fff,var(--mint))}
+  nav .links{display:flex;gap:20px;align-items:center;font-size:14px;color:var(--slate)}
+  nav .links a:hover{color:var(--paper)}
+  nav .cta{background:var(--mint);color:#04241a;font-weight:600;padding:8px 14px;border-radius:999px}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--mint);padding:6px 12px;
+    border:1px solid rgba(8,185,139,.35);border-radius:999px;background:var(--mint-soft)}
+  .hero{padding:88px 0 56px}
+  h1{font-size:clamp(40px,6vw,72px);line-height:1.0;letter-spacing:-.03em;font-weight:600;margin:22px 0 18px}
+  h1 .accent{color:var(--mint)}
+  .lede{font-size:19px;line-height:1.55;color:var(--slate);max-width:620px;margin:0 0 22px}
+  .note{font-size:14.5px;color:var(--paper);background:var(--mint-soft);border:1px solid rgba(8,185,139,.3);
+    border-radius:12px;padding:12px 16px;max-width:640px;margin:0 0 28px}
+  .note b{color:var(--mint)}
+  .ctas{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 20px;border-radius:11px;font-weight:500;font-size:15px;border:1px solid transparent;transition:transform .15s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:var(--mint);color:#04241a}
+  .btn-ghost{background:rgba(213,216,221,.05);border:1px solid var(--line-2);color:var(--paper)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:48px 0}
+  .stat{padding:28px 22px;border-left:1px solid var(--line)}
+  .stat:first-child{border-left:none}
+  .stat .n{font-size:40px;font-weight:600;letter-spacing:-.03em}
+  .stat .n span{color:var(--mint)}
+  .stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-top:8px}
+
+  section{padding:56px 0}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--mint);text-transform:uppercase}
+  h2{font-size:clamp(28px,3.6vw,42px);font-weight:600;letter-spacing:-.025em;margin:10px 0 28px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{padding:24px;border:1px solid var(--line-2);border-radius:16px;background:linear-gradient(160deg,rgba(213,216,221,.04),rgba(213,216,221,.01))}
+  .card h3{font-size:18px;font-weight:500;margin:0 0 8px}
+  .card p{color:var(--slate);font-size:14px;line-height:1.6;margin:0}
+  .card .t{font-family:var(--mono);font-size:11px;color:var(--mint);letter-spacing:.12em}
+
+  .term{background:#05071e;border:1px solid var(--line-2);border-radius:14px;overflow:hidden;font-family:var(--mono);font-size:13.5px;line-height:1.85}
+  .term .bar{display:flex;gap:7px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .term .dot{width:11px;height:11px;border-radius:50%}
+  .term .r{background:#ff6b6b}.term .y{background:#ffd66b}.term .g{background:var(--mint)}
+  .term .body{padding:20px 22px;white-space:pre-wrap}
+  .term .p{color:var(--mint)}.term .c{color:var(--slate)}.term .o{color:var(--paper)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .chip{font-family:var(--mono);font-size:12px;color:var(--paper);border:1px solid var(--line-2);
+    background:rgba(213,216,221,.03);padding:8px 12px;border-radius:999px}
+  .chip span{color:var(--mint)}
+
+  footer{border-top:1px solid var(--line);padding:32px 0 64px;color:var(--slate);font-size:13px}
+  footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer a:hover{color:var(--paper)}
+
+  @media(max-width:860px){.grid3{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(3){border-left:none;border-top:1px solid var(--line)}.stat:nth-child(4){border-top:1px solid var(--line)}
+    .two{grid-template-columns:1fr!important}}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo"><span class="mark"></span> AppSec Rules Pack</span>
+  <span class="links">
+    <a href="#what">What it is</a>
+    <a href="#use">Use it</a>
+    <a href="#coverage">Coverage</a>
+    <a class="cta" href="https://github.com/lucashgrifoni/AppSec-Rules-Pack" target="_blank" rel="noopener">View on GitHub</a>
+  </span>
+</nav>
+
+<header class="hero wrap">
+  <span class="eyebrow">v0.4.0 · Apache-2.0 · engine-agnostic</span>
+  <h1>A reviewable <span class="accent">AppSec baseline</span><br/>your pipeline can verify.</h1>
+  <p class="lede">A curated pack of 19 generic application-security rules with a JSON Schema contract,
+  a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
+  CWE, and NIST SSDF. Every rule ships a compliant and a violating example.</p>
+  <p class="note"><b>Honest scope:</b> this <b>validates and exports</b> rules for review and CI evidence —
+  it is <b>not a scanner</b>. It does not execute rules or scan source code (see ADR-0001). It produces a
+  rule index, a clearly-labelled non-runnable Semgrep scaffold, and a SARIF rule catalog for downstream tools.</p>
+  <div class="ctas">
+    <a class="btn btn-primary" href="https://github.com/lucashgrifoni/AppSec-Rules-Pack" target="_blank" rel="noopener">Get the pack →</a>
+    <a class="btn btn-ghost" href="https://pypi.org/project/appsec-rules-pack/" target="_blank" rel="noopener">Install from PyPI</a>
+    <a class="btn btn-ghost" href="#use">See the CLI</a>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">19</div><div class="l">baseline rules</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">framework maps</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">export formats</div></div>
+    <div class="stat"><div class="n">0</div><div class="l">errors / warnings</div></div>
+  </div>
+</header>
+
+<section id="what" class="wrap">
+  <div class="kicker">// what it is</div>
+  <h2>A contract, a validator, and honest exports.</h2>
+  <div class="grid3">
+    <div class="card"><div class="t">F.01</div><h3>JSON Schema contract</h3><p>Each rule has a stable ID, severity, category, targets, framework mappings, required evidence, review guidance, exceptions, and examples — validated against <code>appsec-rule.schema.json</code>.</p></div>
+    <div class="card"><div class="t">F.02</div><h3>Python validator (CLI)</h3><p>Schema + semantic checks: duplicate IDs, exception-policy contradictions, malformed mapping IDs, sensitive-value detection, rule lifecycle, and <code>--require-examples</code>. Text or JSON output for CI.</p></div>
+    <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025 (optional), CWE, and NIST SSDF — evidence aids, not a conformance claim.</p></div>
+    <div class="card"><div class="t">F.04</div><h3>Derivation-only exports</h3><p><code>export index</code> (JSON rule index), <code>export semgrep</code> (a <em>non-runnable</em> scaffold — patterns must be added), and <code>export sarif</code> (a rule catalog with empty results). All drift-tested.</p></div>
+    <div class="card"><div class="t">F.05</div><h3>Coverage report</h3><p><code>report coverage</code> shows framework-mapping coverage per rule and in aggregate, in text or JSON — so gaps are visible, not guessed.</p></div>
+    <div class="card"><div class="t">F.06</div><h3>Hardened CI/CD</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>master</code>.</p></div>
+    <div class="card"><div class="t">F.07</div><h3>Signed, attested releases</h3><p>Published to PyPI through Trusted Publishing (OIDC, no long-lived token). Every release is a signed tag and carries a CycloneDX SBOM, a SLSA build-provenance attestation, and the baseline pack itself as a downloadable asset.</p></div>
+  </div>
+</section>
+
+<section id="use" class="wrap">
+  <div class="two">
+    <div>
+      <div class="kicker">// use it</div>
+      <h2>Validate in seconds.</h2>
+      <p class="lede" style="font-size:16px">Install from PyPI (published via Trusted Publishing / OIDC),
+      then validate the pack and derive the exports. The validator is advisory by default and never executes rules.</p>
+    </div>
+    <div class="term">
+      <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+<div class="body"><span class="c"># install the validator from PyPI</span>
+<span class="p">$</span> <span class="o">pip install appsec-rules-pack</span>
+
+<span class="c"># the distribution ships the validator, not the rules — grab the pack</span>
+<span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
+<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/latest/download/appsec-baseline.yaml</span>
+
+<span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
+<span class="c">Validation passed: 1 file, 19 rules, 0 errors, 0 warnings.</span>
+
+<span class="p">$</span> <span class="o">appsec-rules report coverage rules</span>
+<span class="c"># reports mapping coverage and unmapped rules for each framework</span>
+
+<span class="p">$</span> <span class="o">appsec-rules export index rules/appsec-baseline.yaml -o exports/index.json</span>
+<span class="c"># derivation only — no rule execution, no scanning</span>
+</div>
+    </div>
+  </div>
+</section>
+
+<section id="coverage" class="wrap">
+  <div class="kicker">// coverage</div>
+  <h2>Fifteen rule categories, evidence-backed.</h2>
+  <div class="chips">
+    <div class="chip"><span>›</span> authentication</div>
+    <div class="chip"><span>›</span> authorization (IDOR/BOLA)</div>
+    <div class="chip"><span>›</span> input-validation</div>
+    <div class="chip"><span>›</span> injection / XSS</div>
+    <div class="chip"><span>›</span> ssrf</div>
+    <div class="chip"><span>›</span> secrets</div>
+    <div class="chip"><span>›</span> file-handling</div>
+    <div class="chip"><span>›</span> logging</div>
+    <div class="chip"><span>›</span> dependency-risk</div>
+    <div class="chip"><span>›</span> configuration</div>
+    <div class="chip"><span>›</span> csrf</div>
+    <div class="chip"><span>›</span> integrity (webhook auth)</div>
+    <div class="chip"><span>›</span> data-exposure</div>
+    <div class="chip"><span>›</span> open-redirect</div>
+    <div class="chip"><span>›</span> rate-limiting</div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="row">
+    <span>AppSec Rules Pack · © 2026 Lucas Grifoni · Apache-2.0</span>
+    <span>
+      <a href="https://github.com/lucashgrifoni/AppSec-Rules-Pack" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://pypi.org/project/appsec-rules-pack/" target="_blank" rel="noopener">PyPI</a> ·
+      <a href="https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/latest" target="_blank" rel="noopener">Releases</a> ·
+      <a href="https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md" target="_blank" rel="noopener">ADRs</a> ·
+      <a href="https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a> ·
+      <a href="https://github.com/lucashgrifoni/AppSec-Rules-Pack/issues" target="_blank" rel="noopener">Issues</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>

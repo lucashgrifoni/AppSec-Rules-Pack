@@ -34,15 +34,3 @@ desktop.ini
 !.env.example
 *.pem
 *.key
-
-# Operational improvement control area (local only, do not commit)
-melhorias/
-
-# Local AI-assistant working area (loop playbooks, session settings). These are the
-# maintainer's operating method, not project content, and must not ship with a package
-# that is headed for public release.
-.claude/
-
-# Landing-page source (local). The page is published from the orphan `gh-pages` branch,
-# so the source is kept out of `master` to keep the package repo clean.
-gitpage/

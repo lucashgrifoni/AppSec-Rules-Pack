@@ -34,7 +34,8 @@ statement of intent, not a delivery commitment, and is kept consistent with
   against the 5.0.0 chapter/section structure and the official v5.0.0-to-v4.0.3 mapping
   under `5.0/mappings/`). Mappings remain evidence aids, not a claim.
 - Tagged releases through `v0.4.0` published; see `STATUS.md` for current repository visibility.
-- `master` branch-protected via the `master-protection` ruleset (2026-06-03).
+- The default branch is protected by a ruleset (2026-06-03); renamed from `master` to `main`
+  on 2026-10-05.
 - Tagged `v0.2.0` published to PyPI as `appsec-rules-pack` via OIDC Trusted Publishing
   (2026-06-03), with a CycloneDX SBOM and a SLSA build-provenance attestation attached to
   the GitHub Release.
