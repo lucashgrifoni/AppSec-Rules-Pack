@@ -51,13 +51,12 @@ def build_coverage(payloads: list[Any]) -> dict[str, Any]:
     total = len(rules)
     frameworks: dict[str, Any] = {}
     for framework in _FRAMEWORKS:
-        missing = [
-            rule["id"]
-            for rule in rules
-            if not _has_mapping(rule, framework) and isinstance(rule.get("id"), str)
-        ]
+        unmapped = [rule for rule in rules if not _has_mapping(rule, framework)]
+        # A rule without a string id still counts as unmapped; it is only left out of
+        # the `missing` list, which names rules by id.
+        missing = [rule["id"] for rule in unmapped if isinstance(rule.get("id"), str)]
         frameworks[framework] = {
-            "covered": total - len(missing),
+            "covered": total - len(unmapped),
             "total": total,
             "missing": missing,
         }

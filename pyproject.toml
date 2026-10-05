@@ -33,10 +33,14 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Quality Assurance",
 ]
+# Floors are the lowest versions the `min-deps` CI job tests. typer 0.12.x could make
+# every command exit 0 without validating, typer below 0.16 cannot render --help with
+# click 8.3, and click below 8.3.3 has a known advisory.
 dependencies = [
+    "click>=8.3.3",
     "jsonschema>=4.21,<5",
     "PyYAML>=6.0.1,<7",
-    "typer>=0.12,<1",
+    "typer>=0.16,<1",
 ]
 
 [project.urls]

@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Security
+
+- Rules files are parsed with a restricted loader. YAML aliases are rejected: a 460-byte
+  alias bomb used to take 71 s to validate and made `export index` write 815 MB, and a
+  self-referencing alias crashed with a traceback. Duplicate mapping keys are rejected:
+  PyYAML kept the last value silently, so a second `rules:` key could cut a pack from 19
+  rules to 1 and still pass. Files larger than 10 MiB are refused before parsing.
+- Raised the dependency floors to `typer>=0.16` and `click>=8.3.3`. With typer 0.12.x
+  every command exited 0 without validating anything, and click below 8.3.3 carries a
+  known advisory. A new `min-deps` CI job runs the suite on exactly these floors.
+- Tracebacks no longer print local variables, which could echo rules-pack content,
+  including secrets, into CI logs.
+- Sensitive-value detection also covers mapping keys and common token formats (GitHub,
+  Slack, Google API, Stripe live keys). Messages redact values that look like secrets.
+  Inside rule examples, real key material (private keys, cloud and platform tokens) now
+  raises a warning; demonstration passwords are still allowed there.
+
+### Fixes
+
+- `required_fields` containing a non-string item, a non-scalar `severity` in the SARIF and
+  Semgrep exports, and values JSON cannot represent (such as an unquoted YAML date) no
+  longer crash with a traceback.
+- `--output` refuses to overwrite one of the input rules files.
+- `report coverage` no longer counts a rule without an `id` as covered.
+
 ## v0.4.1 - 2026-10-05
 
 Patch release: documentation and repository changes only. The validator, the rule schema,

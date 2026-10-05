@@ -33,7 +33,8 @@ _PROPERTY_FIELDS = (
 
 def _descriptor(rule: dict[str, Any]) -> dict[str, Any]:
     mappings = rule.get("mappings") if isinstance(rule.get("mappings"), dict) else {}
-    severity = rule.get("severity")
+    # Exports skip validation, so a malformed pack may carry a list or mapping here.
+    severity = rule.get("severity") if isinstance(rule.get("severity"), str) else None
 
     tags = ["security"]
     if isinstance(rule.get("category"), str):
