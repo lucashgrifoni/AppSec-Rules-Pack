@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+import runpy
 import shlex
+import textwrap
 from pathlib import Path
 
 import pytest
@@ -63,3 +65,41 @@ def test_pull_request_template_lists_every_required_gate() -> None:
     assert strict in template
     assert "python -m build" in template
     assert "regression test" in template
+
+
+GATE_SCRIPT = textwrap.dedent(
+    re.search(r"python - <<'PY'\n(?P<body>.*?)\n\s*PY\n", EXAMPLES, re.S).group("body")
+)
+
+
+@pytest.mark.parametrize(
+    ("open_by_severity", "open_by_enforcement", "expected"),
+    [
+        ({}, {}, 0),
+        ({"medium": 2, "low": 1}, {"advisory": 3}, 0),
+        ({"high": 1}, {"advisory": 1}, 1),
+        ({"critical": 1}, {"advisory": 1}, 1),
+        ({"medium": 1}, {"blocking": 1}, 1),
+    ],
+)
+def test_template_gate_stops_on_critical_high_or_blocking(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    open_by_severity: dict,
+    open_by_enforcement: dict,
+    expected: int,
+) -> None:
+    """The README tells users to gate on critical or high; the template must do the same."""
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    summary = {"open_by_severity": open_by_severity, "open_by_enforcement": open_by_enforcement}
+    (reports / "svc.json").write_text(json.dumps({"summary": summary}), encoding="utf-8")
+    gate = tmp_path / "gate.py"
+    gate.write_text(GATE_SCRIPT, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    # In-process: a child started outside the repository would not find the coverage config.
+    with pytest.raises(SystemExit) as stopped:
+        runpy.run_path(str(gate), run_name="__main__")
+
+    assert stopped.value.code == expected

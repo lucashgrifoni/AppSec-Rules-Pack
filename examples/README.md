@@ -39,7 +39,7 @@ permissions:
   contents: read
 
 env:
-  APPSEC_RULES_VERSION: "0.5.0"
+  APPSEC_RULES_VERSION: "0.6.0"
 
 jobs:
   appsec-rules:
@@ -95,9 +95,10 @@ jobs:
               summary = report["summary"]
               blocking = summary["open_by_enforcement"].get("blocking", 0)
               critical = summary["open_by_severity"].get("critical", 0)
-              print(f"{path.stem}: open blocking={blocking} critical={critical}")
-              # Your policy goes here. This one stops on any open blocking or critical rule.
-              if blocking or critical:
+              high = summary["open_by_severity"].get("high", 0)
+              print(f"{path.stem}: open blocking={blocking} critical={critical} high={high}")
+              # Your policy goes here. This one stops on any open blocking, critical, or high rule.
+              if blocking or critical or high:
                   failed = True
           sys.exit(1 if failed else 0)
           PY
@@ -107,7 +108,11 @@ Notes:
 
 - `validate` and `review` already fail the job when a pack or a record is invalid. The
   last step is the policy: what may stay open. Change it to match yours
-  ([ADR-0006](../docs/adr/0006-review-records.md)).
+  ([ADR-0006](../docs/adr/0006-review-records.md)). A rule is open when it is `not-met` or
+  `unreviewed`; `excepted` rules are not open, and an invalid or expired exception makes the
+  record invalid, so the `review` step fails first.
+- `validate rules` reads every `.yaml` and `.yml` file under `rules/`, subdirectories
+  included, so keep only packs there.
 - A review record fails once one of its exceptions expires. That is the point: renew the
   exception or fix the rule.
 - `gh attestation verify` proves the baseline came from this project's release workflow
@@ -137,7 +142,7 @@ output, or a CLI that cannot be started, fails the gate. Successfully starting t
 process is not treated as a passing pack.
 
 ```bash
-python -m pip install "appsec-rules-pack==0.5.0"   # pin a reviewed release
+python -m pip install "appsec-rules-pack==0.6.0"   # pin a reviewed release
 python examples/validation_gate.py rules --require-examples --fail-on-warnings
 ```
 
@@ -156,7 +161,7 @@ Real results against the repository fixtures:
 The same steps on Windows, verifying offline against the release's provenance bundle:
 
 ```powershell
-$version = "0.5.0"
+$version = "0.6.0"
 $tag = "v$version"
 $repo = "lucashgrifoni/AppSec-Rules-Pack"
 python -m pip install "appsec-rules-pack==$version"

@@ -15,6 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OpenSSF Best Practices badge: the project meets the passing level
   ([project 15240](https://www.bestpractices.dev/projects/15240)). The badge is in the README and on the landing page.
 
+### Fixes
+
+- The CI template in `examples/README.md` pinned 0.5.0; it now pins 0.6.0, and a test
+  keeps every documented pin equal to the package version.
+- The template's gate stopped only on open `critical` or `blocking` rules, while the
+  README suggests `critical` or `high`. The baseline has one critical rule and every rule
+  is advisory, so a record with open high-severity rules passed. The gate now also stops on
+  `high`, and a test runs the template's gate script.
+- README links to `docs/` were relative and broke on PyPI; they are absolute now.
+
+### Changed
+
+- The README says that a partial record exits 0 without `--fail-on-warnings`, defines an
+  open rule (`not-met` or `unreviewed`), and explains what a baseline upgrade does to
+  existing records.
+- The CI template notes that an expired exception fails the `review` step and that
+  `validate rules` reads subdirectories.
+
 ## v0.6.0 - 2026-10-05
 
 ### Added
