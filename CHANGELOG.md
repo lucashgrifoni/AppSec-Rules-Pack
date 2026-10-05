@@ -5,7 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## v0.4.1 - 2026-10-05
+
+Patch release: documentation and repository changes only. The validator, the rule schema,
+the JSON report, and the baseline pack (still pack version 0.4.0) are unchanged.
 
 - The default branch is now `main`. GitHub redirects links and clones that still use
   `master`; update local clones with `git branch -m master main` and
@@ -14,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the separate `gh-pages` branch is gone.
 - Rewrote the README around a quick start, a scope table, and a CLI reference. Links are
   absolute so they also work on the PyPI project page.
+- The `IaC and Pipeline - Trivy` and `Secrets History - Gitleaks` jobs now allow the hosts
+  their tool binaries download from, so they pass without a warm cache.
 
 ## v0.4.0 - 2026-10-05
 

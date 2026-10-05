@@ -6,7 +6,7 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
-**Released:** `appsec-rules-pack` **0.4.0**, published to PyPI via Trusted Publishing
+**Released:** `appsec-rules-pack` **0.4.1**, published to PyPI via Trusted Publishing
 (OIDC, no long-lived credential). The release workflow publishes the wheel, the sdist, a
 CycloneDX SBOM, `appsec-baseline.yaml`, and the signed provenance bundle
 (`appsec-rules-pack-<tag>.intoto.jsonl`) as GitHub Release assets. Its SLSA

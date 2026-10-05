@@ -53,8 +53,8 @@ Mapping coverage of the baseline: ASVS 5.0, API Top 10 2023, CWE, and NIST SSDF 
 ## Quick start
 
 ```bash
-pip install "appsec-rules-pack==0.4.0"
-curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.4.0/appsec-baseline.yaml
+pip install "appsec-rules-pack==0.4.1"
+curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.4.1/appsec-baseline.yaml
 appsec-rules validate appsec-baseline.yaml --require-examples --fail-on-warnings
 ```
 
@@ -67,7 +67,7 @@ pip install appsec-rules-pack
 ```
 
 This installs the `appsec-rules` console script and requires Python 3.12 or newer. Pin a
-reviewed version, such as `appsec-rules-pack==0.4.0`, when the CLI runs as a quality gate.
+reviewed version, such as `appsec-rules-pack==0.4.1`, when the CLI runs as a quality gate.
 
 The distribution contains the validator, the CLI, and the JSON Schema. It does not contain
 a rules pack. Take the baseline from the assets of the
@@ -96,7 +96,7 @@ Verify a downloaded asset with a current [GitHub CLI](https://cli.github.com/man
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
   --signer-workflow lucashgrifoni/AppSec-Rules-Pack/.github/workflows/publish-pypi.yml \
-  --source-ref refs/tags/v0.4.0
+  --source-ref refs/tags/v0.4.1
 ```
 
 Or offline, against the bundle attached to the release:
@@ -104,7 +104,7 @@ Or offline, against the bundle attached to the release:
 ```bash
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
-  --bundle appsec-rules-pack-v0.4.0.intoto.jsonl
+  --bundle appsec-rules-pack-v0.4.1.intoto.jsonl
 ```
 
 The same commands work for the wheel, the sdist, and `sbom.cdx.json`. A passing check proves
