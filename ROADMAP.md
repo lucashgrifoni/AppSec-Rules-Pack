@@ -82,6 +82,7 @@ statement of intent, not a delivery commitment, and is kept consistent with
 
 - No customer-specific controls, secrets, identifiers, endpoints, or proprietary data.
 - No production enforcement integration in the current increment.
-- No scanner-specific rule execution engine (Semgrep, CodeQL, OPA/Rego, SARIF
-  emission) bundled into the validator.
+- No scanner-specific rule execution engine (Semgrep, CodeQL, OPA/Rego) and no SARIF
+  results bundled into the validator; the SARIF export is a rule catalog with an empty
+  `results` array.
 - No vulnerability severity claims without evidence from the local rule content.

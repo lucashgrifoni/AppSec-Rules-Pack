@@ -86,12 +86,15 @@ python -m venv .venv
 
 ## Verify a release
 
-Every release is built and published by
+Releases from v0.2.0 on are built and published by
 [`publish-pypi.yml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/.github/workflows/publish-pypi.yml) through PyPI Trusted Publishing,
-with no long-lived token. Each GitHub Release carries the wheel, the sdist, a CycloneDX SBOM
-(`sbom.cdx.json`), the baseline pack, and, from v0.4.0, the signed provenance bundle
-(`appsec-rules-pack-<tag>.intoto.jsonl`). The wheel, sdist, SBOM, and baseline pack carry a
-SLSA build-provenance attestation.
+with no long-lived token. From v0.3.1, each GitHub Release carries the wheel, the sdist, a
+CycloneDX SBOM (`sbom.cdx.json`), and the baseline pack, all four with a SLSA
+build-provenance attestation; from v0.4.0 it also carries the signed provenance bundle
+(`appsec-rules-pack-<tag>.intoto.jsonl`). From v0.5.0, a release is published only from a
+tag on `main` that matches the package version and passes the tests, and the files are
+built with hash-pinned tools in a job that cannot publish. v0.1.0 was published by hand and
+has no attestation. All release tags are signed.
 
 Verify a downloaded asset with a current [GitHub CLI](https://cli.github.com/manual/gh_attestation_verify):
 
@@ -331,6 +334,9 @@ and false negatives. Run the fixture suite with a separately installed engine:
 python -m pip install "semgrep==1.179.0"
 semgrep --test --strict --metrics=off --config exports/semgrep-rules/rules exports/semgrep-rules/tests
 ```
+
+CI runs this on Linux. Use Linux, macOS, or WSL: on native Windows, `semgrep --test` did
+not run these fixtures in a check on 2026-10-05.
 
 The `appsec-rules` CLI never invokes Semgrep, and `export semgrep` still emits only the
 metadata scaffold.
