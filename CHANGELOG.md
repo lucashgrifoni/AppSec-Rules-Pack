@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Coverage-guided fuzzing of the loader and validator with Atheris (`fuzz/fuzz_validate.py`),
+  run for two minutes in a new `Fuzzing (Atheris)` CI job with a hash-locked install. A
+  first 60-second local run executed 2,231 inputs and found no crash.
 - OpenSSF Best Practices badge: the project meets the passing level
   ([project 15240](https://www.bestpractices.dev/projects/15240)). The badge is in the README and on the landing page.
 

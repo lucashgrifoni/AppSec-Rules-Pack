@@ -144,7 +144,8 @@ characteristics, not a per-machine benchmark. The CLI adds Python start-up time 
     flagging those, and that is an accepted position.
   - `Fuzzing`: since v0.5.0 a property-based harness (Hypothesis, `tests/property/`) covers
     the loader, validator, JSON report, and `review`, and runs in its own CI job. It found
-    two crashes before the release.
+    two crashes before the release. Scorecard recognizes only Atheris for Python, so a
+    coverage-guided Atheris target (`fuzz/fuzz_validate.py`) now runs in CI as well.
 - The prior workflow review found two required checks with no applicable files.
   `SCA - Trivy` finds no dependency manifest it can parse (the project uses a setuptools
   `pyproject.toml` with no lockfile), and `IaC and Pipeline - Trivy` finds no supported configuration file (there is
