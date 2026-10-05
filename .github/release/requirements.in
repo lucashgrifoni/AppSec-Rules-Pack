@@ -1,0 +1,7 @@
+# Tools the release `build` job installs. Locked with hashes in requirements.txt:
+#   uv pip compile .github/release/requirements.in --generate-hashes --universal \
+#     --python-version 3.12 -o .github/release/requirements.txt
+build==1.6.1
+setuptools==84.0.0
+wheel==0.45.1
+cyclonedx-bom==7.3.0

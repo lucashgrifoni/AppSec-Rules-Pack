@@ -23,8 +23,9 @@ python -m venv ../appsec-semgrep-venv
   --metrics=off --disable-version-check --error /path/to/application
 ```
 
-On Windows use `..\appsec-semgrep-venv\Scripts\python.exe` and
-`..\appsec-semgrep-venv\Scripts\semgrep.exe`. Keep this optional environment
+CI runs this layer on Linux. On Windows, run it inside WSL: a native Windows run of
+`semgrep --test` did not execute these fixtures in a check on 2026-10-05. Keep this
+optional environment
 outside the application directory you scan. `--error` makes findings fail the
 command; adapt that policy only after reviewing the noise in your application.
 Rules and tests are repository artifacts, not bundled with the PyPI validator.

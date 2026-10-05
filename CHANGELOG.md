@@ -27,6 +27,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The reference policy gate also checks the worked review record and blocks on open
   blocking or critical rules.
 
+### Release pipeline
+
+- The release workflow is split into three jobs. `verify` checks that the tag points at
+  a commit on `main` and matches the package version, then runs lint, tests, and strict
+  validation. `build` installs hash-pinned tools (`.github/release/requirements.txt`)
+  with egress limited to GitHub and PyPI, builds with `--no-isolation`, and writes the
+  SBOM. `release` holds the OIDC token, installs nothing, and attests and publishes the
+  files it receives ([ADR-0007](docs/adr/0007-dependency-locking.md), #26).
+- README and landing page now state which releases carry which evidence: v0.1.0 was
+  published by hand with no attestation, and every asset is attested from v0.3.1.
+- SECURITY.md names 0.5.x as the supported line.
+
 ### Tests
 
 - Property-based harness for the loader, validator, CLI JSON report, and `review`
