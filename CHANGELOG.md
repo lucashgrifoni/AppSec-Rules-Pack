@@ -7,8 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.7.0 - 2026-10-06
+
+### Upgrade notes
+
+- Baseline pack 0.7.0 declares `schema_version: "0.7"`. Validate it with package 0.7.0 or
+  later; an older CLI refuses it with `schema-version-unsupported`.
+- Four rules are new, so an existing record shows them as `unreviewed` with
+  `review-missing-result` until it has a result for each, plus
+  `review-pack-version-mismatch` until `pack_version` says 0.7.0. `init-review` prints
+  the full rule list if you want to compare.
+- `not-met` and `not-applicable` results without `notes` now warn
+  (`review-justification-missing`). A record that passed `--fail-on-warnings` on 0.6.0
+  fails on 0.7.0 until each of those results says why.
+- `mappings.owasp_asvs` is now optional, and `APPSEC-LLM-001` has none. Code that reads
+  the index or the pack and indexes `owasp_asvs` directly must treat it as absent.
+
 ### Added
 
+- Four baseline rules, each with examples, mappings, and a row in
+  `docs/mapping-rationale.md`. Each came from a gap found when the 0.6.0 baseline was used
+  to review the internal test labs:
+  - `APPSEC-AUTHZ-002`: function-level authorization on privileged operations
+    (API5:2023, ASVS V8.2, CWE-285). Two labs let any signed-in user call admin routes.
+  - `APPSEC-LLM-001`: untrusted content must not act as LLM instructions, and model
+    output is validated before use (LLM01, LLM05, LLM07:2025; CWE-1427).
+  - `APPSEC-LLM-002`: LLM tools and retrieval are limited to the caller's permissions
+    (LLM06, LLM08:2025; ASVS V8.3; CWE-250, CWE-441).
+  - `APPSEC-LOG-002`: an audit trail of access to sensitive records (ASVS V16.3, V16.4;
+    CWE-778).
+  The baseline now has 24 rules, pack version 0.7.0.
+- `appsec-rules init-review <pack> <record> --subject ... --reviewer ...` writes a record
+  with one `not-met` result per enabled rule, which warns until each rule is filled in.
+- Warning `review-justification-missing` for `not-met` and `not-applicable` results
+  without `notes`.
+- Optional `review.subject_ref` in the record, for the exact revision reviewed.
+- Optional `owasp_llm_top_10_2025` mapping, with a format check, in the schema, the
+  coverage report, and the SARIF and Semgrep exports.
+- `export index` includes each rule's `exceptions` policy.
+- Keys starting with `x-` on a record result are copied into that rule's entry in the
+  JSON report; they used to be accepted and dropped.
 - Coverage-guided fuzzing of the loader and validator with Atheris (`fuzz/fuzz_validate.py`),
   run for two minutes in a new `Fuzzing (Atheris)` CI job with a hash-locked install. A
   first 60-second local run executed 2,231 inputs and found no crash.
@@ -17,16 +55,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixes
 
-- The CI template in `examples/README.md` pinned 0.5.0; it now pins 0.6.0, and a test
-  keeps every documented pin equal to the package version.
+- The CI template in `examples/README.md` pinned 0.5.0; it now pins the current release,
+  and a test keeps every documented pin equal to the package version.
 - The template's gate stopped only on open `critical` or `blocking` rules, while the
   README suggests `critical` or `high`. The baseline has one critical rule and every rule
   is advisory, so a record with open high-severity rules passed. The gate now also stops on
   `high`, and a test runs the template's gate script.
 - README links to `docs/` were relative and broke on PyPI; they are absolute now.
 
+- When a record is invalid, the text summary of `review` said "0 rules; 0 met, ..." as if
+  the pack were empty. It now says the record could not be checked.
+- A malformed rule id or date in a record reported the raw regular expression; the
+  message now shows the expected form.
+
 ### Changed
 
+- `mappings.owasp_asvs` is optional (rule schema `$id` moves to v0.7.0). Map to ASVS
+  whenever a section covers the rule; `docs/rule-fields.md` explains the exception.
+- The record schema `$id` moves to v0.7.0 for `subject_ref`.
+- The README quick start covers virtual environments and downloading the baseline in
+  PowerShell.
 - The README says that a partial record exits 0 without `--fail-on-warnings`, defines an
   open rule (`not-met` or `unreviewed`), and explains what a baseline upgrade does to
   existing records.

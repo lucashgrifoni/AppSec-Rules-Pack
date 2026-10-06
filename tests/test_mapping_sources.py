@@ -19,7 +19,7 @@ ASVS_IDS = set(SNAPSHOT["sections"]) | set(SNAPSHOT["requirements"])
 
 @pytest.mark.parametrize("rule", BASELINE["rules"], ids=lambda rule: rule["id"])
 def test_baseline_asvs_ids_exist_in_official_release(rule: dict) -> None:
-    for identifier in rule["mappings"]["owasp_asvs"]:
+    for identifier in rule["mappings"].get("owasp_asvs", []):
         assert identifier in ASVS_IDS, f"{rule['id']}: {identifier} is absent in ASVS 5.0.0"
 
 
@@ -33,5 +33,5 @@ def test_mapping_rationale_covers_every_rule_with_its_final_ids() -> None:
     assert set(rows) == {rule["id"] for rule in BASELINE["rules"]}
     for rule in BASELINE["rules"]:
         for framework in ("owasp_asvs", "nist_ssdf"):
-            for identifier in rule["mappings"][framework]:
+            for identifier in rule["mappings"].get(framework, []):
                 assert identifier in rows[rule["id"]], (rule["id"], identifier)

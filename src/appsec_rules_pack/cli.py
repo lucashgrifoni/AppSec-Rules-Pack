@@ -14,7 +14,7 @@ from appsec_rules_pack import __version__
 from appsec_rules_pack.exporter import build_index
 from appsec_rules_pack.loader import load_yaml_file
 from appsec_rules_pack.reporter import build_coverage
-from appsec_rules_pack.review import ReviewResult, review_files
+from appsec_rules_pack.review import ReviewResult, review_files, review_payloads
 from appsec_rules_pack.sarif_export import build_sarif
 from appsec_rules_pack.semgrep_scaffold import (
     PATTERN_PLACEHOLDER,
@@ -553,6 +553,7 @@ def _review_report(result: ReviewResult, passed: bool) -> dict:
         }
         if outcome.notes is not None:
             entry["notes"] = outcome.notes
+        entry.update(outcome.extensions)
         results.append(entry)
     return {
         "schema": REVIEW_REPORT_SCHEMA,
@@ -619,6 +620,15 @@ def review(
         rule = f" [{issue.rule_id}]" if issue.rule_id else ""
         typer.echo(f"{_format_issue(issue)}{rule}")
 
+    if result.review is None:
+        # Nothing was checked, so rule counts of zero would read as an empty pack.
+        typer.echo(
+            "Review failed: the record could not be checked against the pack; "
+            f"{_plural(result.error_count, 'error', 'errors')}, "
+            f"{_plural(result.warning_count, 'warning', 'warnings')}."
+        )
+        raise typer.Exit(code=1)
+
     counts = result.status_counts()
     open_count = counts["not-met"] + counts["unreviewed"]
     verdict = "passed" if passed else "failed"
@@ -657,4 +667,120 @@ def init(path: InitPathArg, force: ForceOpt = False) -> None:
     typer.echo(
         f"Wrote a starter pack to {path}. Next: appsec-rules validate {path} "
         "--require-examples --fail-on-warnings"
+    )
+
+
+RecordPathArg = Annotated[
+    Path,
+    typer.Argument(dir_okay=False, help="Where to write the new review record."),
+]
+SubjectOpt = Annotated[
+    str,
+    typer.Option("--subject", help="What is being reviewed: a service, repository, or release."),
+]
+ReviewerOpt = Annotated[
+    str,
+    typer.Option("--reviewer", help="Who is doing the review."),
+]
+SubjectRefOpt = Annotated[
+    str | None,
+    typer.Option(
+        "--subject-ref",
+        help="Exact revision reviewed: a commit SHA, tag, image digest, or package version.",
+    ),
+]
+
+RECORD_HEADER = """\
+# Review record for {pack} {version}, written by `appsec-rules init-review`.
+# Every enabled rule starts as not-met with no notes. Change each one to:
+#   met             with evidence: what you checked, and where
+#   not-met         with notes: the finding
+#   not-applicable  with notes: why the rule does not apply to this subject
+#   excepted        with an exception block (`appsec-rules export index` shows each
+#                   rule's exception policy)
+# Until a rule has its evidence or notes, `appsec-rules review` warns
+# review-justification-missing for it, so a run with --fail-on-warnings fails.
+"""
+
+
+def _yaml_text(value: str) -> str:
+    # A JSON string is a valid double-quoted YAML scalar, whatever characters it holds.
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _record_document(
+    pack: dict[str, Any], subject: str, reviewer: str, subject_ref: str | None, today: dt.date
+) -> str:
+    meta = pack["pack"]
+    lines = [RECORD_HEADER.format(pack=meta["id"], version=meta["version"]).rstrip("\n")]
+    lines += [
+        "review:",
+        f"  pack: {_yaml_text(meta['id'])}",
+        f"  pack_version: {_yaml_text(meta['version'])}",
+        f"  subject: {_yaml_text(subject)}",
+    ]
+    if subject_ref is not None:
+        lines.append(f"  subject_ref: {_yaml_text(subject_ref)}")
+    lines += [
+        f"  reviewer: {_yaml_text(reviewer)}",
+        f'  date: "{today.isoformat()}"',
+        "results:",
+    ]
+    for rule in pack["rules"]:
+        if rule["status"] != "enabled":
+            continue
+        title = " ".join(rule["title"].split())
+        lines += [
+            f"  # {title} ({rule['severity']}, {rule['enforcement']})",
+            f"  - rule: {rule['id']}",
+            "    status: not-met",
+        ]
+    return "\n".join(lines) + "\n"
+
+
+@app.command("init-review")
+def init_review(
+    pack: ReviewInputArg,
+    path: RecordPathArg,
+    subject: SubjectOpt,
+    reviewer: ReviewerOpt,
+    subject_ref: SubjectRefOpt = None,
+    force: ForceOpt = False,
+) -> None:
+    """Write a review record that lists every enabled rule of a pack, to fill in.
+
+    Each rule starts as not-met with no notes, so the record counts every rule as open
+    and warns until each one is reviewed.
+    """
+
+    if path.exists() and not force:
+        typer.echo(f"Init failed: {path} already exists; pass --force to overwrite.", err=True)
+        raise typer.Exit(code=1)
+
+    validation = validate_rules_file(pack)
+    if not validation.ok:
+        noun = "error" if validation.error_count == 1 else "errors"
+        typer.echo(
+            f"Init failed: the rules pack has {validation.error_count} validation {noun}; "
+            f"run `appsec-rules validate {pack}` first.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    payload = load_yaml_file(pack)
+    today = dt.datetime.now(dt.UTC).date()
+    document = _record_document(payload, subject, reviewer, subject_ref, today)
+    # Check the record before writing it, so a bad --subject or --reviewer value fails
+    # here instead of on the first review.
+    check = review_payloads(payload, yaml.safe_load(document), as_of=today)
+    if not check.ok:
+        for issue in check.issues:
+            if issue.level == "error":
+                typer.echo(f"Init failed: {_issue_path_str(issue)}: {issue.message}", err=True)
+        raise typer.Exit(code=1)
+
+    _write_document(path, document, (pack,))
+    typer.echo(
+        f"Wrote a review record with {_plural(len(check.outcomes), 'rule', 'rules')} to {path}. "
+        f"Next: fill it in, then appsec-rules review {pack} {path} --fail-on-warnings"
     )

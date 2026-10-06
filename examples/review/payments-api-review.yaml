@@ -4,8 +4,9 @@
 #   appsec-rules review rules/appsec-baseline.yaml examples/review/payments-api-review.yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.6.0
+  pack_version: 0.7.0
   subject: payments-api (JSON API behind the public gateway)
+  subject_ref: payments-api v3.2.0 (commit 3f2c9a1)
   reviewer: appsec-team
   date: 2026-10-01
   scope: Release 3.2 of payments-api; the admin console is reviewed separately.
@@ -116,3 +117,23 @@ results:
   - rule: APPSEC-PWSTORE-001
     status: not-applicable
     notes: The service stores no passwords; users authenticate at the gateway.
+
+  - rule: APPSEC-AUTHZ-002
+    status: met
+    evidence:
+      - Refund and payout routes require the payments:refund permission in src/payments/routes.py.
+      - tests/test_authz.py::test_read_only_role_cannot_refund
+
+  - rule: APPSEC-LLM-001
+    status: not-applicable
+    notes: The service has no feature that calls a language model.
+
+  - rule: APPSEC-LLM-002
+    status: not-applicable
+    notes: The service has no feature that calls a language model.
+
+  - rule: APPSEC-LOG-002
+    status: met
+    evidence:
+      - Reads of card-holder records emit an audit event to the append-only audit topic.
+      - tests/test_audit.py::test_cardholder_read_is_audited

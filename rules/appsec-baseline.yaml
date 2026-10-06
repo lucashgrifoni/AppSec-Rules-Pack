@@ -1,7 +1,8 @@
 pack:
   id: appsec-baseline
   name: AppSec Baseline Rules Pack
-  version: 0.6.0
+  version: 0.7.0
+  schema_version: "0.7"
   mode: advisory
   owner: appsec
   description: Generic application security baseline rules for review and CI evidence.
@@ -1285,3 +1286,257 @@ rules:
 
           user.password_hash = hashlib.md5(password.encode()).hexdigest()
         explanation: Unsalted MD5 is fast to compute, so a leaked table can be cracked with precomputed or brute-force attacks.
+
+  - id: APPSEC-AUTHZ-002
+    title: Enforce function-level authorization on privileged operations
+    description: Verify that every administrative or privileged operation checks the caller's role or permission on the server, so an authenticated user cannot call a function that their role does not grant.
+    severity: high
+    category: authorization
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V8.2
+      owasp_api_top_10_2023:
+        - API5:2023
+      owasp_top_10_2025:
+        - A01:2025
+      cwe:
+        - CWE-285
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Each privileged route, RPC method, or job trigger checks the caller's role or permission on the server, and an operation with no declared policy is denied.
+        - The policy is attached to the function itself, not inferred from the URL path, a hidden UI control, or a client-supplied role.
+      signals:
+        - Tests where a regular user calls each administrative or privileged endpoint and receives a denial.
+        - A route inventory compared against the permission map, with no privileged route left unmapped.
+    match:
+      type: review
+      includes:
+        - Administrative routes, role and account management, approval and state-transition actions, bulk export, and internal RPC methods.
+      excludes:
+        - Endpoints that are public by design and documented as such, such as health checks and sign-in pages.
+    remediation:
+      guidance: Declare a required permission on every privileged function, check it on the server against the authenticated principal, and deny by default when no policy is declared.
+      validation:
+        - Add tests where a user without the role calls each privileged function and is denied.
+        - Confirm that removing a role takes effect on the next request.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          @app.post("/admin/users/<user_id>/role")
+          @login_required
+          @require_permission("users:manage")
+          def set_role(user_id):
+              users.set_role(user_id, request.json["role"])
+        explanation: The route checks a named permission on the server before the role change runs.
+      violating:
+        language: python
+        snippet: |
+          @app.post("/admin/users/<user_id>/role")
+          @login_required
+          def set_role(user_id):
+              users.set_role(user_id, request.json["role"])
+        explanation: Any signed-in user can call the admin function, because only authentication is checked (broken function-level authorization).
+
+  - id: APPSEC-LLM-001
+    title: Keep untrusted content from acting as LLM instructions
+    description: Verify that user input, retrieved documents, and tool output reach the model separately from the system instructions, and that model output is validated before the application acts on it, so an injected instruction cannot change what the feature does or discloses.
+    severity: high
+    category: injection
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - api
+    mappings:
+      owasp_llm_top_10_2025:
+        - LLM01:2025
+        - LLM05:2025
+        - LLM07:2025
+      cwe:
+        - CWE-1427
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - System instructions and untrusted content (user input, retrieved documents, web pages, tool output) are passed as separate messages or delimited fields, never concatenated into one instruction string.
+        - Model output is parsed and validated before it reaches a tool call, query, shell, file path, or rendered markup, and the system prompt and model context hold no secrets.
+      signals:
+        - Tests that send known injection payloads through user input and through retrieved content, and check that behavior and disclosure do not change.
+        - Review of every place model output is used, with the validation applied at each.
+    match:
+      type: review
+      includes:
+        - Chat, summarization, classification, and agent features that send user input or retrieved content to a language model, and the code that consumes the model's output.
+      excludes:
+        - Offline model evaluation with fixed, trusted inputs and no downstream action.
+    remediation:
+      guidance: Keep instructions and untrusted content in separate fields, constrain and validate model output against a fixed schema before using it, and keep secrets out of prompts and context.
+      validation:
+        - Add tests with injection payloads in user input and in retrieved documents.
+        - Confirm that output failing the schema is rejected and not passed to a tool or renderer.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          reply = llm.chat(messages=[
+              {"role": "system", "content": SYSTEM_PROMPT},
+              {"role": "user", "content": request.json["message"]},
+          ])
+          answer = Answer.model_validate_json(reply.content)
+        explanation: The user's text stays a separate message, and the reply must parse into a fixed schema before the application uses it. Neither step stops injection alone; together they keep injected text from becoming application behavior.
+      violating:
+        language: python
+        snippet: |
+          prompt = SYSTEM_PROMPT + "\nUser: " + request.json["message"]
+          return llm.complete(prompt)
+        explanation: The user's text is joined to the instructions, so a message such as "ignore the instructions above" is read as one, and the raw reply goes back unchecked.
+
+  - id: APPSEC-LLM-002
+    title: Limit LLM tools and retrieval to the caller's permissions
+    description: Verify that an LLM feature can call only allowlisted tools with the least privilege they need, that each tool call and each retrieval runs with the end user's permissions rather than the service's, and that sensitive actions need human approval.
+    severity: high
+    category: authorization
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+    mappings:
+      owasp_asvs:
+        - V8.3
+      owasp_llm_top_10_2025:
+        - LLM06:2025
+        - LLM08:2025
+      cwe:
+        - CWE-250
+        - CWE-441
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - The model can invoke only tools on an explicit allowlist, each scoped to the narrowest permission it needs, and no tool reads secrets or runs arbitrary commands.
+        - Every tool call and every retrieval query is authorized against the end user's permissions, so the model cannot reach data or actions the user could not reach directly.
+      signals:
+        - A human approval step for tool calls that change state, spend money, or send data outside the system.
+        - Tests where a user asks the model to call a tool or retrieve a document outside their permissions, and the request is denied.
+    match:
+      type: review
+      includes:
+        - Agent and tool-calling code, function-calling schemas, retrieval-augmented generation queries, and vector store access.
+      excludes:
+        - Model features that call no tools and retrieve nothing.
+    remediation:
+      guidance: Register tools on an allowlist with minimal scopes, pass the end user's identity into every tool and retrieval call and authorize there, and require approval for sensitive actions.
+      validation:
+        - Add tests where the model requests a tool or document outside the user's permissions.
+        - Confirm the service credentials used by tools cannot reach data beyond what the feature needs.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          ALLOWED_TOOLS = {"search_docs"}
+
+          if call.name not in ALLOWED_TOOLS or not user.can(call.name):
+              raise Forbidden(call.name)
+          return TOOLS[call.name](user=user, **call.arguments)
+        explanation: Only allowlisted tools run, each call is checked against the end user's permission, and the tool receives the user, so its data access uses the user's scope.
+      violating:
+        language: python
+        snippet: |
+          tool = TOOLS[call.name]  # includes read_secret_file
+          return tool(**call.arguments)
+        explanation: The model can call any registered tool, including one that reads secrets, and every call runs with the service's own credentials (excessive agency).
+
+  - id: APPSEC-LOG-002
+    title: Keep an audit trail of access to sensitive records
+    description: Verify that reads and changes of sensitive records leave an audit event saying who accessed which record, when, and how, in a store that application users cannot alter, so access can be investigated later.
+    severity: medium
+    category: logging
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - data
+    mappings:
+      owasp_asvs:
+        - V16.3
+        - V16.4
+      owasp_top_10_2025:
+        - A09:2025
+      cwe:
+        - CWE-778
+      nist_ssdf:
+        - PW.5
+    evidence:
+      required:
+        - Reads and changes of sensitive records (health, financial, personal, or credential data) produce an audit event with actor, record identifier, action, time, and outcome, without the sensitive values themselves.
+        - Audit events go to a store that application users and the application's runtime role cannot modify or delete, kept for the period the data's policy requires.
+      signals:
+        - Tests asserting that reading a sensitive record emits exactly one audit event with the expected fields.
+        - A list of sensitive-data endpoints compared against the audit calls, with none missing.
+    match:
+      type: review
+      includes:
+        - Endpoints, exports, reports, and jobs that read or change records classified as sensitive.
+      excludes:
+        - Aggregated or anonymized data that cannot be tied back to a person or account.
+    remediation:
+      guidance: Emit a structured audit event at every read and change of a sensitive record, send it to an append-only store outside the application's control, and set retention from the data policy.
+      validation:
+        - Add tests that read and update a sensitive record and assert the audit event.
+        - Confirm that the application's runtime role cannot delete or edit audit events.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          @app.get("/patients/<patient_id>/chart")
+          def chart(patient_id):
+              record = charts.get_for(current_user, patient_id)
+              audit.record(actor=current_user.id, action="chart.read", resource=patient_id)
+              return record
+        explanation: Each read leaves an audit event with the actor, action, and record id, and no clinical data in the event itself.
+      violating:
+        language: python
+        snippet: |
+          @app.get("/patients/<patient_id>/chart")
+          def chart(patient_id):
+              return charts.get_for(current_user, patient_id)
+        explanation: Clinical records are read with no trace of who read them, so misuse by an authorized user cannot be investigated.

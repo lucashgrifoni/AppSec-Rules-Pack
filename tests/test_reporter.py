@@ -38,22 +38,26 @@ def test_build_coverage_summary() -> None:
     coverage = build_coverage_from_files([BASELINE_PATH])
 
     assert coverage["schema"] == COVERAGE_SCHEMA
-    assert coverage["rules"] == 20
+    assert coverage["rules"] == 24
 
     fw = coverage["frameworks"]
     # Required mappings are present on every rule.
-    for required in ("owasp_asvs", "cwe", "nist_ssdf"):
-        assert fw[required]["covered"] == 20
+    for required in ("cwe", "nist_ssdf"):
+        assert fw[required]["covered"] == 24
         assert fw[required]["missing"] == []
 
-    # The optional mappings are partial by design: APPSEC-PWSTORE-001 has no API Top 10
-    # category, and APPSEC-FILE-001 has no Top 10:2025 category.
+    # The optional mappings are partial by design (docs/mapping-rationale.md): ASVS 5.0.0
+    # has no requirement for LLM prompts, and the general Top 10 lists are not stretched
+    # over rules that have no category there.
+    llm_rules = ["APPSEC-LLM-001", "APPSEC-LLM-002"]
     for optional, missing in (
-        ("owasp_api_top_10_2023", ["APPSEC-PWSTORE-001"]),
-        ("owasp_top_10_2025", ["APPSEC-FILE-001"]),
+        ("owasp_asvs", ["APPSEC-LLM-001"]),
+        ("owasp_api_top_10_2023", ["APPSEC-PWSTORE-001", *llm_rules, "APPSEC-LOG-002"]),
+        ("owasp_top_10_2025", ["APPSEC-FILE-001", *llm_rules]),
     ):
-        assert fw[optional]["covered"] == 19
         assert fw[optional]["missing"] == missing
+        assert fw[optional]["covered"] == 24 - len(missing)
+    assert fw["owasp_llm_top_10_2025"]["covered"] == 2
 
     assert coverage["categories"]  # non-empty category distribution
 
@@ -62,7 +66,7 @@ def test_cli_report_coverage_text() -> None:
     result = runner.invoke(app, ["report", "coverage", str(BASELINE_PATH)])
 
     assert result.exit_code == 0
-    assert "Mapping coverage for 20 rules:" in result.output
+    assert "Mapping coverage for 24 rules:" in result.output
     assert "owasp_asvs" in result.output
 
 
@@ -72,7 +76,7 @@ def test_cli_report_coverage_json() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.output)
     assert payload["schema"] == COVERAGE_SCHEMA
-    assert payload["rules"] == 20
+    assert payload["rules"] == 24
 
 
 def test_cli_report_coverage_to_file(tmp_path: Path) -> None:
@@ -85,7 +89,7 @@ def test_cli_report_coverage_to_file(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert out.exists()
     payload = json.loads(out.read_text(encoding="utf-8"))
-    assert payload["rules"] == 20
+    assert payload["rules"] == 24
 
 
 def test_cli_report_coverage_no_rule_files(tmp_path: Path) -> None:

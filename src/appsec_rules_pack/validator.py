@@ -22,7 +22,7 @@ StringItem = tuple[IssuePath, str]
 
 MAX_EXCEPTION_DAYS = 90
 # Highest rules-pack schema version this validator understands (pack.schema_version).
-SUPPORTED_SCHEMA_VERSION = (0, 5)
+SUPPORTED_SCHEMA_VERSION = (0, 7)
 REQUIRED_EXCEPTION_FIELDS = ("owner", "justification", "expires_at")
 RULE_SCHEMA = "appsec-rule.schema.json"
 
@@ -31,6 +31,7 @@ RULE_SCHEMA = "appsec-rule.schema.json"
 #   CWE -> CWE-<number>
 #   NIST SSDF SP 800-218 -> practices PO/PS/PW/RV with optional task suffix
 #   OWASP ASVS -> chapter/section dotted V-notation
+#   OWASP Top 10 for LLM Applications 2025 -> LLM01:2025 .. LLM10:2025
 MAPPING_ID_PATTERNS: dict[str, tuple[re.Pattern[str], str]] = {
     "owasp_asvs": (
         re.compile(r"^V\d+(\.\d+){1,2}$"),
@@ -43,6 +44,10 @@ MAPPING_ID_PATTERNS: dict[str, tuple[re.Pattern[str], str]] = {
     "owasp_top_10_2025": (
         re.compile(r"^A(0[1-9]|10):2025$"),
         "expected an OWASP Top 10:2025 id such as A01:2025",
+    ),
+    "owasp_llm_top_10_2025": (
+        re.compile(r"^LLM(0[1-9]|10):2025$"),
+        "expected an OWASP Top 10 for LLM Applications 2025 id such as LLM01:2025",
     ),
     "cwe": (
         re.compile(r"^CWE-\d+$"),
@@ -277,6 +282,15 @@ def _with_string_keys(value: Any) -> Any:
     return value
 
 
+# Plain-language messages for the schema patterns people get wrong most often. Any other
+# pattern still reports the regex.
+_PATTERN_HINTS = {
+    "^[A-Z][A-Z0-9]*-[A-Z0-9]+-[0-9]{3}$": (
+        "value must be a rule id in PREFIX-AREA-NNN form, such as APPSEC-AUTHZ-001"
+    ),
+    "^[0-9]{4}-[0-9]{2}-[0-9]{2}$": "value must be a date in YYYY-MM-DD form",
+}
+
 _SCHEMA_ISSUE_CODES = {
     "required": "schema-missing-field",
     "additionalProperties": "schema-unexpected-field",
@@ -374,6 +388,9 @@ def _schema_issue_message(error: jsonschema.ValidationError) -> str:
         return f"invalid type; expected {expected_type}"
 
     if error.validator == "pattern":
+        hint = _PATTERN_HINTS.get(str(error.validator_value))
+        if hint is not None:
+            return hint
         return f"value does not match required pattern: {error.validator_value}"
 
     if error.validator == "minLength":

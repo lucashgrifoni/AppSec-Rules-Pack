@@ -25,6 +25,7 @@ _RULE_KEYS = {
     "enforcement",
     "targets",
     "mappings",
+    "exceptions",
 }
 
 
@@ -38,9 +39,9 @@ def test_build_index_derives_pack_and_rule_summaries() -> None:
     assert pack["pack"] == {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.6.0",
+        "version": "0.7.0",
     }
-    assert len(pack["rules"]) == 20
+    assert len(pack["rules"]) == 24
 
     first = pack["rules"][0]
     assert first["id"] == "APPSEC-AUTHZ-001"
@@ -49,6 +50,18 @@ def test_build_index_derives_pack_and_rule_summaries() -> None:
     assert "examples" not in first
     assert "match" not in first
     assert "evidence" not in first
+
+
+def test_index_carries_each_rule_exception_policy() -> None:
+    # A reviewer filling in a record needs to know which rules accept an exception and
+    # which fields it must carry, without reading the whole pack.
+    payload = load_yaml_file(BASELINE_PATH)
+    index = build_index_from_files([BASELINE_PATH])
+
+    policies = {rule["id"]: rule["exceptions"] for rule in index["packs"][0]["rules"]}
+
+    assert policies == {rule["id"]: rule["exceptions"] for rule in payload["rules"]}
+    assert policies["APPSEC-INJECT-001"]["allowed"] is False
 
 
 def test_index_rule_order_matches_pack() -> None:
@@ -74,7 +87,7 @@ def test_cli_export_index_to_stdout() -> None:
     assert result.exit_code == 0
     payload = json.loads(result.output)
     assert payload["schema"] == INDEX_SCHEMA
-    assert len(payload["packs"][0]["rules"]) == 20
+    assert len(payload["packs"][0]["rules"]) == 24
 
 
 def test_cli_export_index_to_file(tmp_path: Path) -> None:

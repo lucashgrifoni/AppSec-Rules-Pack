@@ -47,14 +47,18 @@ characters each.
 
 | Field | Required | Format |
 | --- | --- | --- |
-| `owasp_asvs` | yes | ASVS 5.0 V-notation, such as `V8.2` or `V16.5.1` |
 | `cwe` | yes | `CWE-<number>` |
 | `nist_ssdf` | yes | SSDF practice or task, such as `PW.7` or `PW.7.2` |
+| `owasp_asvs` | no (required before schema 0.7) | ASVS 5.0 V-notation, such as `V8.2` or `V16.5.1` |
 | `owasp_api_top_10_2023` | no | `API1:2023` to `API10:2023` |
 | `owasp_top_10_2025` | no | `A01:2025` to `A10:2025` |
+| `owasp_llm_top_10_2025` | no | `LLM01:2025` to `LLM10:2025` |
 | `x-...` | no | string list, such as `x-pci-dss: ["6.2.4"]` |
 
 All mapping values are string lists. A malformed identifier is a warning, not an error.
+Map a rule to ASVS whenever a section covers its subject. Leave `owasp_asvs` out only when
+none does, as for prompt injection, which ASVS 5.0.0 does not address, and say why in your
+mapping notes.
 
 ### `match`
 

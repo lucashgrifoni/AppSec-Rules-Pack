@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/review-record.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.7.0/src/appsec_rules_pack/schemas/review-record.schema.json",
   "$comment": "Input of `appsec-rules review`: the outcome of reviewing one subject (a service, repository, or release) against one rules pack. See ADR-0006 and VERSIONING.md.",
   "title": "AppSec Rules Pack review record",
   "type": "object",
@@ -31,6 +31,12 @@
           "description": "pack.version at review time. A mismatch is reported as a warning."
         },
         "subject": {"$ref": "#/$defs/text"},
+        "subject_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "description": "Exact revision reviewed: a commit SHA, tag, image digest, or package version."
+        },
         "reviewer": {"$ref": "#/$defs/text"},
         "date": {"$ref": "#/$defs/date"},
         "scope": {

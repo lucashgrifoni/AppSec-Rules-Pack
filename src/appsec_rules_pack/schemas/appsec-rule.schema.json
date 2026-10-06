@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/appsec-rule.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.7.0/src/appsec_rules_pack/schemas/appsec-rule.schema.json",
   "$comment": "Canonical versioned $id pinned to the release tag. When the schema changes in a way that affects consumers, publish it under a new tag and update this $id to that tag. Packs may declare the schema version they target in pack.schema_version; see VERSIONING.md.",
   "title": "AppSec Rules Pack",
   "type": "object",
@@ -196,7 +196,7 @@
         "mappings": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["owasp_asvs", "cwe", "nist_ssdf"],
+          "required": ["cwe", "nist_ssdf"],
           "patternProperties": {
             "^x-": {
               "$ref": "#/$defs/nonEmptyStringList"
@@ -210,6 +210,9 @@
               "$ref": "#/$defs/nonEmptyStringList"
             },
             "owasp_top_10_2025": {
+              "$ref": "#/$defs/nonEmptyStringList"
+            },
+            "owasp_llm_top_10_2025": {
               "$ref": "#/$defs/nonEmptyStringList"
             },
             "cwe": {

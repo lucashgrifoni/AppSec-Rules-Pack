@@ -61,7 +61,7 @@ def test_worked_example_is_a_valid_record(baseline: dict, record: dict) -> None:
 
     assert result.issues == ()
     counts = result.status_counts()
-    assert counts == {"met": 12, "not-applicable": 6, "not-met": 1, "excepted": 1}
+    assert counts == {"met": 14, "not-applicable": 8, "not-met": 1, "excepted": 1}
 
 
 def test_cli_report_matches_the_published_schema() -> None:
@@ -70,7 +70,7 @@ def test_cli_report_matches_the_published_schema() -> None:
     jsonschema.validate(report, REPORT_SCHEMA)
     assert exit_code == 0
     assert report["schema"] == "appsec-rules-review/v1"
-    assert report["pack"] == {"id": "appsec-baseline", "version": "0.6.0"}
+    assert report["pack"] == {"id": "appsec-baseline", "version": "0.7.0"}
     assert report["summary"]["ok"] is True
     assert report["summary"]["open_by_severity"] == {"medium": 1}
     assert report["summary"]["open_by_enforcement"] == {"advisory": 1}
@@ -89,7 +89,7 @@ def test_open_rules_never_change_the_exit_code(record: dict, tmp_path: Path) -> 
     exit_code, report = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05")
 
     assert exit_code == 0
-    assert report["summary"]["not_met"] == 13
+    assert report["summary"]["not_met"] == 15
 
 
 def test_text_output_lists_rules_and_a_verdict() -> None:
@@ -97,7 +97,7 @@ def test_text_output_lists_rules_and_a_verdict() -> None:
 
     assert result.exit_code == 0
     assert "APPSEC-LOG-001" in result.stdout
-    assert result.stdout.strip().splitlines()[-1].startswith("Review passed: 20 rules; 12 met")
+    assert result.stdout.strip().splitlines()[-1].startswith("Review passed: 24 rules; 14 met")
 
 
 def test_results_follow_pack_order(baseline: dict, record: dict) -> None:
@@ -151,7 +151,7 @@ def test_second_result_for_a_rule_is_an_error(baseline: dict, record: dict) -> N
 
     assert _codes(result) == ["review-duplicate-result"]
     assert _entry(record, "APPSEC-AUTHZ-001")["status"] == "met"
-    assert result.status_counts()["met"] == 12
+    assert result.status_counts()["met"] == 14
 
 
 def test_enabled_rules_without_a_result_are_unreviewed(baseline: dict, record: dict) -> None:
@@ -435,7 +435,7 @@ def test_unknown_rule_first_does_not_stop_the_later_results(baseline: dict, reco
     result = review_payloads(baseline, record, as_of=AS_OF)
 
     assert _codes(result) == ["review-unknown-rule"]
-    assert len(result.outcomes) == 20
+    assert len(result.outcomes) == 24
 
 
 def test_duplicate_early_does_not_stop_the_later_results(baseline: dict, record: dict) -> None:
@@ -444,7 +444,7 @@ def test_duplicate_early_does_not_stop_the_later_results(baseline: dict, record:
     result = review_payloads(baseline, record, as_of=AS_OF)
 
     assert _codes(result) == ["review-duplicate-result"]
-    assert len(result.outcomes) == 20
+    assert len(result.outcomes) == 24
 
 
 def test_exception_granted_and_expiring_the_same_day(baseline: dict, record: dict) -> None:
@@ -464,4 +464,105 @@ def test_rules_that_are_not_enabled_are_not_expected_in_the_record(
     result = review_payloads(pack, record, as_of=AS_OF)
 
     assert result.issues == ()
-    assert len(result.outcomes) == 19
+    assert len(result.outcomes) == 23
+
+
+# --- v0.7.0: justification, subject_ref, x- passthrough, invalid-record summary --------
+
+
+@pytest.mark.parametrize("status", ["not-met", "not-applicable"])
+def test_open_or_ruled_out_rule_without_notes_warns(
+    baseline: dict, record: dict, status: str
+) -> None:
+    entry = _entry(record, "APPSEC-AUTHZ-001")
+    entry["status"] = status
+    entry.pop("evidence")
+
+    [issue] = review_payloads(baseline, record, as_of=AS_OF).issues
+
+    assert (issue.level, issue.code, issue.rule_id) == (
+        "warning",
+        "review-justification-missing",
+        "APPSEC-AUTHZ-001",
+    )
+
+
+def test_notes_satisfy_the_justification(baseline: dict, record: dict) -> None:
+    entry = _entry(record, "APPSEC-AUTHZ-001")
+    entry["status"] = "not-applicable"
+    entry["notes"] = "The service exposes no user-scoped objects."
+
+    assert review_payloads(baseline, record, as_of=AS_OF).issues == ()
+
+
+def test_met_and_excepted_rules_need_no_notes(baseline: dict, record: dict) -> None:
+    del _entry(record, "APPSEC-RATELIMIT-001")["notes"]
+
+    assert review_payloads(baseline, record, as_of=AS_OF).issues == ()
+
+
+def test_missing_justification_fails_only_the_strict_gate(record: dict, tmp_path: Path) -> None:
+    del _entry(record, "APPSEC-XSS-001")["notes"]
+    path = tmp_path / "record.yaml"
+    path.write_text(yaml.safe_dump(record), encoding="utf-8")
+
+    lenient, _ = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05")
+    strict, report = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05", "--fail-on-warnings")
+
+    assert lenient == 0
+    assert strict == 1
+    assert [issue["code"] for issue in report["issues"]] == ["review-justification-missing"]
+
+
+def test_subject_ref_is_kept_in_the_report() -> None:
+    _, report = _cli(str(BASELINE), str(EXAMPLE), "--as-of", "2026-10-05")
+
+    assert report["review"]["subject_ref"] == "payments-api v3.2.0 (commit 3f2c9a1)"
+
+
+def test_overlong_subject_ref_is_a_schema_error(baseline: dict, record: dict) -> None:
+    record["review"]["subject_ref"] = "x" * 241
+
+    assert _codes(review_payloads(baseline, record, as_of=AS_OF)) == ["schema-length"]
+
+
+def test_x_fields_of_a_result_reach_the_report(record: dict, tmp_path: Path) -> None:
+    entry = _entry(record, "APPSEC-LOG-001")
+    entry["x-finding-severity"] = "low"
+    entry["x-ticket"] = ["SEC-123"]
+    path = tmp_path / "record.yaml"
+    path.write_text(yaml.safe_dump(record), encoding="utf-8")
+
+    exit_code, report = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05")
+
+    jsonschema.validate(report, REPORT_SCHEMA)
+    assert exit_code == 0
+    [log] = [item for item in report["results"] if item["rule_id"] == "APPSEC-LOG-001"]
+    assert (log["x-finding-severity"], log["x-ticket"]) == ("low", ["SEC-123"])
+    [authz] = [item for item in report["results"] if item["rule_id"] == "APPSEC-AUTHZ-001"]
+    assert not any(key.startswith("x-") for key in authz)
+
+
+def test_invalid_record_summary_does_not_count_rules(record: dict, tmp_path: Path) -> None:
+    _entry(record, "APPSEC-AUTHZ-001")["status"] = "done"
+    path = tmp_path / "record.yaml"
+    path.write_text(yaml.safe_dump(record), encoding="utf-8")
+
+    result = runner.invoke(app, ["review", str(BASELINE), str(path)])
+
+    assert result.exit_code == 1
+    last = result.stdout.strip().splitlines()[-1]
+    assert last == (
+        "Review failed: the record could not be checked against the pack; 1 error, 0 warnings."
+    )
+
+
+def test_malformed_rule_id_says_what_an_id_looks_like(baseline: dict, record: dict) -> None:
+    _entry(record, "APPSEC-AUTHZ-001")["rule"] = "appsec-authz-001"
+
+    [issue] = review_payloads(baseline, record, as_of=AS_OF).issues
+
+    assert issue.code == "schema-pattern"
+    assert issue.message == (
+        "value must be a rule id in PREFIX-AREA-NNN form, such as APPSEC-AUTHZ-001"
+    )

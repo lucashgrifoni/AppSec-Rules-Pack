@@ -1,14 +1,14 @@
 # Worked review: payments-api
 
 [`payments-api-review.yaml`](payments-api-review.yaml) is the review record of a fictional
-service, `payments-api`, against the 20 rules of the baseline pack. It shows each status
+service, `payments-api`, against the 24 rules of the baseline pack. It shows each status
 a rule can have:
 
 | Status | Rules | What the record must carry |
 | --- | --- | --- |
-| `met` | 12, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
-| `not-applicable` | 6, such as `APPSEC-XSS-001` (the service renders no HTML) | Nothing; `notes` says why |
-| `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | Optional `evidence` locates the defect; `notes` describes it |
+| `met` | 14, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
+| `not-applicable` | 8, such as `APPSEC-XSS-001` (the service renders no HTML) | `notes` saying why; without it, `review-justification-missing` warns |
+| `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | `notes` describing the finding; optional `evidence` locates the defect |
 | `excepted` | `APPSEC-RATELIMIT-001` | An `exception` that the pack allows, with the fields the pack requires, inside its window |
 
 The evidence entries point into the fictional service's repository. In a real record they
@@ -33,7 +33,7 @@ APPSEC-AUTHZ-001         high      advisory  met
 APPSEC-LOG-001           medium    advisory  not-met
 ...
 APPSEC-RATELIMIT-001     medium    advisory  excepted
-Review passed: 20 rules; 12 met, 1 not met, 6 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
+Review passed: 24 rules; 14 met, 1 not met, 8 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
 ```
 
 "Review passed" means the record is consistent with the pack. It does not mean the service
@@ -42,7 +42,7 @@ with the JSON report (`--format json`). The report counts open rules by enforcem
 severity; [`examples/README.md`](../README.md#github-actions-template) has a gate that
 reads it.
 
-All 20 baseline rules are `advisory`, so
+All 24 baseline rules are `advisory`, so
 `summary.open_by_enforcement.blocking` is zero even when baseline rules are open.
 Use `summary.open_by_severity` for a severity gate, after checking the command's
 exit code and `summary.ok`. This record has `medium: 1`; `critical`, `high`, and
@@ -69,6 +69,7 @@ Change the record and run it again to see each check:
 | Move `expires_at` to 2027-01-15 | `exception-window-exceeded`: 106 days, the pack allows 90 |
 | Run without `--as-of` after 2026-12-15 | `exception-expired` |
 | Delete a result | `review-missing-result` (a warning; the rule shows as `unreviewed`) |
+| Remove the `notes` of a `not-applicable` rule | `review-justification-missing` (a warning) |
 
 [VERSIONING.md](../../VERSIONING.md#review-codes) lists every code, and
 [ADR-0006](../../docs/adr/0006-review-records.md) explains the design.
