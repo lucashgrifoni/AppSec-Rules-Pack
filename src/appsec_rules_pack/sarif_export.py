@@ -27,6 +27,7 @@ _PROPERTY_FIELDS = (
     ("owasp-asvs", "owasp_asvs"),
     ("owasp-api-top-10-2023", "owasp_api_top_10_2023"),
     ("owasp-top-10-2025", "owasp_top_10_2025"),
+    ("owasp-llm-top-10-2025", "owasp_llm_top_10_2025"),
     ("nist-ssdf", "nist_ssdf"),
 )
 

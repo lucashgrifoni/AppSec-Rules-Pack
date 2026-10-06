@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import datetime as dt
 from collections import Counter
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +28,8 @@ from appsec_rules_pack.validator import (
 
 RECORD_SCHEMA = "review-record.schema.json"
 OPEN_STATUSES = frozenset(("not-met", "unreviewed"))
+# A rule left open or ruled out needs a reason a later reader can check.
+JUSTIFIED_STATUSES = frozenset(("not-met", "not-applicable"))
 
 
 @dataclass(frozen=True)
@@ -42,6 +44,8 @@ class RuleOutcome:
     evidence: tuple[str, ...] = ()
     notes: str | None = None
     exception: dict[str, str] | None = None
+    # The record's own x- fields for this rule, passed through to the report unread.
+    extensions: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -187,6 +191,7 @@ def review_payloads(pack: Any, record: Any, *, as_of: dt.date) -> ReviewResult:
                 evidence=tuple(entry.get("evidence", ())),
                 notes=entry.get("notes"),
                 exception=entry.get("exception"),
+                extensions={key: value for key, value in entry.items() if key.startswith("x-")},
             )
         )
 
@@ -250,6 +255,17 @@ def _entry_issues(
 
     if status == "met" and not entry.get("evidence"):
         issue("review-evidence-missing", "a met rule must cite at least one piece of evidence")
+
+    if status in JUSTIFIED_STATUSES and "notes" not in entry:
+        issues.append(
+            ValidationIssue(
+                level="warning",
+                message=f"a {status} rule needs notes saying why",
+                path=path,
+                code="review-justification-missing",
+                rule_id=rule_id,
+            )
+        )
 
     if status != "excepted":
         if exception is not None:

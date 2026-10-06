@@ -39,7 +39,7 @@ permissions:
   contents: read
 
 env:
-  APPSEC_RULES_VERSION: "0.6.0"
+  APPSEC_RULES_VERSION: "0.7.0"
 
 jobs:
   appsec-rules:
@@ -142,7 +142,7 @@ output, or a CLI that cannot be started, fails the gate. Successfully starting t
 process is not treated as a passing pack.
 
 ```bash
-python -m pip install "appsec-rules-pack==0.6.0"   # pin a reviewed release
+python -m pip install "appsec-rules-pack==0.7.0"   # pin a reviewed release
 python examples/validation_gate.py rules --require-examples --fail-on-warnings
 ```
 
@@ -161,7 +161,7 @@ Real results against the repository fixtures:
 The same steps on Windows, verifying offline against the release's provenance bundle:
 
 ```powershell
-$version = "0.6.0"
+$version = "0.7.0"
 $tag = "v$version"
 $repo = "lucashgrifoni/AppSec-Rules-Pack"
 python -m pip install "appsec-rules-pack==$version"

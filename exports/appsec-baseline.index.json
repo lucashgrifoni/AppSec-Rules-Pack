@@ -5,7 +5,7 @@
       "pack": {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.6.0"
+        "version": "0.7.0"
       },
       "rules": [
         {
@@ -34,6 +34,16 @@
             ],
             "nist_ssdf": [
               "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -64,6 +74,15 @@
             ],
             "nist_ssdf": [
               "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
             ]
           }
         },
@@ -96,6 +115,11 @@
             "nist_ssdf": [
               "PW.5"
             ]
+          },
+          "exceptions": {
+            "allowed": false,
+            "max_days": 0,
+            "required_fields": []
           }
         },
         {
@@ -124,6 +148,16 @@
             ],
             "nist_ssdf": [
               "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 30,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -157,6 +191,16 @@
             "nist_ssdf": [
               "PW.1"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
           }
         },
         {
@@ -189,6 +233,11 @@
             "nist_ssdf": [
               "PW.5"
             ]
+          },
+          "exceptions": {
+            "allowed": false,
+            "max_days": 0,
+            "required_fields": []
           }
         },
         {
@@ -218,6 +267,16 @@
             ],
             "nist_ssdf": [
               "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 30,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -251,6 +310,15 @@
             "nist_ssdf": [
               "PW.5"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
+            ]
           }
         },
         {
@@ -281,6 +349,16 @@
             ],
             "nist_ssdf": [
               "PW.4"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -315,6 +393,15 @@
             "nist_ssdf": [
               "PW.9"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
+            ]
           }
         },
         {
@@ -348,6 +435,16 @@
             "nist_ssdf": [
               "PW.1"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
           }
         },
         {
@@ -378,6 +475,16 @@
             ],
             "nist_ssdf": [
               "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 30,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -410,6 +517,16 @@
             "nist_ssdf": [
               "PW.1"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
           }
         },
         {
@@ -439,6 +556,15 @@
             ],
             "nist_ssdf": [
               "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
             ]
           }
         },
@@ -471,6 +597,11 @@
             "nist_ssdf": [
               "PW.5"
             ]
+          },
+          "exceptions": {
+            "allowed": false,
+            "max_days": 0,
+            "required_fields": []
           }
         },
         {
@@ -500,6 +631,16 @@
             "nist_ssdf": [
               "PW.1"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
           }
         },
         {
@@ -528,6 +669,16 @@
             ],
             "nist_ssdf": [
               "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
             ]
           }
         },
@@ -559,6 +710,15 @@
             "nist_ssdf": [
               "PW.5"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
+            ]
           }
         },
         {
@@ -589,6 +749,16 @@
             "nist_ssdf": [
               "PW.1"
             ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
           }
         },
         {
@@ -615,6 +785,163 @@
             ],
             "nist_ssdf": [
               "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-AUTHZ-002",
+          "title": "Enforce function-level authorization on privileged operations",
+          "severity": "high",
+          "category": "authorization",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V8.2"
+            ],
+            "owasp_api_top_10_2023": [
+              "API5:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A01:2025"
+            ],
+            "cwe": [
+              "CWE-285"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-LLM-001",
+          "title": "Keep untrusted content from acting as LLM instructions",
+          "severity": "high",
+          "category": "injection",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "api"
+          ],
+          "mappings": {
+            "owasp_llm_top_10_2025": [
+              "LLM01:2025",
+              "LLM05:2025",
+              "LLM07:2025"
+            ],
+            "cwe": [
+              "CWE-1427"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-LLM-002",
+          "title": "Limit LLM tools and retrieval to the caller's permissions",
+          "severity": "high",
+          "category": "authorization",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V8.3"
+            ],
+            "owasp_llm_top_10_2025": [
+              "LLM06:2025",
+              "LLM08:2025"
+            ],
+            "cwe": [
+              "CWE-250",
+              "CWE-441"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-LOG-002",
+          "title": "Keep an audit trail of access to sensitive records",
+          "severity": "medium",
+          "category": "logging",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "data"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V16.3",
+              "V16.4"
+            ],
+            "owasp_top_10_2025": [
+              "A09:2025"
+            ],
+            "cwe": [
+              "CWE-778"
+            ],
+            "nist_ssdf": [
+              "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at"
             ]
           }
         }

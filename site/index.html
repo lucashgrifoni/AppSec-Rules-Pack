@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>AppSec Rules Pack | engine-agnostic security baseline</title>
-<meta name="description" content="An engine-agnostic AppSec baseline rules pack: a JSON Schema rule contract, a Python validator, and OWASP ASVS 5.0 / API Top 10 / Top 10:2025 / CWE / NIST SSDF mappings. It validates and exports rules. It does not execute or scan code." />
+<meta name="description" content="An engine-agnostic AppSec baseline rules pack: a JSON Schema rule contract, a Python validator, and OWASP ASVS 5.0 / API Top 10 / Top 10:2025 / LLM Top 10 / CWE / NIST SSDF mappings. It validates and exports rules. It does not execute or scan code." />
 <link rel="canonical" href="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
 
 <!-- Link previews (LinkedIn, Slack, X). LinkedIn caches the first fetch aggressively. -->
@@ -12,10 +12,10 @@
 <meta property="og:site_name" content="AppSec Rules Pack" />
 <meta property="og:url" content="https://lucashgrifoni.github.io/AppSec-Rules-Pack/" />
 <meta property="og:title" content="AppSec Rules Pack: a baseline for documented security reviews" />
-<meta property="og:description" content="20 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, CWE, and NIST SSDF. It validates and exports rules. It is not a scanner." />
+<meta property="og:description" content="24 generic application-security rules with a JSON Schema contract, a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025, OWASP Top 10 for LLM Applications, CWE, and NIST SSDF. It validates and exports rules. It is not a scanner." />
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="AppSec Rules Pack: a baseline for documented security reviews" />
-<meta name="twitter:description" content="20 rules, a JSON Schema contract, and a Python validator. Engine-agnostic: it validates and exports, it does not scan." />
+<meta name="twitter:description" content="24 rules, a JSON Schema contract, and a Python validator. Engine-agnostic: it validates and exports, it does not scan." />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0e14'/%3E%3Cpath d='M16 5l9 3.6v6.2c0 5.4-3.7 9.9-9 11.4-5.3-1.5-9-6-9-11.4V8.6L16 5z' fill='none' stroke='%2364ffda' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M11.5 16.2l3.1 3.1 6-6.2' fill='none' stroke='%2364ffda' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 
@@ -114,11 +114,11 @@
 </nav>
 
 <header class="hero wrap">
-  <span class="eyebrow">v0.6.0 · Apache-2.0 · engine-agnostic</span>
+  <span class="eyebrow">v0.7.0 · Apache-2.0 · engine-agnostic</span>
   <h1>An <span class="accent">AppSec rules pack</span><br/>for documented reviews.</h1>
-  <p class="lede">A curated pack of 20 generic application-security rules with a JSON Schema contract,
+  <p class="lede">A curated pack of 24 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
-  CWE, and NIST SSDF. Every rule ships a compliant and a violating example.</p>
+  OWASP Top 10 for LLM Applications, CWE, and NIST SSDF. Every rule ships a compliant and a violating example.</p>
   <p class="note"><b>Scope:</b> the validator <b>validates and exports</b> rules for review and CI evidence.
   It is <b>not a scanner</b>: it does not execute rules or scan source code (ADR-0001). It derives a rule index,
   a labelled non-runnable Semgrep scaffold, and a SARIF rule catalog. A separate, optional layer adds two tested
@@ -131,8 +131,8 @@
   <p><a href="https://www.bestpractices.dev/projects/15240" target="_blank" rel="noopener"><img src="https://www.bestpractices.dev/projects/15240/badge" alt="OpenSSF Best Practices: passing" height="20"></a></p>
 
   <div class="stats">
-    <div class="stat"><div class="n">20</div><div class="l">baseline rules</div></div>
-    <div class="stat"><div class="n">5</div><div class="l">framework maps</div></div>
+    <div class="stat"><div class="n">24</div><div class="l">baseline rules</div></div>
+    <div class="stat"><div class="n">6</div><div class="l">framework maps</div></div>
     <div class="stat"><div class="n">3</div><div class="l">export formats</div></div>
     <div class="stat"><div class="n">15</div><div class="l">rule categories</div></div>
   </div>
@@ -144,7 +144,7 @@
   <div class="grid3">
     <div class="card"><div class="t">F.01</div><h3>JSON Schema contract</h3><p>Each rule has a stable ID, severity, category, targets, framework mappings, required evidence, review guidance, exceptions, and examples, validated against <code>appsec-rule.schema.json</code>.</p></div>
     <div class="card"><div class="t">F.02</div><h3>Python validator (CLI)</h3><p>Schema + semantic checks: duplicate IDs, exception-policy contradictions, malformed mapping IDs, sensitive-value detection, rule lifecycle, and <code>--require-examples</code>. Text or JSON output for CI.</p></div>
-    <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025 (optional), CWE, and NIST SSDF. Evidence aids, not a conformance claim.</p></div>
+    <div class="card"><div class="t">F.03</div><h3>Framework mappings</h3><p>Per rule: CWE and NIST SSDF, plus OWASP ASVS 5.0, OWASP API Security Top 10 (2023), OWASP Top 10:2025, and OWASP Top 10 for LLM Applications (2025) where they apply. Evidence aids, not a conformance claim.</p></div>
     <div class="card"><div class="t">F.04</div><h3>Derivation-only exports</h3><p><code>export index</code> (JSON rule index), <code>export semgrep</code> (a <em>non-runnable</em> scaffold with placeholder patterns), and <code>export sarif</code> (a rule catalog with empty results). All drift-tested.</p></div>
     <div class="card"><div class="t">F.05</div><h3>Coverage report</h3><p><code>report coverage</code> shows framework-mapping coverage per rule and in aggregate, in text or JSON, so gaps are visible instead of guessed.</p></div>
     <div class="card"><div class="t">F.06</div><h3>Repository CI checks</h3><p>Build/lint/test on Ubuntu, Windows, and Python 3.13; a security pipeline (Semgrep, CodeQL, Bandit, Trivy, KICS, pip-audit, Gitleaks); OpenSSF Scorecard, Dependabot, CODEOWNERS, and a reference policy gate that consumes the validator JSON. Fourteen required status checks on <code>main</code>.</p></div>
@@ -168,14 +168,14 @@
     <div class="term">
       <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
 <div class="body"><span class="c"># install the validator from PyPI</span>
-<span class="p">$</span> <span class="o">pip install "appsec-rules-pack==0.6.0"</span>
+<span class="p">$</span> <span class="o">pip install "appsec-rules-pack==0.7.0"</span>
 
 <span class="c"># the distribution ships the validator, not the rules: grab the pack</span>
 <span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
-<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.6.0/appsec-baseline.yaml</span>
+<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.7.0/appsec-baseline.yaml</span>
 
 <span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
-<span class="c">Validation passed: 1 file, 20 rules, 0 errors, 0 warnings.</span>
+<span class="c">Validation passed: 1 file, 24 rules, 0 errors, 0 warnings.</span>
 
 <span class="c"># start your own pack, and check a service's review record against the baseline</span>
 <span class="p">$</span> <span class="o">appsec-rules init rules/my-pack.yaml</span>
@@ -199,13 +199,13 @@
   <h2>Rule categories and framework mappings.</h2>
   <div class="chips">
     <div class="chip"><span>›</span> authentication</div>
-    <div class="chip"><span>›</span> authorization (IDOR/BOLA)</div>
+    <div class="chip"><span>›</span> authorization (object and function level)</div>
     <div class="chip"><span>›</span> input-validation</div>
-    <div class="chip"><span>›</span> injection / XSS</div>
+    <div class="chip"><span>›</span> injection / XSS / LLM prompt injection</div>
     <div class="chip"><span>›</span> ssrf</div>
     <div class="chip"><span>›</span> secrets</div>
     <div class="chip"><span>›</span> file-handling</div>
-    <div class="chip"><span>›</span> logging</div>
+    <div class="chip"><span>›</span> logging / audit trail</div>
     <div class="chip"><span>›</span> dependency-risk</div>
     <div class="chip"><span>›</span> configuration</div>
     <div class="chip"><span>›</span> csrf</div>

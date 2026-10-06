@@ -7,7 +7,7 @@
         "driver": {
           "name": "AppSec Rules Pack",
           "informationUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
-          "version": "0.6.0",
+          "version": "0.7.0",
           "rules": [
             {
               "id": "APPSEC-AUTHZ-001",
@@ -775,6 +775,148 @@
                 ],
                 "owasp-top-10-2025": [
                   "A04:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.5"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-AUTHZ-002",
+              "name": "APPSEC-AUTHZ-002",
+              "shortDescription": {
+                "text": "Enforce function-level authorization on privileged operations"
+              },
+              "fullDescription": {
+                "text": "Verify that every administrative or privileged operation checks the caller's role or permission on the server, so an authenticated user cannot call a function that their role does not grant."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authorization",
+                  "CWE-285"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-285"
+                ],
+                "owasp-asvs": [
+                  "V8.2"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API5:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A01:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-LLM-001",
+              "name": "APPSEC-LLM-001",
+              "shortDescription": {
+                "text": "Keep untrusted content from acting as LLM instructions"
+              },
+              "fullDescription": {
+                "text": "Verify that user input, retrieved documents, and tool output reach the model separately from the system instructions, and that model output is validated before the application acts on it, so an injected instruction cannot change what the feature does or discloses."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "injection",
+                  "CWE-1427"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-1427"
+                ],
+                "owasp-llm-top-10-2025": [
+                  "LLM01:2025",
+                  "LLM05:2025",
+                  "LLM07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-LLM-002",
+              "name": "APPSEC-LLM-002",
+              "shortDescription": {
+                "text": "Limit LLM tools and retrieval to the caller's permissions"
+              },
+              "fullDescription": {
+                "text": "Verify that an LLM feature can call only allowlisted tools with the least privilege they need, that each tool call and each retrieval runs with the end user's permissions rather than the service's, and that sensitive actions need human approval."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authorization",
+                  "CWE-250",
+                  "CWE-441"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-250",
+                  "CWE-441"
+                ],
+                "owasp-asvs": [
+                  "V8.3"
+                ],
+                "owasp-llm-top-10-2025": [
+                  "LLM06:2025",
+                  "LLM08:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-LOG-002",
+              "name": "APPSEC-LOG-002",
+              "shortDescription": {
+                "text": "Keep an audit trail of access to sensitive records"
+              },
+              "fullDescription": {
+                "text": "Verify that reads and changes of sensitive records leave an audit event saying who accessed which record, when, and how, in a store that application users cannot alter, so access can be investigated later."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "logging",
+                  "CWE-778"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-778"
+                ],
+                "owasp-asvs": [
+                  "V16.3",
+                  "V16.4"
+                ],
+                "owasp-top-10-2025": [
+                  "A09:2025"
                 ],
                 "nist-ssdf": [
                   "PW.5"

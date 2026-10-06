@@ -6,13 +6,16 @@ this file describes where the project stands and what is known to be true right 
 
 ## Where it stands
 
-**Released:** `appsec-rules-pack` **0.6.0**, with 20 baseline rules (pack version 0.6.0),
-source-backed mapping rationale, review-gate documentation, report compatibility
-fixtures, and SBOM identity and inventory checks. The 1.0 readiness proposal
+**Released:** `appsec-rules-pack` **0.7.0**, with 24 baseline rules (pack version 0.7.0),
+including function-level authorization, two LLM rules mapped to the OWASP Top 10 for LLM
+Applications 2025, and an audit trail for sensitive records; `init-review` to start a
+review record; and a warning for results that do not say why a rule is open or does not
+apply. 0.6.0 added source-backed mapping rationale, review-gate documentation, report
+compatibility fixtures, and SBOM identity and inventory checks. The 1.0 readiness proposal
 ([`docs/v1-readiness.md`](docs/v1-readiness.md)) leaves external feedback and the 1.0
 release decision with the owner.
 
-Release `0.6.0` was published to PyPI via Trusted Publishing
+Release `0.7.0` was published to PyPI via Trusted Publishing
 (OIDC, no long-lived credential). The release workflow checks that the tag is on `main`
 and matches the package version, builds with hash-pinned tools in a job that cannot
 publish, and publishes the wheel, the sdist, a CycloneDX SBOM, `appsec-baseline.yaml`, and
@@ -27,7 +30,7 @@ memory-unsafe code it does not contain, and the absence of any reported vulnerab
 
 **What ships:** a JSON Schema rule contract, a Python 3.12+ validator with a Typer CLI,
 derivation-only export and reporting commands, `review` for per-service review records
-([ADR-0006](docs/adr/0006-review-records.md)), `init` for a starter pack, and versioned JSON
+([ADR-0006](docs/adr/0006-review-records.md)), `init-review` to start a record, `init` for a starter pack, and versioned JSON
 reports described in [`VERSIONING.md`](VERSIONING.md). The distribution contains the validator and
 the schema — not the rules; the baseline pack is attached to each release and lives in
 [`rules/appsec-baseline.yaml`](rules/appsec-baseline.yaml).

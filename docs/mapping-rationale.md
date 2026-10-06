@@ -1,6 +1,7 @@
 # Baseline mapping rationale
 
-Reviewed on 2026-10-05 for the 20 rules in `rules/appsec-baseline.yaml`.
+Reviewed on 2026-10-05 for the first 20 rules in `rules/appsec-baseline.yaml`, and on
+2026-10-06 for the four rules added in pack version 0.7.0.
 Mappings connect a rule's topic to a framework section. They do not establish that
 an application meets the section or that the rule covers the whole framework.
 
@@ -38,6 +39,10 @@ its topic PW.7 (code analysis), PW.8 (executable testing), or RV.1 (vulnerabilit
 | APPSEC-REDIRECT-001 | [V3.7][asvs3]: validate redirects to trusted destinations. | [PW.5][ssdf5]: implement redirect allowlists and reject untrusted URLs; replaces PW.7, which concerns code analysis. |
 | APPSEC-RATELIMIT-001 | [V2.4][asvs2]: anti-automation and resource-use limits. | [PW.1][ssdf1]: retain the design mapping for resource budgets, quotas, and abuse-resistant operation. |
 | APPSEC-PWSTORE-001 | [V11.4][asvs11], requirement 11.4.2: computationally intensive password hashing with current parameters. | [PW.5][ssdf5]: retain the mapping for implementing password hashing without fast hashes or reversible storage. |
+| APPSEC-AUTHZ-002 | [V8.2][asvs8], requirement 8.2.1: function-level access restricted to consumers with explicit permissions. | [PW.1][ssdf1]: design the permission each privileged function requires, with deny by default. |
+| APPSEC-LLM-001 | None. ASVS 5.0.0 has no requirement for language-model prompts or model output; see the omissions below. | [PW.1][ssdf1]: design the trust boundary between system instructions and untrusted content. |
+| APPSEC-LLM-002 | [V8.3][asvs8], requirements 8.3.1 and 8.3.3: authorization at a trusted service layer, based on the originating subject's permissions rather than an intermediary's. | [PW.1][ssdf1]: design tool scopes and authorization so the model acts with the end user's permissions. |
+| APPSEC-LOG-002 | [V16.3 and V16.4][asvs16]: requirement 16.3.2 at L3 logs access to sensitive data, and V16.4 protects logs from modification. | [PW.5][ssdf5]: implement the audit events and their protected sink, like APPSEC-LOG-001. |
 
 ## Multiple mappings and intentional omissions
 
@@ -56,6 +61,22 @@ its topic PW.7 (code analysis), PW.8 (executable testing), or RV.1 (vulnerabilit
   describes its combined file-handling subject under the topic convention.
 - `APPSEC-PWSTORE-001` has no API Top 10:2023 mapping. Password storage has a
   direct ASVS/CWE mapping; a broad API authentication category would stretch it.
+- `APPSEC-LLM-001` has no ASVS mapping. ASVS 5.0.0 has no chapter or requirement on
+  language-model prompts, and stretching V1 (encoding and sanitization) would claim a
+  coverage ASVS does not give. The rule maps to the [OWASP Top 10 for LLM Applications
+  2025][llm]: LLM01 (prompt injection), LLM05 (improper output handling, for the output
+  validation the rule requires), and LLM07 (system prompt leakage, for keeping secrets
+  out of prompts). CWE-1427 is the CWE entry for neutralizing input used in LLM prompts.
+- `APPSEC-LLM-002` maps to LLM06 (excessive agency) and LLM08 (vector and embedding
+  weaknesses, for retrieval that ignores the caller's permissions). CWE-250 covers the
+  unnecessary privilege and CWE-441 the confused deputy, where the model acts with the
+  service's permissions instead of the user's.
+- Neither LLM rule maps to the OWASP Top 10:2025 or the API Top 10:2023. The LLM Top 10
+  is the specific list for these risks; the general lists would only fit by analogy.
+- `APPSEC-AUTHZ-002` takes API5:2023 and CWE-285, the pair API5 itself cites.
+  `APPSEC-AUTHZ-001` keeps API1:2023, so object-level and function-level authorization
+  are reviewed as separate rules.
+- `APPSEC-LOG-002` has no API Top 10:2023 mapping; no category there covers audit trails.
 - The other Top 10:2025 mappings remain unchanged. Their categories can be read in
   the [official OWASP Top 10:2025](https://owasp.org/Top10/2025/).
 
@@ -82,3 +103,4 @@ That test establishes valid IDs, not semantic correctness or framework conforman
 [api4]: https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/
 [api5]: https://owasp.org/API-Security/editions/2023/en/0xa5-broken-function-level-authorization/
 [api8]: https://owasp.org/API-Security/editions/2023/en/0xa8-security-misconfiguration/
+[llm]: https://genai.owasp.org/llm-top-10/

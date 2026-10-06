@@ -61,6 +61,17 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
   (reason, replaced_by, since), with validator consistency checks.
 
+## Delivered in v0.7.0 (2026-10-06)
+
+- Baseline version 0.7.0 with 24 rules: function-level authorization, prompt injection
+  and model output handling, LLM tool and retrieval permissions, and an audit trail for
+  sensitive records. Each closes a coverage gap found while reviewing the internal test
+  labs with the 0.6.0 baseline.
+- `init-review`, the `review-justification-missing` warning, `review.subject_ref`, the
+  exception policy in `export index`, and `x-` fields carried into the review report.
+- An optional OWASP Top 10 for LLM Applications 2025 mapping; ASVS becomes optional
+  because ASVS 5.0.0 does not cover LLM prompts.
+
 ## Delivered in v0.6.0 (2026-10-05)
 
 - Baseline version 0.6.0 with 20 rules, including password storage, CORS guidance,
@@ -77,9 +88,14 @@ statement of intent, not a delivery commitment, and is kept consistent with
 ## Next — Near term
 
 - Expand the baseline pack further by demand where each addition has clear evidence,
-  remediation, and validation steps (for example, cryptography-at-rest and additional
-  business-logic abuse cases); the CSRF, enumeration, webhook-authenticity, data-exposure,
-  mass-assignment, open-redirect, and rate-limiting rules are now delivered.
+  remediation, and validation steps. Gaps found in the lab reviews and not yet covered:
+  SSO/OIDC callback validation, service-to-service tokens, sensitive data at rest,
+  caching of sensitive responses, insecure deserialization, segregation of duties in
+  approvals, and tools that process untrusted repositories (argument injection, CI
+  workflow commands).
+- A way to declare the kind of subject a record covers (a CLI, a GitHub Action, test
+  fixtures), so rules that cannot apply need not be justified one by one, and a finding
+  severity separate from the rule severity. Both need an ADR first.
 
 ## Later — Mid term
 

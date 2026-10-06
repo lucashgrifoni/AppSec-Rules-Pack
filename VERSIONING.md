@@ -68,6 +68,12 @@ version up to the one it supports and refuses a pack that targets a newer one, w
 issue code `schema-version-unsupported`. Packs that omit the field are validated against
 the installed schema, as before.
 
+Schema version 0.7 (package 0.7.0) adds the optional `owasp_llm_top_10_2025` mapping and
+makes `owasp_asvs` optional. The baseline declares `schema_version: "0.7"` from pack
+version 0.7.0. An older validator refuses it, and its report includes
+`schema-version-unsupported`, which names the cause, next to the schema errors for the new
+mapping. Validate baseline 0.7.0 with package 0.7.0 or later.
+
 ## Extension fields
 
 Keys starting with `x-` are allowed on the `pack` object, on each rule, and inside
@@ -137,6 +143,7 @@ is open: a record can be valid and still have every rule `not-met`.
 | `review-rule-not-enabled` | warning | A result is for a rule that is disabled, draft, or deprecated |
 | `review-missing-result` | warning | An enabled rule has no result; it is reported as `unreviewed` |
 | `review-evidence-missing` | error | A `met` result cites no evidence |
+| `review-justification-missing` | warning | A `not-met` or `not-applicable` result has no `notes` saying why |
 | `review-exception-unexpected` | error | A result has an `exception` block but is not `excepted` |
 | `review-exception-missing` | error | An `excepted` result has no `exception` block |
 | `review-date-invalid` | error | A quoted date has the right shape but is not a real day, such as "2026-02-30" (unquoted, it is `yaml-invalid`) |

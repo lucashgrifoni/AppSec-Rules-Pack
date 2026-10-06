@@ -186,7 +186,7 @@ def test_newer_schema_version_is_refused() -> None:
 
     assert issue.code == "schema-version-unsupported"
     assert issue.path == ("pack", "schema_version")
-    assert "supports up to 0.5" in issue.message
+    assert "supports up to 0.7" in issue.message
 
 
 def test_malformed_schema_version_is_a_pattern_error() -> None:
@@ -207,3 +207,36 @@ def test_released_baselines_still_validate(release: str) -> None:
 
     assert result.ok
     assert result.warning_count == 0
+
+
+def test_schema_version_0_7_is_accepted() -> None:
+    payload = _minimal_payload()
+    payload["pack"]["schema_version"] = "0.7"
+
+    assert validate_rules_payload(payload).ok
+
+
+def test_schema_version_0_8_is_refused() -> None:
+    payload = _minimal_payload()
+    payload["pack"]["schema_version"] = "0.8"
+
+    [issue] = validate_rules_payload(payload).issues
+
+    assert issue.code == "schema-version-unsupported"
+
+
+def test_asvs_mapping_is_optional() -> None:
+    payload = _minimal_payload()
+    del payload["rules"][0]["mappings"]["owasp_asvs"]
+
+    assert validate_rules_payload(payload).issues == ()
+
+
+def test_llm_top_10_mapping_is_accepted_and_format_checked() -> None:
+    payload = _minimal_payload()
+    payload["rules"][0]["mappings"]["owasp_llm_top_10_2025"] = ["LLM01:2025", "LLM1:2025"]
+
+    [issue] = validate_rules_payload(payload).issues
+
+    assert (issue.level, issue.code) == ("warning", "mapping-id-malformed")
+    assert issue.path == ("rules", 0, "mappings", "owasp_llm_top_10_2025", 1)
