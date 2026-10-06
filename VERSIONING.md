@@ -70,9 +70,9 @@ the installed schema, as before.
 
 Schema version 0.7 (package 0.7.0) adds the optional `owasp_llm_top_10_2025` mapping and
 makes `owasp_asvs` optional. The baseline declares `schema_version: "0.7"` from pack
-version 0.7.0, so an older validator refuses it with `schema-version-unsupported` instead
-of reporting the new mapping as an unexpected field. Validate baseline 0.7.0 with package
-0.7.0 or later.
+version 0.7.0. An older validator refuses it, and its report includes
+`schema-version-unsupported`, which names the cause, next to the schema errors for the new
+mapping. Validate baseline 0.7.0 with package 0.7.0 or later.
 
 ## Extension fields
 

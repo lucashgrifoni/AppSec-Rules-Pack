@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade notes
 
 - Baseline pack 0.7.0 declares `schema_version: "0.7"`. Validate it with package 0.7.0 or
-  later; an older CLI refuses it with `schema-version-unsupported`.
+  later. CLI 0.6.0 refuses it with `schema-version-unsupported`, plus schema errors for the
+  new mapping.
 - Four rules are new, so an existing record shows them as `unreviewed` with
   `review-missing-result` until it has a result for each, plus
   `review-pack-version-mismatch` until `pack_version` says 0.7.0. `init-review` prints
