@@ -5,7 +5,7 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/lucashgrifoni/AppSec-Rules-Pack/badge)](https://scorecard.dev/viewer/?uri=github.com/lucashgrifoni/AppSec-Rules-Pack)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15240/badge)](https://www.bestpractices.dev/projects/15240)
 [![PyPI](https://img.shields.io/pypi/v/appsec-rules-pack.svg)](https://pypi.org/project/appsec-rules-pack/)
-[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/pyproject.toml)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/pyproject.toml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/LICENSE)
 
 A versioned AppSec rules pack and the validator that keeps it honest. Each rule states
@@ -40,33 +40,44 @@ checkout with `python docs/assets/record-cli-demo.py`.
 | It does | It does not |
 | --- | --- |
 | Define a JSON Schema contract for AppSec review rules | Scan application code or execute rules |
-| Ship a generic baseline of 24 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
+| Ship a generic baseline of 29 rules, each with a compliant and a violating example | Claim compliance: mappings are review aids, not conformance |
 | Validate packs: schema, duplicate IDs, exception windows and policy, mapping formats, rule lifecycle, sensitive values | Embed enforcement: CI consumes the JSON report and decides ([ADR-0004](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0004-ci-gate-consumes-json.md)) |
 | Derive a rule index, a Semgrep metadata scaffold, a SARIF rule catalog, and a mapping coverage report | Turn the derived scaffold into detections: its patterns are placeholders ([ADR-0001](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0001-engine-agnostic-validator.md)) |
 | Check a review record against the pack: every rule accounted for, evidence for `met`, exceptions allowed, complete, unexpired, and inside the window | Confirm the evidence is true, or decide what may stay open: the record is self-declared and the gate decides ([ADR-0006](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0006-review-records.md)) |
 
-The baseline covers authentication, password storage, object- and function-level
-authorization, input validation, injection and XSS, SSRF, secrets, file handling, logging
-and an audit trail for sensitive records, dependency risk, configuration including CORS,
-session hardening, CSRF, webhook integrity, excessive data exposure, mass assignment, open
-redirect, rate limiting, and two risks of LLM features: prompt injection, and tools or
-retrieval that reach beyond the caller's permissions. It contains no product names, tenant identifiers, customer data, secrets, or
-environment-specific configuration.
+The baseline covers authentication including federated sign-in and token issuance,
+password storage, object- and function-level authorization, a second approver for
+high-risk actions, input validation, injection (including argument injection) and XSS,
+unsafe deserialization, SSRF, secrets, file handling, sensitive data in storage and
+caches, logging and an audit trail for sensitive records, dependency risk, configuration
+including CORS, session hardening, CSRF, webhook integrity, excessive data exposure, mass
+assignment, open redirect, rate limiting, and two risks of LLM features: prompt
+injection, and tools or retrieval that reach beyond the caller's permissions. It contains
+no product names, tenant identifiers, customer data, secrets, or environment-specific
+configuration.
 
-Mapping coverage of the baseline: CWE and NIST SSDF on 24 of 24 rules; ASVS 5.0 on 23 of
-24 (ASVS 5.0.0 has no requirement for LLM prompts, so `APPSEC-LLM-001` maps to the OWASP Top
-10 for LLM Applications instead); the optional OWASP API Top 10 2023 on 20, OWASP Top 10:2025
-on 21, and OWASP Top 10 for LLM Applications 2025 on the 2 LLM rules.
+Two areas are out of the baseline on purpose. Privacy obligations such as consent and
+lawful basis depend on the jurisdiction, so they belong in a privacy pack; the baseline
+keeps only the security side, retention of sensitive data. CI/CD pipelines,
+infrastructure as code, and container images are a different subject from the
+application: review them with a policy tool built for them, such as the
+[OSS Security Policy as Code Starter Kit](https://github.com/lucashgrifoni/OSS-Security-Policy-as-Code-Starter-Kit),
+or with your own pack next to the baseline.
+
+Mapping coverage of the baseline: CWE and NIST SSDF on 29 of 29 rules; ASVS 5.0 on 28 of
+29 (ASVS 5.0.0 has no requirement for LLM prompts, so `APPSEC-LLM-001` maps to the OWASP Top
+10 for LLM Applications instead); the optional OWASP API Top 10 2023 on 23, OWASP Top 10:2025
+on 26, and OWASP Top 10 for LLM Applications 2025 on the 2 LLM rules.
 
 ## Quick start
 
 ```bash
-pip install "appsec-rules-pack==0.8.0"
-curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.8.0/appsec-baseline.yaml
+pip install "appsec-rules-pack==0.9.0"
+curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.9.0/appsec-baseline.yaml
 appsec-rules validate appsec-baseline.yaml --require-examples --fail-on-warnings
 ```
 
-Expected output: `Validation passed: 1 file, 24 rules, 0 errors, 0 warnings.`
+Expected output: `Validation passed: 1 file, 29 rules, 0 errors, 0 warnings.`
 
 Install into a virtual environment (`python -m venv .venv`, then activate it). In Windows
 PowerShell, `curl` is an alias for `Invoke-WebRequest`; download the baseline with
@@ -75,11 +86,11 @@ PowerShell, `curl` is an alias for `Invoke-WebRequest`; download the baseline wi
 ## Installation
 
 ```bash
-pip install "appsec-rules-pack==0.8.0"
+pip install "appsec-rules-pack==0.9.0"
 ```
 
-This installs the `appsec-rules` console script and requires Python 3.12 or newer. Pin a
-reviewed version, such as `appsec-rules-pack==0.8.0`, when the CLI runs
+This installs the `appsec-rules` console script and requires Python 3.11 or newer. Pin a
+reviewed version, such as `appsec-rules-pack==0.9.0`, when the CLI runs
 as a quality gate.
 
 The distribution contains the validator, the CLI, and the JSON Schema. It does not contain
@@ -112,7 +123,7 @@ Verify a downloaded asset with a current [GitHub CLI](https://cli.github.com/man
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
   --signer-workflow lucashgrifoni/AppSec-Rules-Pack/.github/workflows/publish-pypi.yml \
-  --source-ref refs/tags/v0.8.0
+  --source-ref refs/tags/v0.9.0
 ```
 
 Or offline, against the bundle attached to the release:
@@ -120,7 +131,7 @@ Or offline, against the bundle attached to the release:
 ```bash
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
-  --bundle appsec-rules-pack-v0.8.0.intoto.jsonl
+  --bundle appsec-rules-pack-v0.9.0.intoto.jsonl
 ```
 
 The same commands work for the wheel, the sdist, and `sbom.cdx.json`. A passing check proves
@@ -133,8 +144,8 @@ release design.
 
 | Command | Purpose |
 | --- | --- |
-| `appsec-rules init <file>` | Write a starter pack that passes the strict gate |
-| `appsec-rules validate <file-or-dir>` | Validate one pack or every `.yaml`/`.yml` pack in a directory |
+| `appsec-rules init <file>` | Write a starter pack that passes the strict gate; `--id` and `--prefix` set the pack id and rule id prefix |
+| `appsec-rules validate <file-or-dir>...` | Validate packs, or every `.yaml`/`.yml` pack under directories (linked directories are not entered); duplicate rule ids are checked across all of them |
 | `appsec-rules init-review <pack> <record> --subject <text> --reviewer <text>` | Write a review record that lists every enabled rule, to fill in; `--subject-ref`, `--force` |
 | `appsec-rules review <pack> <record>` | Check a review record against a pack; `--as-of`, `--fail-on-warnings`, `--format json` |
 | `appsec-rules export index <pack> [-o file]` | Derive a machine-readable rule index (JSON) |
@@ -155,7 +166,9 @@ The JSON report is identified by `"schema": "appsec-rules-validation/v1"` and de
 [`validation-report.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/validation-report.schema.json).
 It has a `summary` object (`files`, `rules`, `errors`, `warnings`, `ok`) and a `files` array
 of per-file issues. Each issue has a `level`, a stable `code`, the `rule_id` it belongs to
-(or `null`), a `path` inside the pack, and a `message`. Match on `code`, not on the message
+(or `null`), a `path` inside the pack, the `line` and `column` of that path in the file (or
+`null`), and a `message`. The text output shows the same location after the message. Match
+on `code`, not on the message
 text, which may be reworded. Validation exits `0` on a passing pack, `1` on a failing one,
 and `2` on a usage error such as a missing path. [`VERSIONING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/VERSIONING.md) lists
 the codes and what counts as a breaking change.
@@ -171,7 +184,7 @@ the strict gate. `appsec-rules init my-pack.yaml` writes it for you; then valida
 grow it. Every field shown is required except `schema_version` and `examples`, which the
 strict gate (`--require-examples`) expects anyway. The full contract is
 [`appsec-rule.schema.json`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/src/appsec_rules_pack/schemas/appsec-rule.schema.json), and the
-24 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
+29 rules in [`rules/appsec-baseline.yaml`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/rules/appsec-baseline.yaml) are worked examples.
 
 <!-- readme-example:minimal-pack (validated by tests/test_readme_example.py) -->
 
@@ -276,7 +289,7 @@ subject (a service, a repository, a release), each rule is `met`, `not-met`,
 ```yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.7.0
+  pack_version: 0.9.0
   subject: payments-api
   subject_ref: v3.2.0
   reviewer: appsec-team
@@ -337,7 +350,7 @@ lists every rule with its severity, enforcement, and status, and counts open rul
 [`examples/review/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/examples/review/README.md) has a complete record against the
 baseline.
 
-All 24 baseline rules have `enforcement: advisory`. A gate that checks only
+All 29 baseline rules have `enforcement: advisory`. A gate that checks only
 `summary.open_by_enforcement.blocking` would allow every open baseline rule.
 Gate on `summary.open_by_severity` instead, with the severity threshold your team
 requires. For example, reject a report when its `critical` or `high` count is non-zero,
@@ -367,7 +380,7 @@ added rules under each release.
 
 ## Optional executable Semgrep rules
 
-[`exports/semgrep-rules/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/exports/semgrep-rules/README.md) holds two hand-maintained,
+[`exports/semgrep-rules/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/exports/semgrep-rules/README.md) holds three hand-maintained,
 tested Semgrep rules, kept separate from the validator
 ([ADR-0005](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0005-executable-semgrep-subset.md)):
 
@@ -375,8 +388,9 @@ tested Semgrep rules, kept separate from the validator
 | --- | --- |
 | `APPSEC-INJECT-001` | Flask query/form values reaching SQL arguments on locally created sqlite3 connections and cursors |
 | `APPSEC-SSRF-001` | Flask query/form values reaching the URL argument of module-level Requests calls |
+| `APPSEC-DESER-001` | Flask request bodies, files, and query/form values reaching `pickle`, `marshal`, or `yaml.load` without a safe loader |
 
-The other 18 baseline rules have no executable detection, and these two cover only their
+The other 26 baseline rules have no executable detection, and these three cover only their
 documented source and sink combinations. The layer README lists the known false positives
 and false negatives. Run the fixture suite with a separately installed engine:
 
@@ -420,6 +434,10 @@ tests/              Test suite and pass, fail, and warning fixtures
 | [`docs/adr/`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/README.md) | Architecture decisions |
 
 ## Contributing, security, and license
+
+Used the pack on your own work? The 1.0 release waits for that kind of evidence: tell us
+what worked and what did not with the
+[adoption feedback form](https://github.com/lucashgrifoni/AppSec-Rules-Pack/issues/new?template=adoption_feedback.yml).
 
 Contributions are welcome. Read [`CONTRIBUTING.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/CONTRIBUTING.md) for rule authoring
 principles, the severity and exception models, and the required checks:

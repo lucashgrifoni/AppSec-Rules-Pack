@@ -1,0 +1,60 @@
+name: Adoption feedback
+description: Tell us how installing the CLI, validating a pack, and recording a review went for you.
+title: "[Feedback]: "
+labels: [adoption-feedback]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The 1.0 release waits for feedback from people outside the project who used the
+        three steps below on their own work (issue #29). Short answers are fine. Do not
+        paste secrets, customer data, or findings about a system you cannot disclose.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `appsec-rules --version`.
+      placeholder: appsec-rules 0.9.0
+    validations:
+      required: true
+  - type: dropdown
+    id: steps
+    attributes:
+      label: Steps you completed
+      multiple: true
+      options:
+        - Installed the CLI and validated the baseline
+        - Wrote or adapted a pack of my own
+        - Started a review record with init-review and checked it with review
+        - Ran the CI template or another gate on the JSON report
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: What you reviewed
+      description: The kind of subject (web API, CLI, library, internal service) and your platform. No names needed.
+    validations:
+      required: true
+  - type: textarea
+    id: friction
+    attributes:
+      label: Where you got stuck or confused
+      description: Commands that failed, messages that did not help, documentation that was wrong or missing.
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Rules that did not fit
+      description: A rule you could not judge, one that was missing for your subject, or a mapping you disagree with.
+  - type: dropdown
+    id: again
+    attributes:
+      label: Would you use it again for your next review?
+      options:
+        - "Yes"
+        - "Maybe, if what I reported above is fixed"
+        - "No"
+    validations:
+      required: true

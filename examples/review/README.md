@@ -1,13 +1,13 @@
 # Worked review: payments-api
 
 [`payments-api-review.yaml`](payments-api-review.yaml) is the review record of a fictional
-service, `payments-api`, against the 24 rules of the baseline pack. It shows each status
+service, `payments-api`, against the 29 rules of the baseline pack. It shows each status
 a rule can have:
 
 | Status | Rules | What the record must carry |
 | --- | --- | --- |
-| `met` | 14, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
-| `not-applicable` | 8, such as `APPSEC-XSS-001` (the service renders no HTML) | `notes` saying why; without it, `review-justification-missing` warns |
+| `met` | 18, such as `APPSEC-AUTHZ-001` | At least one `evidence` entry |
+| `not-applicable` | 9, such as `APPSEC-XSS-001` (the service renders no HTML) | `notes` saying why; without it, `review-justification-missing` warns |
 | `not-met` | `APPSEC-LOG-001` (refund failures log the card holder name) | `notes` describing the finding; optional `evidence` locates the defect |
 | `excepted` | `APPSEC-RATELIMIT-001` | An `exception` that the pack allows, with the fields the pack requires, inside its window |
 
@@ -33,7 +33,7 @@ APPSEC-AUTHZ-001         high      advisory  met
 APPSEC-LOG-001           medium    advisory  not-met
 ...
 APPSEC-RATELIMIT-001     medium    advisory  excepted
-Review passed: 24 rules; 14 met, 1 not met, 8 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
+Review passed: 29 rules; 18 met, 1 not met, 9 not applicable, 1 excepted, 0 unreviewed; 1 open; 0 errors, 0 warnings.
 ```
 
 "Review passed" means the record is consistent with the pack. It does not mean the service
@@ -42,7 +42,7 @@ with the JSON report (`--format json`). The report counts open rules by enforcem
 severity; [`examples/README.md`](../README.md#github-actions-template) has a gate that
 reads it.
 
-All 24 baseline rules are `advisory`, so
+All 29 baseline rules are `advisory`, so
 `summary.open_by_enforcement.blocking` is zero even when baseline rules are open.
 Use `summary.open_by_severity` for a severity gate, after checking the command's
 exit code and `summary.ok`. This record has `medium: 1`; `critical`, `high`, and

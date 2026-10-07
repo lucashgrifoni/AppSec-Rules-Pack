@@ -7,7 +7,7 @@ name = "appsec-rules-pack"
 dynamic = ["version"]
 description = "Generic AppSec policy-as-code rules pack and validator."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Lucas Henrique Grifoni" }]
@@ -28,6 +28,7 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: Security",

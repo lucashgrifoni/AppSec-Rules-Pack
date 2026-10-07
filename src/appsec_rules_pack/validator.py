@@ -14,7 +14,7 @@ from typing import Any, Literal
 import jsonschema
 import yaml
 
-from appsec_rules_pack.loader import RulesFileTooLargeError, load_yaml_file
+from appsec_rules_pack.loader import RulesFileTooLargeError, load_yaml_file, yaml_positions
 
 IssueLevel = Literal["error", "warning"]
 IssuePath = tuple[str | int, ...]
@@ -90,6 +90,9 @@ class ValidationIssue:
     path: IssuePath = ()
     code: str = "invalid"
     rule_id: str | None = None
+    # 1-based position in the file the issue came from, when it can be located.
+    line: int | None = None
+    column: int | None = None
 
 
 @dataclass(frozen=True)
@@ -125,7 +128,34 @@ def validate_rules_file(path: Path, *, require_examples: bool = False) -> Valida
     if load_issues:
         return ValidationResult(issues=load_issues, rule_count=0)
 
-    return validate_rules_payload(payload, require_examples=require_examples)
+    result = validate_rules_payload(payload, require_examples=require_examples)
+    return replace(result, issues=with_positions(result.issues, path))
+
+
+def with_positions(issues: tuple[ValidationIssue, ...], path: Path) -> tuple[ValidationIssue, ...]:
+    """Attach the line and column of each issue's path in ``path``, where it exists.
+
+    An issue about a missing field points at the object that lacks it, the closest part of
+    its path that the file contains. Issues without a path keep no position.
+    """
+
+    if not any(issue.path for issue in issues):
+        return issues
+    try:
+        positions = yaml_positions(path)
+    except (OSError, UnicodeDecodeError, RecursionError, yaml.YAMLError):
+        return issues
+
+    located: list[ValidationIssue] = []
+    for issue in issues:
+        prefix = tuple(issue.path)
+        while prefix and prefix not in positions:
+            prefix = prefix[:-1]
+        if prefix:
+            line, column = positions[prefix]
+            issue = replace(issue, line=line, column=column)
+        located.append(issue)
+    return tuple(located)
 
 
 def validate_rules_files(
@@ -172,7 +202,7 @@ def validate_rules_files(
             else:
                 seen_ids[rule_id] = (path, rule_index)
 
-        merged_issues = result.issues + tuple(cross_file_issues[path])
+        merged_issues = with_positions(result.issues + tuple(cross_file_issues[path]), path)
         per_file_results.append(
             (
                 path,
@@ -219,11 +249,14 @@ def _load_rules_payload(path: Path) -> tuple[Any, tuple[ValidationIssue, ...]]:
             ),
         )
     except yaml.YAMLError as exc:
+        mark = getattr(exc, "problem_mark", None)
         return None, (
             ValidationIssue(
                 level="error",
                 message=_yaml_error_message(exc),
                 code="yaml-invalid",
+                line=mark.line + 1 if mark is not None else None,
+                column=mark.column + 1 if mark is not None else None,
             ),
         )
 

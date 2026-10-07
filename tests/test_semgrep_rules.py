@@ -22,11 +22,12 @@ def test_executable_rules_cover_only_the_documented_baseline_subset() -> None:
         for path in RULE_FILES
         for rule in yaml.safe_load(path.read_text(encoding="utf-8"))["rules"]
     ]
-    assert len(detections) == 2
+    assert len(detections) == 3
     assert len({rule["id"] for rule in detections}) == len(detections)
     assert {rule["metadata"]["baseline_id"] for rule in detections} == {
         "APPSEC-INJECT-001",
         "APPSEC-SSRF-001",
+        "APPSEC-DESER-001",
     }
     for rule in detections:
         parent = baseline_by_id[rule["metadata"]["baseline_id"]]
@@ -62,4 +63,4 @@ def test_generic_scan_excludes_only_the_intentional_semgrep_fixtures() -> None:
     }
     fixtures = {f"/{path.relative_to(ROOT).as_posix()}" for path in (LAYER / "tests").glob("*.py")}
     assert ignores == fixtures
-    assert len(fixtures) == len(RULE_FILES) == 2
+    assert len(fixtures) == len(RULE_FILES) == 3

@@ -59,7 +59,7 @@ def test_baseline_rules_pack_is_valid() -> None:
     result = validate_rules_file(BASELINE_PATH)
 
     assert result.ok
-    assert result.rule_count == 24
+    assert result.rule_count == 29
     assert result.warning_count == 0
 
 

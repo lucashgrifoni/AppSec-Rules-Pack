@@ -67,9 +67,13 @@ def test_pull_request_template_lists_every_required_gate() -> None:
     assert "regression test" in template
 
 
-GATE_SCRIPT = textwrap.dedent(
-    re.search(r"python - <<'PY'\n(?P<body>.*?)\n\s*PY\n", EXAMPLES, re.S).group("body")
-)
+def _step_script(step: str) -> str:
+    pattern = rf"- name: {step}\n.*?python - <<'PY'\n(?P<body>.*?)\n\s*PY\n"
+    return textwrap.dedent(re.search(pattern, EXAMPLES, re.S).group("body"))
+
+
+GATE_SCRIPT = _step_script("Gate on open rules")
+RECORDS_SCRIPT = _step_script("Check review records")
 
 
 @pytest.mark.parametrize(
@@ -103,3 +107,97 @@ def test_template_gate_stops_on_critical_high_or_blocking(
         runpy.run_path(str(gate), run_name="__main__")
 
     assert stopped.value.code == expected
+
+
+def _run_gate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, summary: dict) -> int:
+    reports = tmp_path / "reports"
+    reports.mkdir(exist_ok=True)
+    (reports / "svc.json").write_text(json.dumps({"summary": summary}), encoding="utf-8")
+    gate = tmp_path / "gate.py"
+    gate.write_text(GATE_SCRIPT, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(SystemExit) as stopped:
+        runpy.run_path(str(gate), run_name="__main__")
+    return stopped.value.code
+
+
+@pytest.mark.parametrize(
+    ("env", "expected"),
+    [
+        ({"GATE_SEVERITIES": "critical"}, 0),
+        ({"GATE_SEVERITIES": "critical,high,medium"}, 1),
+        ({"GATE_ENFORCEMENT": "", "GATE_SEVERITIES": "medium"}, 1),
+        ({"GATE_SEVERITY_VIEW": "effective"}, 0),
+        ({"GATE_SEVERITY_VIEW": "effective", "GATE_SEVERITIES": "low"}, 1),
+    ],
+)
+def test_template_gate_thresholds_are_tunable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, env: dict, expected: int
+) -> None:
+    # One open high rule, which the reviewer assessed as low, and one open medium rule.
+    summary = {
+        "open_by_severity": {"high": 1, "medium": 1},
+        "open_by_effective_severity": {"low": 1, "medium": 1},
+        "open_by_enforcement": {"advisory": 2},
+    }
+    for name, value in env.items():
+        monkeypatch.setenv(name, value)
+
+    assert _run_gate(tmp_path, monkeypatch, summary) == expected
+
+
+def test_effective_view_falls_back_for_reports_without_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A report from a CLI older than 0.8.0 has no effective counts; the gate must not
+    # read that as "nothing open".
+    monkeypatch.setenv("GATE_SEVERITY_VIEW", "effective")
+    summary = {"open_by_severity": {"high": 1}, "open_by_enforcement": {"advisory": 1}}
+
+    assert _run_gate(tmp_path, monkeypatch, summary) == 1
+
+
+def test_template_checks_each_record_against_the_pack_it_names(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from typer.testing import CliRunner
+
+    from appsec_rules_pack.cli import app
+
+    (tmp_path / "rules" / "vendor").mkdir(parents=True)
+    baseline = (ROOT / "rules/appsec-baseline.yaml").read_bytes()
+    (tmp_path / "rules" / "vendor" / "appsec-baseline.yaml").write_bytes(baseline)
+    minimal = (ROOT / "examples/minimal-pack.yaml").read_bytes()
+    (tmp_path / "rules" / "acme.yaml").write_bytes(minimal)
+    (tmp_path / "reviews").mkdir()
+    worked = (ROOT / "examples/review/payments-api-review.yaml").read_bytes()
+    (tmp_path / "reviews" / "payments.yaml").write_bytes(worked)
+    own = {
+        "review": {"pack": "my-pack", "subject": "svc", "reviewer": "me", "date": "2026-10-07"},
+        "results": [{"rule": "MYPACK-ERRORS-001", "status": "met", "evidence": ["test"]}],
+    }
+    (tmp_path / "reviews" / "own.yaml").write_text(yaml.safe_dump(own), encoding="utf-8")
+    (tmp_path / "reports").mkdir()
+    calls: list[list[str]] = []
+
+    class Done:
+        def __init__(self, code: int) -> None:
+            self.returncode = code
+
+    def fake_run(command: list[str], stdout) -> Done:
+        calls.append(command)
+        result = CliRunner().invoke(app, [*command[1:], "--as-of", "2026-10-05"])
+        stdout.write(result.stdout)
+        return Done(result.exit_code)
+
+    monkeypatch.setattr("subprocess.run", fake_run)
+    monkeypatch.chdir(tmp_path)
+    script = tmp_path / "records.py"
+    script.write_text(RECORDS_SCRIPT, encoding="utf-8")
+    with pytest.raises(SystemExit) as stopped:
+        runpy.run_path(str(script), run_name="__main__")
+
+    assert stopped.value.code == 0
+    used = {Path(command[3]).name: Path(command[2]).name for command in calls}
+    assert used == {"own.yaml": "acme.yaml", "payments.yaml": "appsec-baseline.yaml"}
+    assert json.loads((tmp_path / "reports" / "own.json").read_text())["summary"]["met"] == 1

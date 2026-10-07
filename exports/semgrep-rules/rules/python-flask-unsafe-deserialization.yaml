@@ -1,0 +1,43 @@
+# Hand-maintained executable subset; not output from `export semgrep`.
+rules:
+  - id: appsec-python-flask-unsafe-deserialization
+    languages: [python]
+    mode: taint
+    severity: ERROR
+    message: >-
+      Flask request data reaches a deserializer that can build arbitrary objects
+      (APPSEC-DESER-001). Parse untrusted input as JSON or with yaml.safe_load,
+      then validate it against a schema.
+    metadata:
+      baseline_id: APPSEC-DESER-001
+      category: security
+      technology: [flask]
+      cwe: ["CWE-502: Deserialization of Untrusted Data"]
+      confidence: HIGH
+      references:
+        - https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.data
+          - pattern: flask.request.get_data(...)
+          - pattern: flask.request.stream
+          - pattern: flask.request.files[$KEY]
+          - pattern: flask.request.args[$KEY]
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form[$KEY]
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.cookies.get(...)
+        exact: true
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: pickle.loads($DATA, ...)
+              - pattern: pickle.load($DATA, ...)
+              - pattern: marshal.loads($DATA, ...)
+              - pattern: yaml.unsafe_load($DATA, ...)
+              - pattern: yaml.load($DATA, ...)
+          - pattern-not: yaml.load($DATA, Loader=yaml.SafeLoader, ...)
+          - pattern-not: yaml.load($DATA, Loader=yaml.CSafeLoader, ...)
+          - pattern-not: yaml.load($DATA, yaml.SafeLoader, ...)
+          - pattern-not: yaml.load($DATA, yaml.CSafeLoader, ...)
+          - focus-metavariable: $DATA

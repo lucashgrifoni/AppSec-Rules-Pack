@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/validation-report.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.9.0/src/appsec_rules_pack/schemas/validation-report.schema.json",
   "$comment": "Contract of `appsec-rules validate --format json`, format marker appsec-rules-validation/v1. Fields may be added within v1; removing or renaming one, or changing an issue code, requires v2. See VERSIONING.md.",
   "title": "AppSec Rules Pack validation report",
   "type": "object",
@@ -31,7 +31,7 @@
         "properties": {
           "path": {
             "type": "string",
-            "description": "Path relative to the validated directory, with forward slashes."
+            "description": "Path relative to the argument it was found under, with forward slashes; the file name when the argument was the file."
           },
           "rules": {"type": "integer", "minimum": 0},
           "errors": {"type": "integer", "minimum": 0},
@@ -55,6 +55,16 @@
                 "path": {
                   "type": "string",
                   "description": "Dotted location inside the pack, or <root>."
+                },
+                "line": {
+                  "type": ["integer", "null"],
+                  "minimum": 1,
+                  "description": "1-based line of the path in the file, or of the closest part of it the file contains; null when the issue has no location. Added in 0.9.0."
+                },
+                "column": {
+                  "type": ["integer", "null"],
+                  "minimum": 1,
+                  "description": "1-based column that goes with line. Added in 0.9.0."
                 },
                 "message": {
                   "type": "string",

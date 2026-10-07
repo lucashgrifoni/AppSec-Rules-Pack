@@ -6,14 +6,11 @@ name: Policy Gate (reference)
 # the pack's own CLI against the baseline pack, and `review` against the worked review
 # record in examples/review/ (ADR-0006), as worked examples.
 
+# No path filter: the job is a required check in the main-protection ruleset, and a
+# required check that a pull request skips would never report and block the merge.
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - "rules/**"
-      - "src/**"
-      - "examples/review/**"
-      - ".github/workflows/policy-gate.yml"
 
 # Least privilege: this gate only needs to read the repository.
 permissions:

@@ -56,8 +56,8 @@ def test_unfilled_record_is_valid_but_fails_the_strict_gate(tmp_path: Path) -> N
     strict = runner.invoke(app, ["review", str(BASELINE), str(record), "--fail-on-warnings"])
 
     assert lenient.exit_code == 0
-    assert "24 open" in lenient.stdout
-    assert lenient.stdout.count("needs notes saying why") == 24
+    assert "29 open" in lenient.stdout
+    assert lenient.stdout.count("needs notes saying why") == 29
     assert strict.exit_code == 1
 
 

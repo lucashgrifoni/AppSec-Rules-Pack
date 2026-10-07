@@ -7,7 +7,7 @@
         "driver": {
           "name": "AppSec Rules Pack",
           "informationUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
-          "version": "0.7.0",
+          "version": "0.9.0",
           "rules": [
             {
               "id": "APPSEC-AUTHZ-001",
@@ -90,7 +90,7 @@
                 "text": "Prevent injection into interpreters and queries"
               },
               "fullDescription": {
-                "text": "Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or log formats without effective sanitization."
+                "text": "Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, command arguments, templates, LDAP, XPath, log formats, or CI runner command channels without effective neutralization."
               },
               "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
               "defaultConfiguration": {
@@ -101,12 +101,14 @@
                   "security",
                   "injection",
                   "CWE-89",
-                  "CWE-78"
+                  "CWE-78",
+                  "CWE-88"
                 ],
                 "security-severity": "9.5",
                 "cwe": [
                   "CWE-89",
-                  "CWE-78"
+                  "CWE-78",
+                  "CWE-88"
                 ],
                 "owasp-asvs": [
                   "V1.2"
@@ -917,6 +919,199 @@
                 ],
                 "owasp-top-10-2025": [
                   "A09:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.5"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-AUTHN-002",
+              "name": "APPSEC-AUTHN-002",
+              "shortDescription": {
+                "text": "Validate federated sign-in responses"
+              },
+              "fullDescription": {
+                "text": "Verify that an application signing users in through an external identity provider (OIDC, OAuth, or SAML) checks the response before trusting it, so an attacker cannot forge, replay, or redirect a sign-in to become another user."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-287",
+                  "CWE-347"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-287",
+                  "CWE-347"
+                ],
+                "owasp-asvs": [
+                  "V10.2",
+                  "V10.5"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API2:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-AUTHN-003",
+              "name": "APPSEC-AUTHN-003",
+              "shortDescription": {
+                "text": "Issue unguessable, expiring, audience-bound tokens"
+              },
+              "fullDescription": {
+                "text": "Verify that API keys, service tokens, and self-contained tokens are generated with a secure random source, expire, and are accepted only after their signature, algorithm, audience, and validity period are checked."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authentication",
+                  "CWE-330",
+                  "CWE-613"
+                ],
+                "security-severity": "8.0",
+                "cwe": [
+                  "CWE-330",
+                  "CWE-613"
+                ],
+                "owasp-asvs": [
+                  "V9.1",
+                  "V9.2",
+                  "V11.5"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API2:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A07:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.5"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-AUTHZ-003",
+              "name": "APPSEC-AUTHZ-003",
+              "shortDescription": {
+                "text": "Require a second person for high-risk approvals"
+              },
+              "fullDescription": {
+                "text": "Verify that high-risk business actions (payments, privilege grants, data exports, policy overrides) follow their workflow on the server, and that the person who requests an approval cannot approve it."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "authorization",
+                  "CWE-841"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-841"
+                ],
+                "owasp-asvs": [
+                  "V2.3"
+                ],
+                "owasp-api-top-10-2023": [
+                  "API6:2023"
+                ],
+                "owasp-top-10-2025": [
+                  "A06:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-DATAREST-001",
+              "name": "APPSEC-DATAREST-001",
+              "shortDescription": {
+                "text": "Protect sensitive data in storage and caches"
+              },
+              "fullDescription": {
+                "text": "Verify that sensitive records are encrypted where they are stored, are not left in browser or shared caches, and are deleted when they are no longer needed."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "data-exposure",
+                  "CWE-311",
+                  "CWE-312",
+                  "CWE-525"
+                ],
+                "security-severity": "5.0",
+                "cwe": [
+                  "CWE-311",
+                  "CWE-312",
+                  "CWE-525"
+                ],
+                "owasp-asvs": [
+                  "V14.2",
+                  "V14.3"
+                ],
+                "owasp-top-10-2025": [
+                  "A04:2025"
+                ],
+                "nist-ssdf": [
+                  "PW.1"
+                ]
+              }
+            },
+            {
+              "id": "APPSEC-DESER-001",
+              "name": "APPSEC-DESER-001",
+              "shortDescription": {
+                "text": "Parse untrusted data only with safe parsers"
+              },
+              "fullDescription": {
+                "text": "Verify that data from outside the trust boundary is never deserialized with a format that can create arbitrary objects, and that XML parsers have external entities disabled."
+              },
+              "helpUri": "https://github.com/lucashgrifoni/AppSec-Rules-Pack",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "tags": [
+                  "security",
+                  "integrity",
+                  "CWE-502",
+                  "CWE-611"
+                ],
+                "security-severity": "9.5",
+                "cwe": [
+                  "CWE-502",
+                  "CWE-611"
+                ],
+                "owasp-asvs": [
+                  "V1.5"
+                ],
+                "owasp-top-10-2025": [
+                  "A08:2025"
                 ],
                 "nist-ssdf": [
                   "PW.5"

@@ -19,13 +19,13 @@ This job is meant for a downstream repository laid out like this:
 ```text
 rules/            your own packs, with your own id prefix (ACME-...)
 rules/vendor/     the baseline, downloaded and verified by the job (not committed)
-reviews/          one review record per service, made against the baseline
+reviews/          one review record per service, against the baseline or one of your packs
 ```
 
 It installs a pinned CLI, downloads the baseline from the same release, verifies the
-baseline's build provenance, validates every pack, checks every review record, and then
-applies a gate. Pin a release you have reviewed, and keep the CLI and the baseline on the
-same version.
+baseline's build provenance, validates every pack, checks every review record against the
+pack the record names in `review.pack`, and then applies a gate. Pin a release you have
+reviewed, and keep the CLI and the baseline on the same version.
 
 ```yaml
 name: AppSec rules
@@ -39,7 +39,7 @@ permissions:
   contents: read
 
 env:
-  APPSEC_RULES_VERSION: "0.8.0"
+  APPSEC_RULES_VERSION: "0.9.0"
 
 jobs:
   appsec-rules:
@@ -76,33 +76,73 @@ jobs:
 
       - name: Check review records
         run: |
-          shopt -s nullglob
           mkdir -p reports
-          for record in reviews/*.yaml; do
-            name="$(basename "$record" .yaml)"
-            appsec-rules review rules/vendor/appsec-baseline.yaml "$record" \
-              --fail-on-warnings --format json > "reports/$name.json"
-          done
+          python - <<'PY'
+          import pathlib, subprocess, sys
+          import yaml
+
+          # Each record names the pack it was made against in review.pack; find that
+          # pack, the baseline or one of yours, under rules/.
+          packs = {}
+          for path in sorted(pathlib.Path("rules").rglob("*.y*ml")):
+              data = yaml.safe_load(path.read_text(encoding="utf-8"))
+              if isinstance(data, dict) and isinstance(data.get("pack"), dict):
+                  packs[data["pack"].get("id")] = path
+
+          failed = False
+          for record in sorted(pathlib.Path("reviews").glob("*.yaml")):
+              pack_id = yaml.safe_load(record.read_text(encoding="utf-8"))["review"]["pack"]
+              if pack_id not in packs:
+                  print(f"{record}: no pack with id {pack_id!r} under rules/")
+                  failed = True
+                  continue
+              command = ["appsec-rules", "review", str(packs[pack_id]), str(record),
+                         "--fail-on-warnings", "--format", "json"]
+              with open(f"reports/{record.stem}.json", "w", encoding="utf-8") as report:
+                  failed |= subprocess.run(command, stdout=report).returncode != 0
+          sys.exit(1 if failed else 0)
+          PY
 
       - name: Gate on open rules
+        env:
+          # Your policy: open rules at these severities or enforcement levels stop the job.
+          GATE_SEVERITIES: critical,high
+          GATE_ENFORCEMENT: blocking
+          # "rule" counts open rules at the pack's severity. "effective" uses the
+          # reviewer's assessed_severity where a record sets one (ADR-0009).
+          GATE_SEVERITY_VIEW: rule
         run: |
           python - <<'PY'
-          import json, pathlib, sys
+          import json, os, pathlib, sys
+
+          def levels(name, default):
+              return {item.strip() for item in os.environ.get(name, default).split(",") if item.strip()}
+
+          severities = levels("GATE_SEVERITIES", "critical,high")
+          enforcement = levels("GATE_ENFORCEMENT", "blocking")
+          effective = os.environ.get("GATE_SEVERITY_VIEW", "rule") == "effective"
 
           failed = False
           for path in sorted(pathlib.Path("reports").glob("*.json")):
-              report = json.loads(path.read_text())
-              summary = report["summary"]
-              blocking = summary["open_by_enforcement"].get("blocking", 0)
-              critical = summary["open_by_severity"].get("critical", 0)
-              high = summary["open_by_severity"].get("high", 0)
-              print(f"{path.stem}: open blocking={blocking} critical={critical} high={high}")
-              # Your policy goes here. This one stops on any open blocking, critical, or high rule.
-              if blocking or critical or high:
-                  failed = True
+              summary = json.loads(path.read_text())["summary"]
+              by_severity = summary["open_by_severity"]
+              if effective:
+                  by_severity = summary.get("open_by_effective_severity", by_severity)
+              stop = {level: count for level, count in by_severity.items() if level in severities}
+              stop.update(
+                  (level, count)
+                  for level, count in summary["open_by_enforcement"].items()
+                  if level in enforcement
+              )
+              print(f"{path.stem}: open rules that stop the job: {stop or 'none'}")
+              failed |= any(stop.values())
           sys.exit(1 if failed else 0)
           PY
 ```
+
+To make this gate mandatory, mark the `appsec-rules` job as a required status check in
+your branch protection or ruleset. The three `GATE_` values set the policy; none of them
+changes what `validate` or `review` report.
 
 Notes:
 
@@ -146,7 +186,7 @@ output, or a CLI that cannot be started, fails the gate. Successfully starting t
 process is not treated as a passing pack.
 
 ```bash
-python -m pip install "appsec-rules-pack==0.8.0"   # pin a reviewed release
+python -m pip install "appsec-rules-pack==0.9.0"   # pin a reviewed release
 python examples/validation_gate.py rules --require-examples --fail-on-warnings
 ```
 
@@ -165,7 +205,7 @@ Real results against the repository fixtures:
 The same steps on Windows, verifying offline against the release's provenance bundle:
 
 ```powershell
-$version = "0.8.0"
+$version = "0.9.0"
 $tag = "v$version"
 $repo = "lucashgrifoni/AppSec-Rules-Pack"
 python -m pip install "appsec-rules-pack==$version"

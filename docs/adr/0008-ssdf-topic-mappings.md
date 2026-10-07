@@ -1,6 +1,6 @@
 # ADR-0008: Map SSDF topics consistently at practice level
 
-- **Status:** Proposed; awaiting the v0.6.0 pull request review
+- **Status:** Accepted (2026-10-07). The v0.6.0, v0.7.0, and v0.9.0 baselines applied it to 29 rules without a case that needed a task-level ID.
 - **Date:** 2026-10-05
 - **Related:** [ADR-0002](0002-asvs-5-0-mappings.md), issue #28
 
@@ -29,7 +29,7 @@ boundary or policy, rather than assigning every application control to secure co
 The schema continues to accept practice and task IDs for custom packs.
 
 [The mapping table](../mapping-rationale.md) records the final ASVS and SSDF entries
-for all 20 rules, including unchanged entries and intentional omissions.
+for every rule, including unchanged entries and intentional omissions.
 
 ## Alternatives considered
 

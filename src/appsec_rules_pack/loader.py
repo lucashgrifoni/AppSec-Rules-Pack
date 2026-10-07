@@ -17,7 +17,7 @@ import yaml
 from yaml.composer import ComposerError
 from yaml.constructor import ConstructorError
 from yaml.events import AliasEvent
-from yaml.nodes import MappingNode, Node, ScalarNode
+from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 MAX_RULES_FILE_BYTES = 10 * 1024 * 1024
 
@@ -81,6 +81,41 @@ _RulesPackLoader.add_constructor(
 def _key_label(key: Any) -> str:
     text = str(key)
     return repr(text if len(text) <= 60 else text[:57] + "...")
+
+
+Position = tuple[int, int]
+
+
+def yaml_positions(path: Path) -> dict[tuple[Any, ...], Position]:
+    """Map the path of every node in a rules file to its 1-based line and column.
+
+    Paths use the same keys and list indexes as validation issues, so an issue can be
+    located in the file it came from. Call it only on a file that already loaded.
+    """
+
+    with path.open("r", encoding="utf-8") as handle:
+        loader = _RulesPackLoader(handle)
+        try:
+            root = loader.get_single_node()
+        finally:
+            loader.dispose()
+
+    positions: dict[tuple[Any, ...], Position] = {}
+    stack: list[tuple[tuple[Any, ...], Node | None]] = [((), root)]
+    while stack:
+        node_path, node = stack.pop()
+        if node is None:
+            continue
+        positions[node_path] = (node.start_mark.line + 1, node.start_mark.column + 1)
+        if isinstance(node, MappingNode):
+            stack.extend(
+                ((*node_path, key.value), value)
+                for key, value in node.value
+                if isinstance(key, ScalarNode)
+            )
+        elif isinstance(node, SequenceNode):
+            stack.extend(((*node_path, index), item) for index, item in enumerate(node.value))
+    return positions
 
 
 def load_yaml_file(path: Path) -> Any:

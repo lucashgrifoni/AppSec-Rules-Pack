@@ -2,6 +2,9 @@
 
 import datetime as dt
 import json
+import os
+import re
+import stat
 from enum import StrEnum
 from importlib import resources
 from pathlib import Path
@@ -29,7 +32,12 @@ from appsec_rules_pack.validator import (
 
 # Typer's rich tracebacks print local variables, which for this tool means the content
 # of the rules pack, into CI logs. Unexpected errors must not echo pack content.
-_TYPER_SETTINGS: dict[str, Any] = {"pretty_exceptions_show_locals": False}
+_TYPER_SETTINGS: dict[str, Any] = {
+    "pretty_exceptions_show_locals": False,
+    # Join the hard-wrapped lines of each docstring paragraph, so help text reflows to
+    # the terminal width instead of breaking mid-sentence.
+    "rich_markup_mode": "markdown",
+}
 
 app = typer.Typer(help="Validate AppSec rules pack files.", **_TYPER_SETTINGS)
 export_app = typer.Typer(
@@ -52,6 +60,15 @@ class OutputFormat(StrEnum):
 RulesPathArg = Annotated[
     Path,
     typer.Argument(exists=True, file_okay=True, dir_okay=True),
+]
+RulesPathsArg = Annotated[
+    list[Path],
+    typer.Argument(
+        exists=True,
+        file_okay=True,
+        dir_okay=True,
+        help="Pack files or directories of packs; duplicate rule ids are checked across all.",
+    ),
 ]
 FailOnWarningsOpt = Annotated[
     bool,
@@ -111,7 +128,20 @@ def _issue_path_str(issue: ValidationIssue) -> str:
 
 
 def _format_issue(issue: ValidationIssue) -> str:
-    return f"{issue.level.upper()} {_issue_path_str(issue)}: {issue.message}"
+    where = f" (line {issue.line}, column {issue.column})" if issue.line is not None else ""
+    return f"{issue.level.upper()} {_issue_path_str(issue)}: {issue.message}{where}"
+
+
+def _issue_entry(issue: ValidationIssue) -> dict[str, Any]:
+    return {
+        "level": issue.level,
+        "code": issue.code,
+        "rule_id": issue.rule_id,
+        "path": _issue_path_str(issue),
+        "line": issue.line,
+        "column": issue.column,
+        "message": issue.message,
+    }
 
 
 def _display_path(base_path: Path, file_path: Path) -> str:
@@ -124,8 +154,8 @@ def _display_path(base_path: Path, file_path: Path) -> str:
         return file_path.as_posix()
 
 
-def _format_file_issue(base_path: Path, file_path: Path, issue: ValidationIssue) -> str:
-    return f"{_display_path(base_path, file_path)}: {_format_issue(issue)}"
+def _format_file_issue(display: str, issue: ValidationIssue) -> str:
+    return f"{display}: {_format_issue(issue)}"
 
 
 def _write_document(output: Path, document: str, inputs: tuple[Path, ...] = ()) -> None:
@@ -213,20 +243,31 @@ def _dump_json(document: Any, action: str) -> str:
         raise typer.Exit(code=1) from error
 
 
+def _is_directory_link(path: Path) -> bool:
+    # A Windows junction is a reparse point that is_symlink() does not report.
+    if path.is_symlink():
+        return True
+    attributes = getattr(os.lstat(path), "st_file_attributes", 0)
+    return bool(attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT)
+
+
 def _iter_rule_files(path: Path) -> tuple[Path, ...]:
+    """List the YAML files under ``path``, without entering linked directories.
+
+    A directory symlink or junction can point outside the tree, or back into it and loop,
+    so the walk does not descend into one. A path given directly is always read.
+    """
+
     if path.is_file():
         return (path,)
 
-    return tuple(
-        sorted(
-            (
-                file_path
-                for file_path in path.rglob("*")
-                if file_path.is_file() and file_path.suffix.lower() in RULE_FILE_SUFFIXES
-            ),
-            key=lambda file_path: str(file_path).lower(),
+    found: list[Path] = []
+    for root, directories, files in os.walk(path, followlinks=False):
+        directories[:] = [name for name in directories if not _is_directory_link(Path(root, name))]
+        found.extend(
+            Path(root, name) for name in files if Path(name).suffix.lower() in RULE_FILE_SUFFIXES
         )
-    )
+    return tuple(sorted(found, key=lambda file_path: str(file_path).lower()))
 
 
 def _plural(count: int, singular: str, plural: str) -> str:
@@ -264,26 +305,17 @@ def main(version: VersionOpt = False) -> None:
 
 
 def _build_report(
-    rules_path: Path,
+    display: dict[Path, str],
     file_results: tuple[tuple[Path, ValidationResult], ...],
 ) -> dict:
     rule_count, error_count, warning_count = _summarize(tuple(result for _, result in file_results))
     files = [
         {
-            "path": _display_path(rules_path, rule_file),
+            "path": display[rule_file],
             "rules": result.rule_count,
             "errors": result.error_count,
             "warnings": result.warning_count,
-            "issues": [
-                {
-                    "level": issue.level,
-                    "code": issue.code,
-                    "rule_id": issue.rule_id,
-                    "path": _issue_path_str(issue),
-                    "message": issue.message,
-                }
-                for issue in result.issues
-            ],
+            "issues": [_issue_entry(issue) for issue in result.issues],
         }
         for rule_file, result in file_results
     ]
@@ -301,14 +333,25 @@ def _build_report(
 
 @app.command()
 def validate(
-    rules_path: RulesPathArg,
+    rules_paths: RulesPathsArg,
     fail_on_warnings: FailOnWarningsOpt = False,
     require_examples: RequireExamplesOpt = False,
     output_format: FormatOpt = OutputFormat.text,
 ) -> None:
-    """Validate one YAML rules pack file or a directory of YAML rule packs."""
+    """Validate YAML rules pack files, or every pack in the given directories."""
 
-    rule_files = _iter_rule_files(rules_path)
+    # Each file is reported relative to the path it was found under; a file reached
+    # through two arguments is validated once.
+    display: dict[Path, str] = {}
+    seen: set[Path] = set()
+    for rules_path in rules_paths:
+        for rule_file in _iter_rule_files(rules_path):
+            resolved = rule_file.resolve()
+            if resolved not in seen:
+                seen.add(resolved)
+                display[rule_file] = _display_path(rules_path, rule_file)
+    rule_files = tuple(display)
+    searched = ", ".join(rules_path.as_posix() for rules_path in rules_paths)
     if not rule_files:
         if output_format is OutputFormat.json:
             typer.echo(
@@ -323,13 +366,13 @@ def validate(
                             "ok": False,
                         },
                         "files": [],
-                        "error": f"no YAML rule files found in {rules_path.as_posix()}",
+                        "error": f"no YAML rule files found in {searched}",
                     },
                     indent=2,
                 )
             )
         else:
-            typer.echo(f"Validation failed: no YAML rule files found in {rules_path}.")
+            typer.echo(f"Validation failed: no YAML rule files found in {searched}.")
         raise typer.Exit(code=1)
 
     if len(rule_files) == 1:
@@ -344,7 +387,7 @@ def validate(
     passed = ok and not (fail_on_warnings and warning_count)
 
     if output_format is OutputFormat.json:
-        report = _build_report(rules_path, file_results)
+        report = _build_report(display, file_results)
         report["summary"]["ok"] = passed
         typer.echo(json.dumps(report, indent=2))
         if not passed:
@@ -353,7 +396,7 @@ def validate(
 
     for rule_file, result in file_results:
         for issue in result.issues:
-            typer.echo(_format_file_issue(rules_path, rule_file, issue))
+            typer.echo(_format_file_issue(display[rule_file], issue))
 
     file_summary = _plural(len(rule_files), "file", "files")
     verdict = "passed" if passed else "failed"
@@ -578,16 +621,7 @@ def _review_report(result: ReviewResult, passed: bool) -> dict:
             "ok": passed,
         },
         "results": results,
-        "issues": [
-            {
-                "level": issue.level,
-                "code": issue.code,
-                "rule_id": issue.rule_id,
-                "path": _issue_path_str(issue),
-                "message": issue.message,
-            }
-            for issue in result.issues
-        ],
+        "issues": [_issue_entry(issue) for issue in result.issues],
     }
 
 
@@ -658,18 +692,50 @@ ForceOpt = Annotated[
     bool,
     typer.Option("--force", help="Overwrite the file if it already exists."),
 ]
+PackIdOpt = Annotated[
+    str,
+    typer.Option("--id", help="pack.id of the new pack: lowercase letters, digits, hyphens."),
+]
+RulePrefixOpt = Annotated[
+    str,
+    typer.Option("--prefix", help="Prefix of the rule ids, such as ACME for ACME-ERRORS-001."),
+]
+# The same patterns the rule schema applies to pack.id and to the prefix of a rule id.
+PACK_ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]*")
+RULE_PREFIX_PATTERN = re.compile(r"[A-Z][A-Z0-9]*")
+TEMPLATE_PACK_ID = "my-pack"
+TEMPLATE_RULE_PREFIX = "MYPACK"
 
 
 @app.command()
-def init(path: InitPathArg, force: ForceOpt = False) -> None:
+def init(
+    path: InitPathArg,
+    force: ForceOpt = False,
+    pack_id: PackIdOpt = TEMPLATE_PACK_ID,
+    prefix: RulePrefixOpt = TEMPLATE_RULE_PREFIX,
+) -> None:
     """Write a minimal rules pack that passes the strict gate, to start from."""
 
+    if not PACK_ID_PATTERN.fullmatch(pack_id):
+        raise typer.BadParameter(
+            "use lowercase letters, digits, and hyphens, starting with a letter or digit",
+            param_hint="--id",
+        )
+    if not RULE_PREFIX_PATTERN.fullmatch(prefix):
+        raise typer.BadParameter(
+            "use uppercase letters and digits, starting with a letter", param_hint="--prefix"
+        )
     if path.exists() and not force:
         typer.echo(f"Init failed: {path} already exists; pass --force to overwrite.", err=True)
         raise typer.Exit(code=1)
 
     template = resources.files("appsec_rules_pack").joinpath("templates/minimal-pack.yaml")
-    _write_document(path, template.read_text(encoding="utf-8"))
+    document = (
+        template.read_text(encoding="utf-8")
+        .replace(f"id: {TEMPLATE_PACK_ID}\n", f"id: {pack_id}\n", 1)
+        .replace(f"id: {TEMPLATE_RULE_PREFIX}-", f"id: {prefix}-", 1)
+    )
+    _write_document(path, document)
     typer.echo(
         f"Wrote a starter pack to {path}. Next: appsec-rules validate {path} "
         "--require-examples --fail-on-warnings"
