@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.5.0/src/appsec_rules_pack/schemas/review-report.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.8.0/src/appsec_rules_pack/schemas/review-report.schema.json",
   "$comment": "Contract of `appsec-rules review --format json`, format marker appsec-rules-review/v1. Fields may be added within v1; removing or renaming one, or changing an issue code, requires v2. See ADR-0006 and VERSIONING.md.",
   "title": "AppSec Rules Pack review report",
   "type": "object",
@@ -54,7 +54,11 @@
         },
         "open_by_severity": {
           "$ref": "#/$defs/counts",
-          "description": "Rules that are not-met or unreviewed, counted by severity."
+          "description": "Rules that are not-met or unreviewed, counted by the rule's severity."
+        },
+        "open_by_effective_severity": {
+          "$ref": "#/$defs/counts",
+          "description": "Rules that are not-met or unreviewed, counted by effective_severity: the record's assessed_severity when set, otherwise the rule's severity (ADR-0009). Added in 0.8.0."
         },
         "errors": {"type": "integer", "minimum": 0},
         "warnings": {"type": "integer", "minimum": 0},
@@ -72,7 +76,15 @@
         "properties": {
           "rule_id": {"type": "string"},
           "title": {"type": "string"},
-          "severity": {"type": "string"},
+          "severity": {"type": "string", "description": "The rule's severity in the pack."},
+          "assessed_severity": {
+            "enum": ["critical", "high", "medium", "low"],
+            "description": "The record's assessed severity for this result, when it sets one. Added in 0.8.0."
+          },
+          "effective_severity": {
+            "type": "string",
+            "description": "assessed_severity when present, otherwise severity. Added in 0.8.0."
+          },
           "enforcement": {"type": "string"},
           "status": {
             "enum": ["met", "not-met", "not-applicable", "excepted", "unreviewed"]

@@ -61,8 +61,8 @@ on 21, and OWASP Top 10 for LLM Applications 2025 on the 2 LLM rules.
 ## Quick start
 
 ```bash
-pip install "appsec-rules-pack==0.7.0"
-curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.7.0/appsec-baseline.yaml
+pip install "appsec-rules-pack==0.8.0"
+curl -LO https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.8.0/appsec-baseline.yaml
 appsec-rules validate appsec-baseline.yaml --require-examples --fail-on-warnings
 ```
 
@@ -75,11 +75,11 @@ PowerShell, `curl` is an alias for `Invoke-WebRequest`; download the baseline wi
 ## Installation
 
 ```bash
-pip install "appsec-rules-pack==0.7.0"
+pip install "appsec-rules-pack==0.8.0"
 ```
 
 This installs the `appsec-rules` console script and requires Python 3.12 or newer. Pin a
-reviewed version, such as `appsec-rules-pack==0.7.0`, when the CLI runs
+reviewed version, such as `appsec-rules-pack==0.8.0`, when the CLI runs
 as a quality gate.
 
 The distribution contains the validator, the CLI, and the JSON Schema. It does not contain
@@ -112,7 +112,7 @@ Verify a downloaded asset with a current [GitHub CLI](https://cli.github.com/man
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
   --signer-workflow lucashgrifoni/AppSec-Rules-Pack/.github/workflows/publish-pypi.yml \
-  --source-ref refs/tags/v0.7.0
+  --source-ref refs/tags/v0.8.0
 ```
 
 Or offline, against the bundle attached to the release:
@@ -120,7 +120,7 @@ Or offline, against the bundle attached to the release:
 ```bash
 gh attestation verify appsec-baseline.yaml \
   --repo lucashgrifoni/AppSec-Rules-Pack \
-  --bundle appsec-rules-pack-v0.7.0.intoto.jsonl
+  --bundle appsec-rules-pack-v0.8.0.intoto.jsonl
 ```
 
 The same commands work for the wheel, the sdist, and `sbom.cdx.json`. A passing check proves
@@ -313,7 +313,11 @@ has the fields the rule requires, has not expired, and fits in the rule's `max_d
 Enabled rules with no result are reported as `unreviewed`, and a `not-met` or
 `not-applicable` rule without `notes` gets a `review-justification-missing` warning.
 `review.subject_ref` is optional and names the exact revision reviewed (a commit, tag,
-image digest, or package version). Keys starting with `x-` on a result are copied into
+image digest, or package version). A `not-met` or `excepted` result may set
+`assessed_severity` when the finding is more or less severe than the rule: the report
+then shows it as that rule's `effective_severity` and counts it in
+`summary.open_by_effective_severity`, while `severity` and `summary.open_by_severity` keep
+the rule's value ([ADR-0009](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/adr/0009-assessed-severity-and-subject-type.md)). Keys starting with `x-` on a result are copied into
 that rule's entry in the JSON report.
 
 To start a record, `appsec-rules init-review appsec-baseline.yaml review.yaml --subject

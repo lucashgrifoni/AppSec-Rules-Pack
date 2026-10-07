@@ -39,7 +39,7 @@ permissions:
   contents: read
 
 env:
-  APPSEC_RULES_VERSION: "0.7.0"
+  APPSEC_RULES_VERSION: "0.8.0"
 
 jobs:
   appsec-rules:
@@ -111,6 +111,10 @@ Notes:
   ([ADR-0006](../docs/adr/0006-review-records.md)). A rule is open when it is `not-met` or
   `unreviewed`; `excepted` rules are not open, and an invalid or expired exception makes the
   record invalid, so the `review` step fails first.
+- The gate counts open rules by the rule's severity. A record can set `assessed_severity`
+  on a result; to gate on the reviewer's assessment instead, read
+  `summary["open_by_effective_severity"]`, and review severity changes in the pull request
+  that makes them ([ADR-0009](../docs/adr/0009-assessed-severity-and-subject-type.md)).
 - `validate rules` reads every `.yaml` and `.yml` file under `rules/`, subdirectories
   included, so keep only packs there.
 - A review record fails once one of its exceptions expires. That is the point: renew the
@@ -142,7 +146,7 @@ output, or a CLI that cannot be started, fails the gate. Successfully starting t
 process is not treated as a passing pack.
 
 ```bash
-python -m pip install "appsec-rules-pack==0.7.0"   # pin a reviewed release
+python -m pip install "appsec-rules-pack==0.8.0"   # pin a reviewed release
 python examples/validation_gate.py rules --require-examples --fail-on-warnings
 ```
 
@@ -161,7 +165,7 @@ Real results against the repository fixtures:
 The same steps on Windows, verifying offline against the release's provenance bundle:
 
 ```powershell
-$version = "0.7.0"
+$version = "0.8.0"
 $tag = "v$version"
 $repo = "lucashgrifoni/AppSec-Rules-Pack"
 python -m pip install "appsec-rules-pack==$version"

@@ -114,7 +114,7 @@
 </nav>
 
 <header class="hero wrap">
-  <span class="eyebrow">v0.7.0 · Apache-2.0 · engine-agnostic</span>
+  <span class="eyebrow">v0.8.0 · Apache-2.0 · engine-agnostic</span>
   <h1>An <span class="accent">AppSec rules pack</span><br/>for documented reviews.</h1>
   <p class="lede">A curated pack of 24 generic application-security rules with a JSON Schema contract,
   a Python validator, and per-rule mappings to OWASP ASVS 5.0, OWASP API Top 10, OWASP Top 10:2025,
@@ -168,11 +168,11 @@
     <div class="term">
       <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
 <div class="body"><span class="c"># install the validator from PyPI</span>
-<span class="p">$</span> <span class="o">pip install "appsec-rules-pack==0.7.0"</span>
+<span class="p">$</span> <span class="o">pip install "appsec-rules-pack==0.8.0"</span>
 
 <span class="c"># the distribution ships the validator, not the rules: grab the pack</span>
 <span class="p">$</span> <span class="o">mkdir -p rules && curl -fsSL -o rules/appsec-baseline.yaml \</span>
-<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.7.0/appsec-baseline.yaml</span>
+<span class="o">    https://github.com/lucashgrifoni/AppSec-Rules-Pack/releases/download/v0.8.0/appsec-baseline.yaml</span>
 
 <span class="p">$</span> <span class="o">appsec-rules validate rules --require-examples --fail-on-warnings</span>
 <span class="c">Validation passed: 1 file, 24 rules, 0 errors, 0 warnings.</span>

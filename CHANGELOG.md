@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.8.0 - 2026-10-07
+
+The baseline is unchanged (pack version 0.7.0, 24 rules). The record and report schema
+`$id` values move to v0.8.0. Existing records and gates keep working; nothing needs to
+change on upgrade.
+
+### Added
+
+- `assessed_severity` on a `not-met` or `excepted` result records the reviewer's severity
+  for the finding when it differs from the rule's. The review report adds
+  `effective_severity` to each result and `summary.open_by_effective_severity`; the
+  existing `severity` and `summary.open_by_severity` keep the rule's value, so current
+  gates read the same numbers. On a `met` or `not-applicable` result it is an error,
+  `review-assessed-severity-unexpected`. See ADR-0009.
+- ADR-0009 also records why a record-level subject type that marks rules
+  `not-applicable` was rejected: every baseline rule targets `api` or `backend`, so the
+  target list cannot tell the rules apart.
+
 ## v0.7.0 - 2026-10-06
 
 ### Upgrade notes
