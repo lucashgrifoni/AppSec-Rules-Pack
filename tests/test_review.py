@@ -61,7 +61,7 @@ def test_worked_example_is_a_valid_record(baseline: dict, record: dict) -> None:
 
     assert result.issues == ()
     counts = result.status_counts()
-    assert counts == {"met": 14, "not-applicable": 8, "not-met": 1, "excepted": 1}
+    assert counts == {"met": 18, "not-applicable": 9, "not-met": 1, "excepted": 1}
 
 
 def test_cli_report_matches_the_published_schema() -> None:
@@ -70,7 +70,7 @@ def test_cli_report_matches_the_published_schema() -> None:
     jsonschema.validate(report, REPORT_SCHEMA)
     assert exit_code == 0
     assert report["schema"] == "appsec-rules-review/v1"
-    assert report["pack"] == {"id": "appsec-baseline", "version": "0.7.0"}
+    assert report["pack"] == {"id": "appsec-baseline", "version": "0.9.0"}
     assert report["summary"]["ok"] is True
     assert report["summary"]["open_by_severity"] == {"medium": 1}
     assert report["summary"]["open_by_enforcement"] == {"advisory": 1}
@@ -89,7 +89,7 @@ def test_open_rules_never_change_the_exit_code(record: dict, tmp_path: Path) -> 
     exit_code, report = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05")
 
     assert exit_code == 0
-    assert report["summary"]["not_met"] == 15
+    assert report["summary"]["not_met"] == 19
 
 
 def test_text_output_lists_rules_and_a_verdict() -> None:
@@ -97,7 +97,7 @@ def test_text_output_lists_rules_and_a_verdict() -> None:
 
     assert result.exit_code == 0
     assert "APPSEC-LOG-001" in result.stdout
-    assert result.stdout.strip().splitlines()[-1].startswith("Review passed: 24 rules; 14 met")
+    assert result.stdout.strip().splitlines()[-1].startswith("Review passed: 29 rules; 18 met")
 
 
 def test_results_follow_pack_order(baseline: dict, record: dict) -> None:
@@ -151,7 +151,7 @@ def test_second_result_for_a_rule_is_an_error(baseline: dict, record: dict) -> N
 
     assert _codes(result) == ["review-duplicate-result"]
     assert _entry(record, "APPSEC-AUTHZ-001")["status"] == "met"
-    assert result.status_counts()["met"] == 14
+    assert result.status_counts()["met"] == 18
 
 
 def test_enabled_rules_without_a_result_are_unreviewed(baseline: dict, record: dict) -> None:
@@ -435,7 +435,7 @@ def test_unknown_rule_first_does_not_stop_the_later_results(baseline: dict, reco
     result = review_payloads(baseline, record, as_of=AS_OF)
 
     assert _codes(result) == ["review-unknown-rule"]
-    assert len(result.outcomes) == 24
+    assert len(result.outcomes) == 29
 
 
 def test_duplicate_early_does_not_stop_the_later_results(baseline: dict, record: dict) -> None:
@@ -444,7 +444,7 @@ def test_duplicate_early_does_not_stop_the_later_results(baseline: dict, record:
     result = review_payloads(baseline, record, as_of=AS_OF)
 
     assert _codes(result) == ["review-duplicate-result"]
-    assert len(result.outcomes) == 24
+    assert len(result.outcomes) == 29
 
 
 def test_exception_granted_and_expiring_the_same_day(baseline: dict, record: dict) -> None:
@@ -464,7 +464,7 @@ def test_rules_that_are_not_enabled_are_not_expected_in_the_record(
     result = review_payloads(pack, record, as_of=AS_OF)
 
     assert result.issues == ()
-    assert len(result.outcomes) == 23
+    assert len(result.outcomes) == 28
 
 
 # --- v0.7.0: justification, subject_ref, x- passthrough, invalid-record summary --------

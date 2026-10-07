@@ -1,7 +1,7 @@
 pack:
   id: appsec-baseline
   name: AppSec Baseline Rules Pack
-  version: 0.7.0
+  version: 0.9.0
   schema_version: "0.7"
   mode: advisory
   owner: appsec
@@ -142,7 +142,7 @@ rules:
 
   - id: APPSEC-INJECT-001
     title: Prevent injection into interpreters and queries
-    description: Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or log formats without effective sanitization.
+    description: Ensure untrusted data is not concatenated into SQL, NoSQL, shell commands, command arguments, templates, LDAP, XPath, log formats, or CI runner command channels without effective neutralization.
     severity: critical
     category: injection
     status: enabled
@@ -161,19 +161,22 @@ rules:
       cwe:
         - CWE-89
         - CWE-78
+        - CWE-88
       nist_ssdf:
         - PW.5
     evidence:
       required:
-        - Parameterized query, safe API call, shell-free execution, or allowlisted command arguments.
-        - Clear source-to-sink review for any interpreter boundary.
+        - Parameterized query, safe API call, shell-free execution, or allowlisted command arguments; an untrusted value passed to a program as an argument comes after an end-of-options marker (`--`) or is validated so it cannot be read as an option.
+        - Clear source-to-sink review for any interpreter boundary, including text a CI job prints that the runner parses as a command.
       signals:
-        - Tests that malicious metacharacters are treated as data.
+        - Tests that malicious metacharacters, and values starting with `-`, are treated as data.
         - Absence of string-built queries or commands from untrusted values.
+        - Values from a scanned or untrusted repository are escaped before they reach CI log output (for GitHub Actions workflow commands, `%`, carriage return, and line feed).
     match:
       type: review
       includes:
         - Database calls, shell execution, templating, dynamic filters, logging templates, and parser expressions.
+        - CLI tools and CI jobs that pass repository-controlled values to subprocesses or print them to the CI runner.
       excludes:
         - Static queries and commands with no untrusted input.
     remediation:
@@ -1060,7 +1063,7 @@ rules:
     evidence:
       required:
         - Explicit allowlist of bindable fields for create and update operations.
-        - Privileged or internal attributes (role, is_admin, balance, owner_id) are not client-settable.
+        - Privileged or internal attributes (role, is_admin, balance, owner_id) are never bound from a generic request body; a dedicated operation changes them, and only for callers with that privilege (see APPSEC-AUTHZ-002).
       signals:
         - Tests that sending an unexpected privileged field does not change it.
         - Review of handlers that bind whole request bodies to models.
@@ -1378,6 +1381,7 @@ rules:
         - Model output is parsed and validated before it reaches a tool call, query, shell, file path, or rendered markup, and the system prompt and model context hold no secrets.
       signals:
         - Tests that send known injection payloads through user input and through retrieved content, and check that behavior and disclosure do not change.
+        - Documents enter the retrieval corpus only from approved sources, with the uploader recorded, so planted instructions can be traced and removed.
         - Review of every place model output is used, with the validation applied at each.
     match:
       type: review
@@ -1540,3 +1544,326 @@ rules:
           def chart(patient_id):
               return charts.get_for(current_user, patient_id)
         explanation: Clinical records are read with no trace of who read them, so misuse by an authorized user cannot be investigated.
+
+  - id: APPSEC-AUTHN-002
+    title: Validate federated sign-in responses
+    description: Verify that an application signing users in through an external identity provider (OIDC, OAuth, or SAML) checks the response before trusting it, so an attacker cannot forge, replay, or redirect a sign-in to become another user.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V10.2
+        - V10.5
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-287
+        - CWE-347
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - The callback checks the `state` value (or uses PKCE) and the ID token `nonce` against what the application sent, and rejects a response it did not start.
+        - The ID token signature is verified with the provider's configured keys, and `iss`, `aud` (equal to the client id), and `exp` are checked; the user is identified by the provider's `sub`, never by an email or username taken from the request.
+      signals:
+        - The redirect URI is registered exactly with the provider, with no wildcard or open path.
+        - Tests that a callback with a forged token, a missing or reused `state`, or another client's `aud` is rejected.
+    match:
+      type: review
+      includes:
+        - OIDC and OAuth callback handlers, SAML assertion consumers, and libraries configured to validate identity provider responses.
+      excludes:
+        - Applications that authenticate users only with local credentials.
+    remediation:
+      guidance: Use a maintained OIDC or SAML library, keep its signature, issuer, audience, expiry, state, and nonce checks enabled, and identify users by the provider's subject claim.
+      validation:
+        - Replay a captured callback and confirm it is rejected.
+        - Send an ID token signed by another key or issued for another client and confirm sign-in fails.
+    exceptions:
+      allowed: true
+      max_days: 30
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          claims = oidc.parse_id_token(
+              token_response, nonce=session.pop("oidc_nonce")
+          )  # verifies signature, iss, aud, exp, and nonce
+          user = users.by_subject(claims["iss"], claims["sub"])
+        explanation: The library verifies the token against the nonce this session sent, and the user is looked up by issuer and subject.
+      violating:
+        language: python
+        snippet: |
+          @app.get("/sso/callback")
+          def callback():
+              user = users.by_email(request.args["email"])
+              return login(user)
+        explanation: The callback trusts an email in the query string, so anyone can sign in as any user, including an administrator.
+
+  - id: APPSEC-AUTHN-003
+    title: Issue unguessable, expiring, audience-bound tokens
+    description: Verify that API keys, service tokens, and self-contained tokens are generated with a secure random source, expire, and are accepted only after their signature, algorithm, audience, and validity period are checked.
+    severity: high
+    category: authentication
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V9.1
+        - V9.2
+        - V11.5
+      owasp_api_top_10_2023:
+        - API2:2023
+      owasp_top_10_2025:
+        - A07:2025
+      cwe:
+        - CWE-330
+        - CWE-613
+      nist_ssdf:
+        - PW.5
+    evidence:
+      required:
+        - Opaque tokens and API keys come from a cryptographically secure random generator with at least 128 bits of entropy, never from a user id, a timestamp, or a UUID.
+        - Every token has an expiry or a revocation path, and self-contained tokens are accepted only after the signature, an allowlisted algorithm, `aud`, and `exp` or `nbf` are verified.
+      signals:
+        - Stored tokens are hashed, so a database read does not reveal usable credentials.
+        - Tests that an expired token, a token for another audience, and a token signed with `alg` none are rejected.
+    match:
+      type: review
+      includes:
+        - Code that issues or verifies API keys, service tokens, password reset or invitation tokens, and JWT or other self-contained tokens.
+      excludes:
+        - Session identifiers managed by a framework already reviewed under APPSEC-SESSION-001.
+    remediation:
+      guidance: Generate tokens with the platform's secure random source, store a hash, set an expiry, and verify signature, algorithm, audience, and validity on every use.
+      validation:
+        - Inspect token issuance and confirm the random source and length.
+        - Present expired, cross-audience, and unsigned tokens and confirm each is rejected.
+    exceptions:
+      allowed: true
+      max_days: 60
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          import secrets
+
+          token = secrets.token_urlsafe(32)  # 256 bits
+          store.save(hash_token(token), owner=user.id, expires_at=now() + TTL)
+        explanation: The token comes from the secure random source, expires, and only its hash is stored.
+      violating:
+        language: python
+        snippet: |
+          token = f"{user.id}-{int(time.time())}"
+          store.save(token, owner=user.id)  # never expires
+        explanation: Anyone who knows a user id and the approximate time can guess the token, and it stays valid forever.
+
+  - id: APPSEC-AUTHZ-003
+    title: Require a second person for high-risk approvals
+    description: Verify that high-risk business actions (payments, privilege grants, data exports, policy overrides) follow their workflow on the server, and that the person who requests an approval cannot approve it.
+    severity: medium
+    category: authorization
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+    mappings:
+      owasp_asvs:
+        - V2.3
+      owasp_api_top_10_2023:
+        - API6:2023
+      owasp_top_10_2025:
+        - A06:2025
+      cwe:
+        - CWE-841
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - The approval step checks on the server that the approver is not the requester and holds the approver role for that action.
+        - The workflow state is enforced on the server, so a request cannot skip a step or approve an item that is not pending.
+      signals:
+        - Approvals are recorded with requester, approver, and time.
+        - Tests where a requester approves their own request, and where an item is approved twice, are rejected.
+    match:
+      type: review
+      includes:
+        - Approval queues, payment or refund release, role and permission grants, bulk exports, and manual overrides of automated controls.
+      excludes:
+        - Low-risk actions that the business has not designated as needing a second approval.
+    remediation:
+      guidance: Model the workflow as server-side states, reject self-approval, and require the approver role for each transition.
+      validation:
+        - Add tests for self-approval, skipped steps, and repeated approval.
+        - Confirm each approval is recorded with both identities.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          request = approvals.get_pending(request_id)
+          if request.requested_by == current_user.id:
+              raise Forbidden("requester cannot approve")
+          require_permission(current_user, f"approve:{request.kind}")
+          approvals.approve(request, by=current_user.id)
+        explanation: The server checks the state, the approver role, and that the approver is someone other than the requester.
+      violating:
+        language: python
+        snippet: |
+          @app.post("/approvals/<request_id>/approve")
+          @login_required
+          def approve(request_id):
+              approvals.mark_approved(request_id)
+        explanation: Any signed-in user, including the requester, can approve any request, pending or not.
+
+  - id: APPSEC-DATAREST-001
+    title: Protect sensitive data in storage and caches
+    description: Verify that sensitive records are encrypted where they are stored, are not left in browser or shared caches, and are deleted when they are no longer needed.
+    severity: medium
+    category: data-exposure
+    status: enabled
+    enforcement: advisory
+    targets:
+      - backend
+      - data
+      - frontend
+    mappings:
+      owasp_asvs:
+        - V14.2
+        - V14.3
+      owasp_top_10_2025:
+        - A04:2025
+      cwe:
+        - CWE-311
+        - CWE-312
+        - CWE-525
+      nist_ssdf:
+        - PW.1
+    evidence:
+      required:
+        - Data classified as sensitive (health, financial, credentials, government identifiers) is encrypted at rest, at field level or by an encrypted volume, with keys held outside the database.
+        - Responses that carry sensitive data send the `Cache-Control` header with `no-store`, and such data is not written to browser storage or to shared caches.
+      signals:
+        - A data classification lists which fields are sensitive and the protection each one gets.
+        - Sensitive records are deleted on a defined retention schedule.
+    match:
+      type: review
+      includes:
+        - Database schemas, backups, exports, object storage, HTTP responses with sensitive records, and browser storage.
+      excludes:
+        - Data the classification marks as public or non-sensitive.
+    remediation:
+      guidance: Classify sensitive fields, encrypt them at rest with managed keys, send them with the `no-store` cache directive, keep them out of browser storage, and delete them on a retention schedule.
+      validation:
+        - Inspect the stored form of a sensitive field and confirm it is encrypted.
+        - Request a page with sensitive data and confirm the response headers forbid caching.
+    exceptions:
+      allowed: true
+      max_days: 90
+      required_fields:
+        - owner
+        - justification
+        - expires_at
+        - compensating_control
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          record.clinical_notes = vault.encrypt(notes, key_id="phi")
+
+          response = jsonify(chart_view(record))
+          response.headers["Cache-Control"] = "no-store"
+        explanation: The sensitive field is encrypted with a managed key before storage, and the response forbids caching.
+      violating:
+        language: python
+        snippet: |
+          record.clinical_notes = notes  # plain text in the database
+          return jsonify(chart_view(record))  # cacheable by the browser
+        explanation: The notes sit in plain text in the database and its backups, and the page can be cached on a shared computer.
+
+  - id: APPSEC-DESER-001
+    title: Parse untrusted data only with safe parsers
+    description: Verify that data from outside the trust boundary is never deserialized with a format that can create arbitrary objects, and that XML parsers have external entities disabled.
+    severity: critical
+    category: integrity
+    status: enabled
+    enforcement: advisory
+    targets:
+      - api
+      - backend
+      - data
+    mappings:
+      owasp_asvs:
+        - V1.5
+      owasp_top_10_2025:
+        - A08:2025
+      cwe:
+        - CWE-502
+        - CWE-611
+      nist_ssdf:
+        - PW.5
+    evidence:
+      required:
+        - Untrusted input is parsed with data-only formats (JSON, safe YAML loaders, schema-validated protocols), never with native object serialization such as pickle, Java serialization, or BinaryFormatter.
+        - XML parsers that read untrusted input have DTDs and external entities disabled.
+      signals:
+        - Search for pickle.loads, yaml.load without a safe loader, ObjectInputStream, BinaryFormatter, and unserialize on request, file, queue, or cache data.
+        - Tests that a crafted serialized object or an XML document with an external entity is rejected without side effects.
+    match:
+      type: review
+      includes:
+        - Request bodies, uploaded files, message queues, caches, cookies, and any data read back from storage that an attacker could have written.
+      excludes:
+        - Data the application serialized and signed itself, verified before parsing.
+    remediation:
+      guidance: Replace native deserialization of untrusted data with a data-only format and schema validation, and configure XML parsers with external entities and DTDs disabled.
+      validation:
+        - Send a serialized gadget or an XML external entity payload and confirm it is rejected.
+        - Confirm no native deserializer reads attacker-controlled bytes.
+    exceptions:
+      allowed: false
+      max_days: 0
+      required_fields: []
+    examples:
+      compliant:
+        language: python
+        snippet: |
+          payload = Settings.model_validate_json(request.data)
+          config = yaml.safe_load(uploaded_file.read())
+        explanation: Both inputs are parsed as plain data and validated; neither parser can build arbitrary objects.
+      violating:
+        language: python
+        snippet: |
+          import pickle
+
+          settings = pickle.loads(request.data)
+        explanation: Unpickling attacker-controlled bytes runs code chosen by the attacker on the server.

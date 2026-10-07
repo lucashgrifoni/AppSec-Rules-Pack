@@ -1,7 +1,8 @@
 # Baseline mapping rationale
 
-Reviewed on 2026-10-05 for the first 20 rules in `rules/appsec-baseline.yaml`, and on
-2026-10-06 for the four rules added in pack version 0.7.0.
+Reviewed on 2026-10-05 for the first 20 rules in `rules/appsec-baseline.yaml`, on
+2026-10-06 for the four rules added in pack version 0.7.0, and on 2026-10-07 for the five
+rules added in pack version 0.9.0.
 Mappings connect a rule's topic to a framework section. They do not establish that
 an application meets the section or that the rule covers the whole framework.
 
@@ -11,7 +12,7 @@ release branch; the immutable release tag is `v5.0.0_release`, at
 `tests/fixtures/asvs-5.0.0-ids.json` was extracted from that tag's English chapter files.
 
 SSDF references use **NIST SP 800-218, SSDF v1.1, Table 1**. Use practice-level
-IDs consistently, as proposed in [ADR-0008](adr/0008-ssdf-topic-mappings.md).
+IDs consistently, as decided in [ADR-0008](adr/0008-ssdf-topic-mappings.md).
 PW.1 addresses security requirements and design risks; PW.4 addresses reuse of
 secured components; PW.5 addresses secure source-code creation; PW.9 addresses
 secure default settings. A rule's test or review evidence does not by itself make
@@ -43,6 +44,11 @@ its topic PW.7 (code analysis), PW.8 (executable testing), or RV.1 (vulnerabilit
 | APPSEC-LLM-001 | None. ASVS 5.0.0 has no requirement for language-model prompts or model output; see the omissions below. | [PW.1][ssdf1]: design the trust boundary between system instructions and untrusted content. |
 | APPSEC-LLM-002 | [V8.3][asvs8], requirements 8.3.1 and 8.3.3: authorization at a trusted service layer, based on the originating subject's permissions rather than an intermediary's. | [PW.1][ssdf1]: design tool scopes and authorization so the model acts with the end user's permissions. |
 | APPSEC-LOG-002 | [V16.3 and V16.4][asvs16]: requirement 16.3.2 at L3 logs access to sensitive data, and V16.4 protects logs from modification. | [PW.5][ssdf5]: implement the audit events and their protected sink, like APPSEC-LOG-001. |
+| APPSEC-AUTHN-002 | [V10.2 and V10.5][asvs10]: the OAuth client's state or PKCE protection (10.2.1) and the OIDC client's nonce, audience, and issuer checks (10.5.1, 10.5.3, 10.5.4). | [PW.1][ssdf1]: design which identity provider responses the application trusts and how it identifies the user. |
+| APPSEC-AUTHN-003 | [V9.1 and V9.2][asvs9] for self-contained token signature, algorithm, validity, and audience, and [V11.5][asvs11] (11.5.1) for random values with at least 128 bits of entropy. | [PW.5][ssdf5]: implement token generation and verification without guessable values or missing checks. |
+| APPSEC-AUTHZ-003 | [V2.3][asvs2]: step order of business flows (2.3.1) and multi-user approval of high-value flows (2.3.5). | [PW.1][ssdf1]: design the approval workflow and the separation between requester and approver. |
+| APPSEC-DATAREST-001 | [V14.2][asvs14] for server-side caching (14.2.2), protection by data level including encryption (14.2.4), and retention (14.2.7), and [V14.3][asvs14] for anti-caching headers and browser storage (14.3.2, 14.3.3). | [PW.1][ssdf1]: design the data classification and the protection each class gets. |
+| APPSEC-DESER-001 | [V1.5][asvs1]: safe deserialization of untrusted data (1.5.2) and XML parsers without external entities (1.5.1). | [PW.5][ssdf5]: implement parsing with data-only formats and safe parser settings. |
 
 ## Multiple mappings and intentional omissions
 
@@ -77,6 +83,19 @@ its topic PW.7 (code analysis), PW.8 (executable testing), or RV.1 (vulnerabilit
   `APPSEC-AUTHZ-001` keeps API1:2023, so object-level and function-level authorization
   are reviewed as separate rules.
 - `APPSEC-LOG-002` has no API Top 10:2023 mapping; no category there covers audit trails.
+- `APPSEC-AUTHN-002` and `APPSEC-AUTHN-003` take API2:2023 (broken authentication) and
+  A07:2025 (authentication failures). `APPSEC-AUTHZ-003` takes API6:2023 (unrestricted
+  access to sensitive business flows) and A06:2025 (insecure design), since the missing
+  control is a workflow rule, not an object check.
+- `APPSEC-DATAREST-001` maps to A04:2025 (cryptographic failures) and has no API Top
+  10:2023 mapping; storage encryption and caching are not API-specific subjects there.
+- `APPSEC-DESER-001` maps to A08:2025 (software or data integrity failures), the Top 10
+  home of insecure deserialization, and has no API Top 10:2023 mapping. It is the one rule
+  added in 0.9.0 without a case in the internal labs; it rests on ASVS V1.5 and on
+  CWE-502, whose exploitation usually means code execution.
+- `APPSEC-INJECT-001` adds CWE-88 (argument injection) in 0.9.0: a tool that passes a
+  repository-controlled value to a program as an argument is the same interpreter boundary
+  as a shell command, and the oss-policy-kit review found it there.
 - The other Top 10:2025 mappings remain unchanged. Their categories can be read in
   the [official OWASP Top 10:2025](https://owasp.org/Top10/2025/).
 
@@ -90,6 +109,8 @@ That test establishes valid IDs, not semantic correctness or framework conforman
 [asvs6]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x15-V6-Authentication.md
 [asvs7]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x16-V7-Session-Management.md
 [asvs8]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x17-V8-Authorization.md
+[asvs9]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x18-V9-Self-contained-Tokens.md
+[asvs10]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x19-V10-OAuth-and-OIDC.md
 [asvs11]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x20-V11-Cryptography.md
 [asvs13]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x22-V13-Configuration.md
 [asvs14]: https://github.com/OWASP/ASVS/blob/v5.0.0_release/5.0/en/0x23-V14-Data-Protection.md

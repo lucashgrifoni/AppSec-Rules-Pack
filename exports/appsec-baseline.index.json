@@ -5,7 +5,7 @@
       "pack": {
         "id": "appsec-baseline",
         "name": "AppSec Baseline Rules Pack",
-        "version": "0.7.0"
+        "version": "0.9.0"
       },
       "rules": [
         {
@@ -110,7 +110,8 @@
             ],
             "cwe": [
               "CWE-89",
-              "CWE-78"
+              "CWE-78",
+              "CWE-88"
             ],
             "nist_ssdf": [
               "PW.5"
@@ -943,6 +944,202 @@
               "justification",
               "expires_at"
             ]
+          }
+        },
+        {
+          "id": "APPSEC-AUTHN-002",
+          "title": "Validate federated sign-in responses",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V10.2",
+              "V10.5"
+            ],
+            "owasp_api_top_10_2023": [
+              "API2:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A07:2025"
+            ],
+            "cwe": [
+              "CWE-287",
+              "CWE-347"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 30,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-AUTHN-003",
+          "title": "Issue unguessable, expiring, audience-bound tokens",
+          "severity": "high",
+          "category": "authentication",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V9.1",
+              "V9.2",
+              "V11.5"
+            ],
+            "owasp_api_top_10_2023": [
+              "API2:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A07:2025"
+            ],
+            "cwe": [
+              "CWE-330",
+              "CWE-613"
+            ],
+            "nist_ssdf": [
+              "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 60,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-AUTHZ-003",
+          "title": "Require a second person for high-risk approvals",
+          "severity": "medium",
+          "category": "authorization",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V2.3"
+            ],
+            "owasp_api_top_10_2023": [
+              "API6:2023"
+            ],
+            "owasp_top_10_2025": [
+              "A06:2025"
+            ],
+            "cwe": [
+              "CWE-841"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-DATAREST-001",
+          "title": "Protect sensitive data in storage and caches",
+          "severity": "medium",
+          "category": "data-exposure",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "backend",
+            "data",
+            "frontend"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V14.2",
+              "V14.3"
+            ],
+            "owasp_top_10_2025": [
+              "A04:2025"
+            ],
+            "cwe": [
+              "CWE-311",
+              "CWE-312",
+              "CWE-525"
+            ],
+            "nist_ssdf": [
+              "PW.1"
+            ]
+          },
+          "exceptions": {
+            "allowed": true,
+            "max_days": 90,
+            "required_fields": [
+              "owner",
+              "justification",
+              "expires_at",
+              "compensating_control"
+            ]
+          }
+        },
+        {
+          "id": "APPSEC-DESER-001",
+          "title": "Parse untrusted data only with safe parsers",
+          "severity": "critical",
+          "category": "integrity",
+          "status": "enabled",
+          "enforcement": "advisory",
+          "targets": [
+            "api",
+            "backend",
+            "data"
+          ],
+          "mappings": {
+            "owasp_asvs": [
+              "V1.5"
+            ],
+            "owasp_top_10_2025": [
+              "A08:2025"
+            ],
+            "cwe": [
+              "CWE-502",
+              "CWE-611"
+            ],
+            "nist_ssdf": [
+              "PW.5"
+            ]
+          },
+          "exceptions": {
+            "allowed": false,
+            "max_days": 0,
+            "required_fields": []
           }
         }
       ]

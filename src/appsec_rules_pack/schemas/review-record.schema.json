@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.8.0/src/appsec_rules_pack/schemas/review-record.schema.json",
+  "$id": "https://raw.githubusercontent.com/lucashgrifoni/AppSec-Rules-Pack/v0.9.0/src/appsec_rules_pack/schemas/review-record.schema.json",
   "$comment": "Input of `appsec-rules review`: the outcome of reviewing one subject (a service, repository, or release) against one rules pack. See ADR-0006 and VERSIONING.md.",
   "title": "AppSec Rules Pack review record",
   "type": "object",
@@ -84,7 +84,7 @@
         "notes": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 480
+          "maxLength": 960
         },
         "assessed_severity": {
           "enum": ["critical", "high", "medium", "low"],

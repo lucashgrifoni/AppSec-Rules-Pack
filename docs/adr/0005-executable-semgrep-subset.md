@@ -64,6 +64,10 @@ topics retain substantial manual-review scope. The cost is maintaining an
 additional engine-version pin and fixture suite; cross-function behavior,
 allowlist proof, DNS, and runtime network controls remain outside this layer.
 
+Update 2026-10-07 (v0.9.0): a third rule, for `APPSEC-DESER-001`, follows the same
+constraints: taint mode, exact Flask sources, and a fixture with positive and negative
+cases. The decision itself is unchanged.
+
 The [layer README](../../exports/semgrep-rules/README.md) contains the supported
 API inventory, commands, full baseline coverage list, and links to Semgrep's
 official testing and taint-analysis documentation.

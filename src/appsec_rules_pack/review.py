@@ -24,6 +24,7 @@ from appsec_rules_pack.validator import (
     _schema_issues,
     _sensitive_value_issues,
     validate_rules_payload,
+    with_positions,
 )
 
 RECORD_SCHEMA = "review-record.schema.json"
@@ -101,7 +102,8 @@ def review_files(pack_path: Path, record_path: Path, *, as_of: dt.date) -> Revie
         return _failed(as_of, [_pack_invalid(len(pack_load_issues))])
     if record_load_issues:
         return _failed(as_of, list(record_load_issues), pack)
-    return review_payloads(pack, record, as_of=as_of)
+    result = review_payloads(pack, record, as_of=as_of)
+    return replace(result, issues=with_positions(result.issues, record_path))
 
 
 def review_payloads(pack: Any, record: Any, *, as_of: dt.date) -> ReviewResult:

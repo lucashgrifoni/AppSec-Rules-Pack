@@ -2,3 +2,4 @@
 # Keep this list exact; never exclude application code or the rest of exports/.
 /exports/semgrep-rules/tests/python-flask-sqlite-tainted-query.py
 /exports/semgrep-rules/tests/python-flask-requests-tainted-url.py
+/exports/semgrep-rules/tests/python-flask-unsafe-deserialization.py

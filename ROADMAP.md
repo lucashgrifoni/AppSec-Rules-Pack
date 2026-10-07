@@ -61,6 +61,18 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
   (reason, replaced_by, since), with validator consistency checks.
 
+## Delivered in v0.9.0 (2026-10-07)
+
+- Baseline version 0.9.0 with 29 rules: federated sign-in (ASVS V10), token issuance and
+  verification (V9, V11.5), a second approver for high-risk actions (V2.3), sensitive
+  data in storage and caches (V14), and safe deserialization (V1.5). Argument injection,
+  privileged-attribute binding, and retrieval-corpus sources are covered in existing rules.
+- An executable Semgrep reference rule for unsafe deserialization.
+- Issue line and column, `validate` over several paths without entering linked
+  directories, `init --id/--prefix`, longer review notes, reflowed help, and Python 3.11.
+- A CI template that checks records against your own packs and takes its gate policy
+  from variables, and an adoption feedback form for the 1.0 evidence.
+
 ## Delivered in v0.8.0 (2026-10-07)
 
 - `assessed_severity` on review results, with `effective_severity` and
@@ -94,31 +106,31 @@ statement of intent, not a delivery commitment, and is kept consistent with
 
 ## Next — Near term
 
-- Expand the baseline pack further by demand where each addition has clear evidence,
-  remediation, and validation steps. Gaps found in the lab reviews and not yet covered:
-  SSO/OIDC callback validation, service-to-service tokens, sensitive data at rest,
-  caching of sensitive responses, insecure deserialization, segregation of duties in
-  approvals, and tools that process untrusted repositories (argument injection, CI
-  workflow commands).
+- Collect adoption feedback from external users through the issue form (#29); it is
+  the remaining 1.0 criterion.
+- Expand the baseline only where a reviewed application shows a gap that no rule
+  covers; every gap found in the internal lab reviews is covered as of v0.9.0.
 - Revisit a finer per-rule applicability vocabulary (for example "makes outbound
   requests" or "has user accounts") only with evidence from external records; ADR-0009
   rejected the coarse subject type.
 
 ## Later — Mid term
 
-- Deepen the reference exports (delivered: rule index, Semgrep scaffold, SARIF rule
-  catalog, and a coverage report) — for example real Semgrep detection patterns or an
-  OPA/Rego mapping, kept strictly separate from the validator so the contract stays
-  engine-agnostic.
-- Richer mapping coverage (additional ASVS chapters and NIST SSDF task-level mapping).
+- More executable Semgrep reference rules (three as of v0.9.0: SQL injection, SSRF, and
+  unsafe deserialization), each added only with positive and negative fixtures and kept
+  separate from the validator (ADR-0005). An OPA/Rego mapping is not planned until a user
+  asks for one; the JSON reports already feed any policy engine.
+- Mapping depth stays at ASVS sections and SSDF practices (ADR-0008). v0.9.0 added ASVS
+  V1.5, V2.3, V9, V10, V11.5, and V14.3 through the new rules.
 
 ## Future — Longer term
 
-- Stabilize the expanded contract (new categories, rule lifecycle, the optional 2025
-  mapping, and the exports) and cut a `v1.0` with frozen schema guarantees once it has
-  had real-world use.
-- Promote the reference `policy-gate.yml` (which already consumes the validator JSON) to
-  an enforced required check where teams want it, with tunable severity thresholds.
+- Freeze the contract and cut `v1.0` once the external feedback criterion in
+  `docs/v1-readiness.md` is met.
+
+Delivered from earlier versions of this list: the reference gate is a required check in
+this repository, and the CI template in `examples/README.md` takes its severities,
+enforcement levels, and severity view from variables (v0.9.0).
 
 ## Explicit Non-Goals (current)
 

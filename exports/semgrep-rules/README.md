@@ -1,6 +1,6 @@
 # Executable Semgrep rules: a limited Python subset
 
-These two hand-maintained rules can run in an external Semgrep Community Edition
+These three hand-maintained rules can run in an external Semgrep Community Edition
 engine. They detect specific source-to-sink flows, not all violations of their
 baseline rules. Findings need human review; a clean scan does not demonstrate
 compliance or absence of vulnerabilities.
@@ -33,14 +33,16 @@ No account, Semgrep Registry configuration, or Pro engine is needed.
 
 ## What has executable detection
 
-Both rules recognize Python `flask.request.args` and `flask.request.form`
+All three rules recognize Python `flask.request.args` and `flask.request.form`
 subscript access and `.get(...)` calls, including the import aliases covered by
-the fixtures. Sources use `exact: true`. Taint is followed within a function;
+the fixtures. The deserialization rule also takes `request.data`, `get_data()`,
+`stream`, `files[...]`, and `cookies.get(...)` as sources. Sources use `exact: true`. Taint is followed within a function;
 only the SQL/URL argument is a sink, not other arguments to the call.
 
 | Baseline ID | Semgrep rule | Covered sink |
 | --- | --- | --- |
 | `APPSEC-INJECT-001` | `appsec-python-flask-sqlite-tainted-query` | SQL argument to `execute`, `executemany`, or `executescript` on a visible binding from `sqlite3.connect(...)` (or its `with ... as` binding), or a cursor assigned from that connection |
+| `APPSEC-DESER-001` | `appsec-python-flask-unsafe-deserialization` | Data argument to `pickle.loads`, `pickle.load`, `marshal.loads`, `yaml.unsafe_load`, or `yaml.load` without `SafeLoader` or `CSafeLoader` |
 | `APPSEC-SSRF-001` | `appsec-python-flask-requests-tainted-url` | URL argument to module-level `requests.get`, `post`, `put`, `patch`, `delete`, `head`, `options`, or `request`, including positional and `url=` forms |
 
 The SQL fixtures include f-strings, percent formatting, `.format()`,
@@ -60,12 +62,14 @@ The remaining baseline IDs have **no executable detection in this layer**:
 - `APPSEC-DEP-001`, `APPSEC-CONFIG-001`, `APPSEC-SESSION-001`
 - `APPSEC-XSS-001`, `APPSEC-CSRF-001`, `APPSEC-ENUM-001`
 - `APPSEC-MSGAUTH-001`, `APPSEC-DATAEXPO-001`, `APPSEC-MASSASSIGN-001`
-- `APPSEC-REDIRECT-001`, `APPSEC-RATELIMIT-001`
+- `APPSEC-REDIRECT-001`, `APPSEC-RATELIMIT-001`, `APPSEC-PWSTORE-001`
+- `APPSEC-AUTHZ-002`, `APPSEC-AUTHZ-003`, `APPSEC-AUTHN-002`, `APPSEC-AUTHN-003`
+- `APPSEC-LLM-001`, `APPSEC-LLM-002`, `APPSEC-LOG-002`, `APPSEC-DATAREST-001`
 
 ## Limits and review expectations
 
 - Python with Flask sources only. Other frameworks/languages, JSON bodies,
-  headers, cookies, route parameters, and sources returned by helper functions
+  headers, cookies (outside the deserialization rule), route parameters, and sources returned by helper functions
   are not modeled. A missing finding for these inputs is not a safety judgment.
 - Community Edition is tested here, with no promised cross-function or
   cross-file analysis. Wrappers, dynamically selected callables, object aliases,
@@ -83,6 +87,9 @@ The remaining baseline IDs have **no executable detection in this layer**:
   positive; a fixture records this behavior. The rule does not perform DNS,
   redirect, network-policy, or runtime destination analysis. A fixed initial
   destination can still have unsafe redirects without being reported.
+- The deserialization rule follows request data only. Bytes an attacker wrote earlier
+  to a cache, queue, or file and read back later are not modeled, and neither are
+  `dill`, `joblib`, `pandas.read_pickle`, `shelve`, or `numpy.load` with pickles.
 - Tests establish the behavior of the examples below, not measured precision
   or recall on a representative external application corpus. Expanding the
   supported APIs needs corresponding positive and negative fixtures.

@@ -56,10 +56,10 @@ a migration step. This readiness proposal does not change that policy.
 | Quality gates | Full tests pass with at least 95% branch coverage, CI property profile passes, strict pack validation and export drift checks pass | Repositories' existing gates; fresh 1.0 evidence pending |
 | Packaging and release evidence | Wheel and sdist build and metadata checks pass; SBOM root and runtime inventory pass; attestations can be verified for release artifacts | Workflow checks exist; proposed 1.0 artifacts pending |
 | Security review | Required security checks pass on the proposed head and findings are reviewed with their scope and residual risk recorded | Fresh 1.0 review pending; a green scan alone is not a safety claim |
-| External feedback | At least **3 external users** complete installation, pack validation, and a review-record workflow, with feedback recorded and material problems addressed | **Owner pending:** recruit users, collect evidence, and confirm this proposed threshold; no such feedback is asserted here |
+| External feedback | At least **3 external users** complete installation, pack validation, and a review-record workflow, with feedback recorded and material problems addressed | **Owner pending:** the owner confirmed the threshold of 3 on 2026-10-06. Feedback arrives through the `Adoption feedback` issue form; none is recorded yet, and none is asserted here |
 | Owner decision | Review the evidence, unresolved feedback, migration notes, and release checklist before authorizing a 1.0 tag | **Owner pending** |
 
-Three users is a proposed small pilot threshold, not a measured adoption count.
+Three users is a small pilot threshold, confirmed by the owner, not a measured adoption count.
 Feedback remains an owner task under issue #29. This preparation references that
 issue and does not close it.
 

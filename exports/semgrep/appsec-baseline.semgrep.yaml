@@ -52,8 +52,8 @@ rules:
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
 - id: APPSEC-INJECT-001
   message: Prevent injection into interpreters and queries - Ensure untrusted data
-    is not concatenated into SQL, NoSQL, shell commands, templates, LDAP, XPath, or
-    log formats without effective sanitization.
+    is not concatenated into SQL, NoSQL, shell commands, command arguments, templates,
+    LDAP, XPath, log formats, or CI runner command channels without effective neutralization.
   severity: ERROR
   languages:
   - generic
@@ -65,6 +65,7 @@ rules:
     cwe:
     - CWE-89
     - CWE-78
+    - CWE-88
     owasp-asvs:
     - V1.2
     owasp-api-top-10-2023:
@@ -573,6 +574,129 @@ rules:
     - V16.4
     owasp-top-10-2025:
     - A09:2025
+    nist-ssdf:
+    - PW.5
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-AUTHN-002
+  message: Validate federated sign-in responses - Verify that an application signing
+    users in through an external identity provider (OIDC, OAuth, or SAML) checks the
+    response before trusting it, so an attacker cannot forge, replay, or redirect
+    a sign-in to become another user.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-AUTHN-002
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-287
+    - CWE-347
+    owasp-asvs:
+    - V10.2
+    - V10.5
+    owasp-api-top-10-2023:
+    - API2:2023
+    owasp-top-10-2025:
+    - A07:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-AUTHN-003
+  message: Issue unguessable, expiring, audience-bound tokens - Verify that API keys,
+    service tokens, and self-contained tokens are generated with a secure random source,
+    expire, and are accepted only after their signature, algorithm, audience, and
+    validity period are checked.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-AUTHN-003
+    category: authentication
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-330
+    - CWE-613
+    owasp-asvs:
+    - V9.1
+    - V9.2
+    - V11.5
+    owasp-api-top-10-2023:
+    - API2:2023
+    owasp-top-10-2025:
+    - A07:2025
+    nist-ssdf:
+    - PW.5
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-AUTHZ-003
+  message: Require a second person for high-risk approvals - Verify that high-risk
+    business actions (payments, privilege grants, data exports, policy overrides)
+    follow their workflow on the server, and that the person who requests an approval
+    cannot approve it.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-AUTHZ-003
+    category: authorization
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-841
+    owasp-asvs:
+    - V2.3
+    owasp-api-top-10-2023:
+    - API6:2023
+    owasp-top-10-2025:
+    - A06:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-DATAREST-001
+  message: Protect sensitive data in storage and caches - Verify that sensitive records
+    are encrypted where they are stored, are not left in browser or shared caches,
+    and are deleted when they are no longer needed.
+  severity: WARNING
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-DATAREST-001
+    category: data-exposure
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-311
+    - CWE-312
+    - CWE-525
+    owasp-asvs:
+    - V14.2
+    - V14.3
+    owasp-top-10-2025:
+    - A04:2025
+    nist-ssdf:
+    - PW.1
+  pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN
+- id: APPSEC-DESER-001
+  message: Parse untrusted data only with safe parsers - Verify that data from outside
+    the trust boundary is never deserialized with a format that can create arbitrary
+    objects, and that XML parsers have external entities disabled.
+  severity: ERROR
+  languages:
+  - generic
+  metadata:
+    source-rule: APPSEC-DESER-001
+    category: integrity
+    status: enabled
+    scaffold: 'Non-runnable: replace pattern-regex with a real detection before use.'
+    cwe:
+    - CWE-502
+    - CWE-611
+    owasp-asvs:
+    - V1.5
+    owasp-top-10-2025:
+    - A08:2025
     nist-ssdf:
     - PW.5
   pattern-regex: TODO-REPLACE-WITH-DETECTION-PATTERN

@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## v0.9.0 - 2026-10-07
+
+### Upgrade notes
+
+- Baseline pack 0.9.0 adds five rules. Existing records show them as `unreviewed` with
+  `review-missing-result`, and `review-pack-version-mismatch` until `pack_version` says
+  0.9.0. The schema version is unchanged (0.7), so CLI 0.7.0 and 0.8.0 can still read it.
+- A record that uses the longer `notes` (more than 480 characters) needs CLI 0.9.0; older
+  CLIs report it as `schema-length`.
+- `APPSEC-INJECT-001` and `APPSEC-MASSASSIGN-001` ask for more evidence (see Changed);
+  revisit `met` results for those two rules.
+
+### Added
+
+- Five baseline rules, mapped against the ASVS 5.0.0 text, with examples and rows in
+  `docs/mapping-rationale.md`:
+  - `APPSEC-AUTHN-002`: validate federated sign-in responses (state or PKCE, nonce,
+    signature, issuer, audience, expiry; ASVS V10.2 and V10.5). An internal lab let any
+    user sign in as anyone through its SSO callback.
+  - `APPSEC-AUTHN-003`: unguessable, expiring, audience-bound tokens (ASVS V9.1, V9.2,
+    V11.5). The same lab derived tokens from the user id and the clock.
+  - `APPSEC-AUTHZ-003`: a second person for high-risk approvals (ASVS V2.3, API6:2023). The
+    lab let the requester approve their own privileged action.
+  - `APPSEC-DATAREST-001`: sensitive data encrypted in storage, kept out of browser and
+    shared caches, and deleted on schedule (ASVS V14.2, V14.3). Another lab stored clinical
+    notes in plain text and served them cacheable.
+  - `APPSEC-DESER-001`: parse untrusted data only with safe parsers (ASVS V1.5, CWE-502,
+    CWE-611). No internal lab has the case; it rests on ASVS and on CWE-502, whose
+    exploitation usually means code execution.
+  The baseline now has 29 rules, pack version 0.9.0.
+- An executable Semgrep rule for `APPSEC-DESER-001` under `exports/semgrep-rules/`, with
+  positive and negative fixtures.
+- Issues carry the `line` and `column` of their path, in the JSON reports of `validate` and
+  `review` and after the message in the text output.
+- `validate` takes several paths and checks duplicate rule ids across all of them.
+- `init --id` and `--prefix` set the new pack's id and rule id prefix.
+- Python 3.11 is supported and tested in CI, including with the minimum dependency versions.
+- The CI template in `examples/README.md` checks each review record against the pack it
+  names, the baseline or one of yours, and its gate takes the severities, enforcement
+  levels, and severity view to stop on from `GATE_` variables.
+- An issue form for adoption feedback, used to collect the external evidence the 1.0
+  needs (#29).
+
+### Changed
+
+- `APPSEC-INJECT-001` covers argument injection (CWE-88) and values printed to a CI
+  runner's command channel, as found in the oss-policy-kit review.
+- `APPSEC-MASSASSIGN-001` asks that privileged attributes change only through a dedicated
+  operation for callers with that privilege, never through a generic request body.
+- `APPSEC-LLM-001` asks that retrieval documents come only from approved sources, with the
+  uploader recorded.
+- `notes` on a review result holds up to 960 characters (was 480).
+- `validate` and the exports no longer enter directory symlinks or Windows junctions while
+  walking a directory.
+- Command help reflows to the terminal width instead of breaking lines mid-sentence.
+- ADR-0008 (SSDF mappings at practice level) is accepted.
+- The baseline's scope note says why privacy obligations and CI/CD, IaC, and container
+  posture stay out of it.
+
 ## v0.8.0 - 2026-10-07
 
 The baseline is unchanged (pack version 0.7.0, 24 rules). The record and report schema

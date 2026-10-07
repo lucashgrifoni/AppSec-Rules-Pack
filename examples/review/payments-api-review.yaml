@@ -4,7 +4,7 @@
 #   appsec-rules review rules/appsec-baseline.yaml examples/review/payments-api-review.yaml
 review:
   pack: appsec-baseline
-  pack_version: 0.7.0
+  pack_version: 0.9.0
   subject: payments-api (JSON API behind the public gateway)
   subject_ref: payments-api v3.2.0 (commit 3f2c9a1)
   reviewer: appsec-team
@@ -137,3 +137,30 @@ results:
     evidence:
       - Reads of card-holder records emit an audit event to the append-only audit topic.
       - tests/test_audit.py::test_cardholder_read_is_audited
+
+  - rule: APPSEC-AUTHN-002
+    status: not-applicable
+    notes: Users sign in at the gateway; the service handles no identity provider callbacks.
+
+  - rule: APPSEC-AUTHN-003
+    status: met
+    evidence:
+      - tests/test_auth.py rejects expired, unsigned, and wrong-audience tokens from the gateway.
+      - The service issues no tokens of its own.
+
+  - rule: APPSEC-AUTHZ-003
+    status: met
+    evidence:
+      - Refunds above 1,000 need a second approver; src/payments/approvals.py rejects self-approval.
+      - tests/test_refund_approval.py::test_requester_cannot_approve
+
+  - rule: APPSEC-DATAREST-001
+    status: met
+    evidence:
+      - Card numbers are tokenized by the processor; card holder names are in an encrypted column.
+      - Payment responses send Cache-Control no-store (tests/test_headers.py).
+
+  - rule: APPSEC-DESER-001
+    status: met
+    evidence:
+      - Request bodies and queue messages are parsed by pydantic models; no native deserializer reads them.
