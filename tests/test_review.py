@@ -566,3 +566,88 @@ def test_malformed_rule_id_says_what_an_id_looks_like(baseline: dict, record: di
     assert issue.message == (
         "value must be a rule id in PREFIX-AREA-NNN form, such as APPSEC-AUTHZ-001"
     )
+
+
+# --- v0.8.0: assessed severity (ADR-0009) -----------------------------------------------
+
+
+def test_assessed_severity_changes_only_the_effective_view(record: dict, tmp_path: Path) -> None:
+    entry = _entry(record, "APPSEC-LOG-001")
+    entry["assessed_severity"] = "high"
+    path = tmp_path / "record.yaml"
+    path.write_text(yaml.safe_dump(record), encoding="utf-8")
+
+    exit_code, report = _cli(str(BASELINE), str(path), "--as-of", "2026-10-05")
+
+    jsonschema.validate(report, REPORT_SCHEMA)
+    assert exit_code == 0
+    assert report["summary"]["open_by_severity"] == {"medium": 1}
+    assert report["summary"]["open_by_effective_severity"] == {"high": 1}
+    [log] = [item for item in report["results"] if item["rule_id"] == "APPSEC-LOG-001"]
+    assert (log["severity"], log["assessed_severity"], log["effective_severity"]) == (
+        "medium",
+        "high",
+        "high",
+    )
+
+
+def test_without_assessments_both_views_agree() -> None:
+    _, report = _cli(str(BASELINE), str(EXAMPLE), "--as-of", "2026-10-05")
+
+    summary = report["summary"]
+    assert summary["open_by_effective_severity"] == summary["open_by_severity"]
+    assert all(item["effective_severity"] == item["severity"] for item in report["results"])
+    assert not any("assessed_severity" in item for item in report["results"])
+
+
+def test_an_assessment_can_lower_the_effective_severity(baseline: dict, record: dict) -> None:
+    _entry(record, "APPSEC-LOG-001")["assessed_severity"] = "low"
+
+    result = review_payloads(baseline, record, as_of=AS_OF)
+
+    assert result.issues == ()
+    assert result.open_counts("severity") == {"medium": 1}
+    assert result.open_counts("effective_severity") == {"low": 1}
+
+
+def test_an_excepted_result_may_carry_an_assessment(baseline: dict, record: dict) -> None:
+    _entry(record, "APPSEC-RATELIMIT-001")["assessed_severity"] = "low"
+
+    assert review_payloads(baseline, record, as_of=AS_OF).issues == ()
+
+
+@pytest.mark.parametrize(
+    ("rule_id", "status"), [("APPSEC-AUTHZ-001", "met"), ("APPSEC-XSS-001", "not-applicable")]
+)
+def test_assessment_without_a_finding_is_an_error(
+    baseline: dict, record: dict, rule_id: str, status: str
+) -> None:
+    entry = _entry(record, rule_id)
+    assert entry["status"] == status
+    entry["assessed_severity"] = "high"
+
+    [issue] = review_payloads(baseline, record, as_of=AS_OF).issues
+
+    assert (issue.level, issue.code, issue.rule_id) == (
+        "error",
+        "review-assessed-severity-unexpected",
+        rule_id,
+    )
+    assert issue.path[-1] == "assessed_severity"
+
+
+def test_unknown_assessed_severity_is_a_schema_error(baseline: dict, record: dict) -> None:
+    _entry(record, "APPSEC-LOG-001")["assessed_severity"] = "severe"
+
+    assert _codes(review_payloads(baseline, record, as_of=AS_OF)) == ["schema-enum"]
+
+
+def test_text_output_shows_the_assessment(record: dict, tmp_path: Path) -> None:
+    _entry(record, "APPSEC-LOG-001")["assessed_severity"] = "high"
+    path = tmp_path / "record.yaml"
+    path.write_text(yaml.safe_dump(record), encoding="utf-8")
+
+    result = runner.invoke(app, ["review", str(BASELINE), str(path), "--as-of", "2026-10-05"])
+
+    [line] = [line for line in result.stdout.splitlines() if line.startswith("APPSEC-LOG-001")]
+    assert line.split() == ["APPSEC-LOG-001", "medium", "advisory", "not-met", "(assessed", "high)"]

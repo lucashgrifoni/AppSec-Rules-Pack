@@ -144,6 +144,7 @@ is open: a record can be valid and still have every rule `not-met`.
 | `review-missing-result` | warning | An enabled rule has no result; it is reported as `unreviewed` |
 | `review-evidence-missing` | error | A `met` result cites no evidence |
 | `review-justification-missing` | warning | A `not-met` or `not-applicable` result has no `notes` saying why |
+| `review-assessed-severity-unexpected` | error | A `met` or `not-applicable` result has an `assessed_severity` (ADR-0009) |
 | `review-exception-unexpected` | error | A result has an `exception` block but is not `excepted` |
 | `review-exception-missing` | error | An `excepted` result has no `exception` block |
 | `review-date-invalid` | error | A quoted date has the right shape but is not a real day, such as "2026-02-30" (unquoted, it is `yaml-invalid`) |

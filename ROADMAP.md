@@ -61,6 +61,13 @@ statement of intent, not a delivery commitment, and is kept consistent with
 - Rule lifecycle support: a `deprecated` status plus an optional `deprecation` block
   (reason, replaced_by, since), with validator consistency checks.
 
+## Delivered in v0.8.0 (2026-10-07)
+
+- `assessed_severity` on review results, with `effective_severity` and
+  `open_by_effective_severity` in the report; the rule-severity counts are unchanged.
+- ADR-0009, which also rejects a record-level subject type on evidence from the lab
+  records.
+
 ## Delivered in v0.7.0 (2026-10-06)
 
 - Baseline version 0.7.0 with 24 rules: function-level authorization, prompt injection
@@ -93,9 +100,9 @@ statement of intent, not a delivery commitment, and is kept consistent with
   caching of sensitive responses, insecure deserialization, segregation of duties in
   approvals, and tools that process untrusted repositories (argument injection, CI
   workflow commands).
-- A way to declare the kind of subject a record covers (a CLI, a GitHub Action, test
-  fixtures), so rules that cannot apply need not be justified one by one, and a finding
-  severity separate from the rule severity. Both need an ADR first.
+- Revisit a finer per-rule applicability vocabulary (for example "makes outbound
+  requests" or "has user accounts") only with evidence from external records; ADR-0009
+  rejected the coarse subject type.
 
 ## Later — Mid term
 

@@ -546,6 +546,7 @@ def _review_report(result: ReviewResult, passed: bool) -> dict:
             "rule_id": outcome.rule_id,
             "title": outcome.title,
             "severity": outcome.severity,
+            "effective_severity": outcome.effective_severity,
             "enforcement": outcome.enforcement,
             "status": outcome.status,
             "evidence": list(outcome.evidence),
@@ -553,6 +554,8 @@ def _review_report(result: ReviewResult, passed: bool) -> dict:
         }
         if outcome.notes is not None:
             entry["notes"] = outcome.notes
+        if outcome.assessed_severity is not None:
+            entry["assessed_severity"] = outcome.assessed_severity
         entry.update(outcome.extensions)
         results.append(entry)
     return {
@@ -569,6 +572,7 @@ def _review_report(result: ReviewResult, passed: bool) -> dict:
             "unreviewed": counts["unreviewed"],
             "open_by_enforcement": result.open_counts("enforcement"),
             "open_by_severity": result.open_counts("severity"),
+            "open_by_effective_severity": result.open_counts("effective_severity"),
             "errors": result.error_count,
             "warnings": result.warning_count,
             "ok": passed,
@@ -613,8 +617,10 @@ def review(
         return
 
     for outcome in result.outcomes:
+        assessed = f" (assessed {outcome.assessed_severity})" if outcome.assessed_severity else ""
         typer.echo(
-            f"{outcome.rule_id:<24} {outcome.severity:<9} {outcome.enforcement:<9} {outcome.status}"
+            f"{outcome.rule_id:<24} {outcome.severity:<9} {outcome.enforcement:<9} "
+            f"{outcome.status}{assessed}"
         )
     for issue in result.issues:
         rule = f" [{issue.rule_id}]" if issue.rule_id else ""

@@ -30,6 +30,8 @@ RECORD_SCHEMA = "review-record.schema.json"
 OPEN_STATUSES = frozenset(("not-met", "unreviewed"))
 # A rule left open or ruled out needs a reason a later reader can check.
 JUSTIFIED_STATUSES = frozenset(("not-met", "not-applicable"))
+# Only a result with a finding behind it can carry an assessed severity (ADR-0009).
+ASSESSABLE_STATUSES = frozenset(("not-met", "excepted"))
 
 
 @dataclass(frozen=True)
@@ -44,8 +46,15 @@ class RuleOutcome:
     evidence: tuple[str, ...] = ()
     notes: str | None = None
     exception: dict[str, str] | None = None
+    assessed_severity: str | None = None
     # The record's own x- fields for this rule, passed through to the report unread.
     extensions: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def effective_severity(self) -> str:
+        """The reviewer's assessed severity when the record gives one, else the rule's."""
+
+        return self.assessed_severity or self.severity
 
 
 @dataclass(frozen=True)
@@ -191,6 +200,7 @@ def review_payloads(pack: Any, record: Any, *, as_of: dt.date) -> ReviewResult:
                 evidence=tuple(entry.get("evidence", ())),
                 notes=entry.get("notes"),
                 exception=entry.get("exception"),
+                assessed_severity=entry.get("assessed_severity"),
                 extensions={key: value for key, value in entry.items() if key.startswith("x-")},
             )
         )
@@ -265,6 +275,13 @@ def _entry_issues(
                 code="review-justification-missing",
                 rule_id=rule_id,
             )
+        )
+
+    if "assessed_severity" in entry and status not in ASSESSABLE_STATUSES:
+        issue(
+            "review-assessed-severity-unexpected",
+            f"assessed_severity applies to a not-met or excepted result, not {status!r}",
+            "assessed_severity",
         )
 
     if status != "excepted":
