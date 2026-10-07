@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Baseline pack 0.9.0 adds five rules. Existing records show them as `unreviewed` with
   `review-missing-result`, and `review-pack-version-mismatch` until `pack_version` says
   0.9.0. The schema version is unchanged (0.7), so CLI 0.7.0 and 0.8.0 can still read it.
+- A record that uses the longer `notes` (more than 480 characters) needs CLI 0.9.0; older
+  CLIs report it as `schema-length`.
 - `APPSEC-INJECT-001` and `APPSEC-MASSASSIGN-001` ask for more evidence (see Changed);
   revisit `met` results for those two rules.
 
