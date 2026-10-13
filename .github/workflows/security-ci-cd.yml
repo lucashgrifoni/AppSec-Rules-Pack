@@ -97,7 +97,7 @@ jobs:
       actions: read # upload-sarif reads the workflow run via the Actions API
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -153,7 +153,7 @@ jobs:
         # CodeQL `init` downloads the analysis bundle when it is not already in
         # the runner toolcache; on a cold cache the bundle is fetched as a
         # GitHub release asset, so those hosts must be allowed.
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -191,7 +191,7 @@ jobs:
       contents: read
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -226,7 +226,7 @@ jobs:
       actions: read # upload-sarif reads the workflow run via the Actions API
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -276,7 +276,7 @@ jobs:
       actions: read # upload-sarif reads the workflow run via the Actions API
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -329,7 +329,7 @@ jobs:
         # The apk index loads from apk.cgr.dev, but package blobs are served from
         # a Cloudflare R2 bucket whose name is opaque/may rotate, so it is
         # allowed via the scoped wildcard *.r2.cloudflarestorage.com.
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -375,7 +375,7 @@ jobs:
       actions: read # upload-sarif reads the workflow run via the Actions API
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -420,7 +420,7 @@ jobs:
       pull-requests: read # gitleaks-action lists PR commits via the Pulls API on pull_request
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -462,7 +462,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -490,7 +490,7 @@ jobs:
       contents: read
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           # actionlint runs as a SHA256-digest-pinned Docker image, so its integrity is
           # fixed. Docker Hub serves image layers from dynamic CDN IPs that egress-block
@@ -514,7 +514,7 @@ jobs:
       contents: read
     steps:
       - name: Harden runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2
         with:
           egress-policy: block
           allowed-endpoints: >
