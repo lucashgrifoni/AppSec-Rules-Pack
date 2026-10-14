@@ -453,3 +453,7 @@ Participation follows the [Code of Conduct](https://github.com/lucashgrifoni/App
 privately as described in [`SECURITY.md`](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/SECURITY.md); do not open a public issue.
 
 Licensed under the [Apache License 2.0](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/LICENSE).
+
+## Repository wiki
+
+[Source-linked repository guide](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/openwiki/quickstart.md) · [OpenWiki setup and maintenance](https://github.com/lucashgrifoni/AppSec-Rules-Pack/blob/main/docs/openwiki.md).

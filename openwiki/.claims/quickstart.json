@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:db32ffd8c44f4e99e86863bd5664e27e558ab53385fc412ae04cdf3a288c2337",
+  "claims": [
+    {
+      "id": "claim_afbc61486b2743a9975268145aeea146",
+      "statement": "The package requires Python>=3.11 and registers appsec-rules as appsec_rules_pack.cli:app.",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L5-L10",
+          "version": "repo-lines-v1:sha256:99a889f769daa9781ed544b119e1f935882a1ab7cc421181833fb21af72e1923:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAyYTgxYzM4MzZlZGVmMmQwYmExMWQyMzUzZmI2ZGFiYzc3NzE1MGE3Y2E4M2VhMGQ5ZTlhNzAzMTNmZWFiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmFhZTNiMWZmMWJhZjg2MWNlMTBhNTIxMmVjZjNjNmExZWFmNWM0NWQ4NGVkYjRmZjMyMDcwZTVjYWUzOTRjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDNjNWQzZTcxYTRmMjdmNjEyMDkyNzhmZWRiMWY1OTlhMGMxOGJkMTQ5YTdjYjA2ZWIzMDRmMzhmNDI0YmI4MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTcyZjc2ODY3YmIzMGY2MTU4MDEzZmQzZmU0NmI1ZGQzMGI1Y2JlOWZmNGEzYTE5ZTkyMTkyZTM4MmZmNDViOSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L62-L63",
+          "version": "repo-lines-v1:sha256:fbb0430cfadfe5d30266cf8296515c3cef6d8ca2a1824a273976c143158ccb54:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVhYjRlYzYzZGU1MTdkYTRjZDhlNWM4MzA3ZmIyYzc3MzdkMzkxOTBhYjY5ZjMyYTVlOWVmODFlYTQ0MTZkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDkzYzgwODIyMTU3ZGJmODNmZjBlYjcwZDAyYmEzOWMxZGU3MTAyZmQ2ZGVkYzZlNTJkMDBiNWM0OTg3YjRmNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjU1MWQ5NjMxYzQ3ZWZjZDhhZmMwMmFmNTljMzM5ZWY1ZGQ2MjM5YTUyZDgyOTAxZmQ3NTZjNDU1MDU3Y2FhZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzhlNTljNTgzYzFkY2I1YWY3YTgxNGJlOTJmNWM3ZWVhODBiYWVjOTkwZTdmZDEyNGE3ZTBiYTZhMjM5N2E4MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cd364ae9c9034d97b54d2702e0c6ef00",
+      "statement": "The repository separates pack/review validation from application-code scanning and external CI enforcement.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L38-L46",
+          "version": "repo-lines-v1:sha256:a2b0e946977864387b50c86ff06c8c4a79fa578f57fff200bd534704ce2f9056:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmZlZWM4Y2IzOTMxNjVlOTUxODExOTdlYmVmZWNhNDRhNDI1NmJlZjZmNGNmYzEwZGU2ODg0MzEzNWQxZWNiNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjBmNDdmYTEzZDI5NmUzZjMwY2Q2MGU4NWNiNThkYmVjNmFkMDc1Y2YzZjA5MWQ1NmE3OTM1OGE4YjBiOGFjMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjk2YmJlZTZlZWQ2NDYwZjk3NGRkZTFmYWIxNDkxOGNkNjVkM2U0ZjAxODcxZTcwM2E2NjkwMDc2MzdlMGYyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTE3NDRiMGU4ZGJkZWQ0NTRiZjM5MmMxN2NiNGJhZjY4ODVjYTY1NWE2YTA5Y2QwNmE5MjQ3NTdlNmI4N2M3NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T19:35:44.861Z"
+  }
+}

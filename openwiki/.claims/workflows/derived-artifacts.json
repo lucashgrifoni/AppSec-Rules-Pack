@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:ecfcb4a8f844cc393cfb7c7323d2a74e4693bc1764a9e0ba9de7298d0206630c",
+  "claims": [
+    {
+      "id": "claim_76ef751f88fa4eb3a9980d63b9b19b3f",
+      "statement": "CLI exports derive metadata through separate builders rather than automatically performing pack validation.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/cli.py#L413-L495",
+          "version": "repo-lines-v1:sha256:273c36a0548213ebbe76c00a7aad826161b38dd527802681f2fd35d7d6614916:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzY2NhNDQ5Y2NhYTdjNGZkZGI4ZGUwZTkxMjRhNTc5ZTdhMzRiZDJlMWVjNTE4OGM3MDdkZGY1YjZjOWNhYzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNzAyZTdiMWJkOTRlZGNkNzM1NzJmNTU0MzQwNTFhODVkZTljYWY4YmZmZmZhMDUyOWJhOGRiMmRiZGQ1YjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMDIxOWFhOTQzYmM2YTI2N2E4ZGM1ODMxYzk3ZTNiOWQ0NTYzNTg0ZjBjZGM1YzA4ZTFhYWFhODljNTY5YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmOGE1M2I3ZDk3NGRhNTMyZDdiZGJjZjY1ZDY0OTE0NjkwMWVjNGIxNjI5Y2QyZjBiODVmMzRiNmI0YWNkNjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_73c73c94173143d8b0bc2a46c4affa25",
+      "statement": "The Semgrep scaffold emits enabled rule metadata with a placeholder detection pattern and is explicitly non-runnable.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/semgrep_scaffold.py",
+          "version": "repo-file-v1:sha256:64ead87614fe84b3e5d8170a69b91f7658f83a88b7b62a50e36fe88d57b9216d"
+        }
+      ]
+    },
+    {
+      "id": "claim_d44b5581a5d140dd88827184f50df0fd",
+      "statement": "The SARIF export is an enabled-rule descriptor catalog with an empty results array, not a zero-finding scan.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/sarif_export.py#L74-L104",
+          "version": "repo-lines-v1:sha256:5fd45d6866b105fc66c03405eb995fce0c868c704b42bee1c353593903880ab5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmOTYzZmFiMGVjZjNlYzhhNTk3ODgzZWNjZTU5NmYwYzA2NDVmYTg3NDcyOGRjZDFhYTFmMTU1ZWY4ZDZkNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjMDYxOGExMTNjYTM1YmZkMWFkZGY4NTE2YmY2NmMwYTdiNTFlOTQ4YzVhZTE3ZTAwM2UyZmM5ODgyZjI4MzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5ZjRjMjEzZTJhMGRiZTBlNjQ2MDMxNDdmYTEyMzc4ZGY3OTgyZTYyMzFiOWYxYzE2MzFmODhkNTc0Yjg5OWQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T19:35:44.861Z"
+  }
+}
