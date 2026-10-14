@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:0cb55860dc80d2fab61a65ec6013274e4b126a90bdd59663795e1b2d672acf89",
+  "claims": [
+    {
+      "id": "claim_11352823ee5f4ceaa72ea9415deccf30",
+      "statement": "Review records reject unknown/duplicate rule results and represent absent enabled-rule results as unreviewed outcomes with warnings.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/review.py#L149-L237",
+          "version": "repo-lines-v1:sha256:dfe7118886a425026cf8c133b60e198ead3f492f2f346b6af3ef5bbcb17583c8:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5MGEwYWM0MTJiOWFhMWVjY2MyN2JhMjIxODUyNTgzYTFhMTdjNjk0ZTQ1NzI1OTQ3MTM1NDIyZDEwODM5YTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExYjdmYzAxODgzZjUzZDdkMDNjMDc3M2Y5NmZmMzM3NTU0YWRlYmM0NDU5YTI0MDBhM2FkZTFmZWMzMTVjYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5MmI1MTY4NGFmMDdlMDRiMmM2NDY3MmRiMDFhZTEyYzY0OWFmZjY0ZDkxNmY4YTUzMzVhZjA4MmMyMGNiZjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_373396b0daf4490ab43b58d1b1c72690",
+      "statement": "Met results require cited evidence and excepted results must satisfy the rule exception policy and required fields.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/review.py#L245-L352",
+          "version": "repo-lines-v1:sha256:4d0234c5fa713a5c98eb869821f7c2c5e7a0723436d44d049b43f12c444db796:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlOTE4N2FhYjZmZDFkMzI5YjI1NzJjZDRiMGZjZmM0Y2I4M2I3MzJlNjY3NGQ4N2MwNzlmNzIyYzM4MTI2YzhhIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMjIxODRjZjVjNWZkZGZjM2FmZDg5ZmI5MjIxYjI0ODAwYmQ3NTNlOTE1OTQ3NmU3NmMwMDdjNWY5ZTVmN2FhIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_226c973b16e248f3a33a3dc3f7b9a9cb",
+      "statement": "Review exceptions expire at expires_at<=as_of and their duration is checked from granted_at or the review date.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/review.py#L318-L352",
+          "version": "repo-lines-v1:sha256:ec89cbb09cf62f1ce43340070319c795c35dfe5bad7b4d8b06acac920f1df3c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3OWZlYmRiMTJkMTE2MGVlNzcyNTZkMmFlY2RmNmNhNDQyZDE4ODU0MTYwM2VlYTQzNDYxYzFjZTMwNWIxMDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMjE4NGNmNWM1ZmRkZmMzYWZkODlmYjkyMjFiMjQ4MDBiZDc1M2U5MTU5NDc2ZTc2YzAwN2M1ZjllNWY3YWEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T19:35:44.861Z"
+  }
+}

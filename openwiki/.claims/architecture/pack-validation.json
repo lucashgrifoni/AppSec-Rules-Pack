@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:dc358611d18d636942b92791a4839a4c545e85e2cb6f152a26592ff01f6b717d",
+  "claims": [
+    {
+      "id": "claim_028acfa733294b19aeda86ea9671bcf3",
+      "statement": "The YAML loader rejects aliases and duplicate keys and defines a10MiB file bound before parsing.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/loader.py#L1-L53",
+          "version": "repo-lines-v1:sha256:ccd651c4dd18768745ca20b262c2aa5621468c2de63ed28bf1309453efd5e09f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5OTYwMjZjMjJmYjJkYzMwMjYzMmI2ZjJmMzBhOGJkOTBhZGJiYzFmN2JjMDc5Y2NiNWJmNmZmMDE2OWEzZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxNjM1N2ZkYjcyY2E5NDY3ODFhNmI4MWU5OTMwNzIyOGVjNTM5MDYzOWU5ZWNlMjhkMTVkNmMzMTAwMTgyMDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmZGI3ZDYwM2JlNzA3YzE1OTczMzQ5ZTM1NGIzNTk1OGQ5MTlhNWM5NGUxZjc1MzM1MTIyZGFlNTZjZDBmZWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8062f06971be4126804d560f495b5ea1",
+      "statement": "Payload validation combines schema and semantic checks, with required examples enabled only on request.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/validator.py#L264-L275",
+          "version": "repo-lines-v1:sha256:9317280f8f0bd999219ec56db3af9a433c7ebbe5158047d37eb2f92a6d7755c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5ZDk1NGVlNzE3YTljNzFlY2ViY2U1OWY0NzQxOWY5MzA2YTNjMTQ5YzU1YjMyZjNlNWMwZGM5N2ZkNzMzZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3OGYzNjFlYTNkNmViZjQ3MTQxZDI1M2JjMmNiOTBhNjA2ZjFkMDc2MDdkNmI3NDY2Zjg4MGFlMzYxY2JhNDQifQ"
+        },
+        {
+          "resource": "repo://src/appsec_rules_pack/validator.py#L479-L494",
+          "version": "repo-lines-v1:sha256:f937a0a2da48a0ab08e398f9a3cd18af2e8750f0af5e6c77769579ef68d7a1bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZjZiNzUzMGQzYzM5MzgxZGRmZDhjNjkwYjU0NGQ4NGQzNWJkNmRjZGMyNDY5OGMyODEwNzRhZTY2ZjZmNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NWE3ZDI2OThhMWRjODkzZDg1ODNmMzk0ZjEzYTk4Y2Y1MTY5MGFjZTZhMTU4ZjhlYzZhNmNiZWY0MDIyZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0Y2FkZTM0NzFkOGY1ZGI5NmVhNTRjYjRmOWZmZTIzMzg2YTZlZDM5MDdlMmYxZTdhNzA5ZGViNjA5Nzc0NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyMmM3YTg5YzRkZWQxYzdkMjUwNmI3OGRlYTdhZmJkOTQ2ODkyYjY3M2UyZjg0MTliM2ZmYmQxNWE3NGYzZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a49664001901462e92a238dda9f190a2",
+      "statement": "The CLI distinguishes error-based validation from fail-on-warnings strictness and exits1 when its selected validation policy fails.",
+      "evidence": [
+        {
+          "resource": "repo://src/appsec_rules_pack/cli.py#L379-L409",
+          "version": "repo-lines-v1:sha256:a6a760de29a05c630b7d716a76b0ec9dfe35a1531cd86ad4a7ccd71769977291:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxNjU3N2M5MGUxZWRlMzg3OGM5Zjk4MGM5NWE5YTRiNTI3OWY1ZDk3OWUwNjNiM2ZkNjIwY2E1NzM0OTU2ZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYjQ5NTFmMjAxZDU0MDUzYTQ1OWZlMjAxYjJmYjQzNWUxYmM0YzJmOTY5ZDE4YmYwZWMzYzg5ZmI5OTAwMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ1ZGE2NmQyNTkyODJiYjhkYTYxZDYxNTdmYTY2MGFiYjhlN2Q4OTIzNjE0NGVkYTRiOTdiNTFkMmY1NzhjMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMDIxOWFhOTQzYmM2YTI2N2E4ZGM1ODMxYzk3ZTNiOWQ0NTYzNTg0ZjBjZGM1YzA4ZTFhYWFhODljNTY5YjEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-14T19:35:44.861Z"
+  }
+}
