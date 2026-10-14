@@ -56,43 +56,39 @@ metadata. The Semgrep output is a clearly-labelled non-runnable scaffold and the
 output is a rule catalog with no results; the validator never executes rules or scans code
 ([ADR-0001](docs/adr/0001-engine-agnostic-validator.md)).
 
-**Repository posture:** public, verified on 2026-10-05. The `main-protection` ruleset
+**Repository posture:** public, verified on 2026-10-14. The `main-protection` ruleset
 requires one code-owner approval, approval of the latest push, an up-to-date branch, and
-fourteen status checks ([ruleset](https://github.com/lucashgrifoni/AppSec-Rules-Pack/rules/17222248)).
+sixteen status checks ([ruleset](https://github.com/lucashgrifoni/AppSec-Rules-Pack/rules/17222248)).
 The owner keeps an administrator bypass because this is a single-maintainer project; see
 the `Branch-Protection` note under Risks and limits.
 
 ## Verified checks
 
-Measured 2026-10-05 on `feat/v0.6.0`, using Windows 11 build 26300, Python
-3.12.10 (64-bit), and the project virtual environment. The release-tool
-reproduction uses the existing hash lock and a separate inventory environment.
-These local checks ran on the release branch before the tag; the published artifacts
-were verified separately, as described in the v0.6.0 release notes.
+Measured 2026-10-14 on `main` at `cef7ed8` (the 0.9.0 code plus GitHub Actions pin
+updates), using Windows 11 build 26300, Python 3.12.10 (64-bit), and a fresh virtual
+environment with the dev extras.
 
 | Check | Result |
 | --- | --- |
 | `ruff check .` | Clean |
-| `ruff format --check` on new or changed Python files | 14 files already formatted |
-| `pytest --cov=appsec_rules_pack --cov-report=term-missing` | 367 passed; 98.61% branch-aware coverage (gate 95%) |
-| `validate rules --require-examples --fail-on-warnings` | 1 file, 20 rules, 0 errors, 0 warnings |
-| `report coverage rules/appsec-baseline.yaml` | ASVS, CWE, SSDF: 20/20; API Top 10 and Top 10:2025: 19/20 each |
-| `exports/` regeneration | All three exports regenerated; byte-comparison drift tests pass |
-| `python -m build` | `appsec_rules_pack-0.6.0` wheel and source distribution built |
-| `twine check dist/*` | All four local distributions passed, including the new 0.6.0 wheel and sdist |
+| `ruff format --check .` | 86 files already formatted; ruff 0.17.0 would reformat `tests/test_lifecycle_and_mappings.py` (CI does not run the formatter) |
+| `pytest --cov=appsec_rules_pack --cov-branch` | 444 passed, 1 skipped; 98% branch-aware coverage (gate 95%), including the export drift tests |
+| `validate rules --require-examples --fail-on-warnings` | 1 file, 29 rules, 0 errors, 0 warnings |
+| `report coverage rules/appsec-baseline.yaml` | CWE and SSDF: 29/29; ASVS 5.0: 28/29; Top 10:2025: 26/29; API Top 10: 23/29; LLM Top 10: 2/29 |
+| `python -m build` | `appsec_rules_pack-0.9.0` wheel and source distribution built |
+| `twine check` | Both distributions passed |
 | Property harness, `HYPOTHESIS_PROFILE=ci` | 9 properties passed |
-| `actionlint .github/workflows/publish-pypi.yml` | Clean |
-| Hash-locked `build --no-isolation` | 0.6.0 wheel and sdist built |
-| SBOM construction and gate | Root `appsec-rules-pack` / `0.6.0` / `pkg:pypi/appsec-rules-pack@0.6.0`; 16 runtime components on Windows; no pip, setuptools, or wheel; component inventory and dependency graph preserved |
-| Installed-wheel CLI | Version 0.6.0; strict baseline validation passed |
-| Repository visibility | Public on 2026-10-05 |
 
-Remote evidence for the v0.6.0 changes (pull request #49, head `dd74e08`):
-[CI 37337344267](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37337344267)
-and [Security CI/CD 37337344302](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37337344302)
-passed with all 23 checks, including the 14 required ones, and a manual
-[release-workflow run 37335966457](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/37335966457)
-passed `verify` and `build` on that head, with publication skipped by design.
+The published 0.9.0 artifacts were verified on 2026-10-07: build-provenance attestations
+for the wheel, sdist, SBOM and baseline online and offline, SBOM root
+`pkg:pypi/appsec-rules-pack@0.9.0`, and the CLI installed from PyPI validating the
+release baseline.
+
+Remote evidence on `main` at `cef7ed8`:
+[CI 38570599655](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/38570599655)
+(8 of 8 jobs passed) and
+[Security CI/CD 38570599636](https://github.com/lucashgrifoni/AppSec-Rules-Pack/actions/runs/38570599636)
+(10 passed, 1 skipped by design).
 
 Release history and prior end-user installation checks are documented in
 [`CHANGELOG.md`](CHANGELOG.md). See the README's release-verification instructions for
